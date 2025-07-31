@@ -1,0 +1,15 @@
+:root {
+  --black-color: #1e1e1e;
+  --grey-color: 	#B6BEC7;
+  --white-color: 	#F3F5F6;
+  --lightwhite-color:#FDFDFD;
+  --main-color: #5bb8f7;
+  --secondary-color: 	#2c3e50;
+  --contrast-color:	#cf6100;
+}
+*{
+  font-family: "Noto Sans TC", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
