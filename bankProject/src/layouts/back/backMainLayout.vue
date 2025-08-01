@@ -52,9 +52,9 @@
           <span class="mdi mdi-logout"></span>
         </div>
       </div>
-     <div class="main">
-         <router-view></router-view>
-     </div>
+      <div class="main">
+        <router-view></router-view>
+      </div>
     </div>
   </div>
 </template>
