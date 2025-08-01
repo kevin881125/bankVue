@@ -6,47 +6,76 @@ export const useMemberStore = defineStore(
   () => {
     const memberInfo = ref({
       isLoggedIn: false,
+      mId: -1,
+      mName: "",
+      mIdentity: "",
+      mGender: "",
+      mAddress: "",
+      mPhone: "",
+      mEmail: "",
       token: "",
-      memberName: "",
-      memberPhoto: "",
-      memberId: -1,
     });
 
     // actions
-    const login = (jwtToken, memberName, memberPhoto, memberId) => {
+    const login = (
+      mId,
+      mName,
+      mIdentity,
+      mGender,
+      mAddress,
+      mPhone,
+      mEmail,
+      token
+    ) => {
       memberInfo.value.isLoggedIn = true;
-      memberInfo.value.memberId = memberId;
-      memberInfo.value.token = jwtToken;
-      memberInfo.value.memberName = memberName;
-      memberInfo.value.memberPhoto = memberPhoto;
+      memberInfo.value.mId = mId;
+      memberInfo.value.mName = mName;
+      memberInfo.value.mIdentity = mIdentity;
+      memberInfo.value.mGender = mGender;
+      memberInfo.value.mAddress = mAddress;
+      memberInfo.value.mPhone = mPhone;
+      memberInfo.value.mEmail = mEmail;
+      memberInfo.value.token = token;
     };
 
     const logout = () => {
       memberInfo.value = {
         isLoggedIn: false,
+        mId: -1,
+        mName: "",
+        mIdentity: "",
+        mGender: "",
+        mAddress: "",
+        mPhone: "",
+        mEmail: "",
         token: "",
-        memberName: "",
-        memberPhoto: "",
-        memberId: -1,
       };
     };
 
     // getters
     const isLoggedIn = computed(() => memberInfo.value.isLoggedIn);
-    const memberName = computed(() => memberInfo.value.memberName);
+    const mId = computed(() => memberInfo.value.mId);
+    const mName = computed(() => memberInfo.value.mName);
+    const mIdentity = computed(() => memberInfo.value.mIdentity);
+    const mGender = computed(() => memberInfo.value.mGender);
+    const mAddress = computed(() => memberInfo.value.mAddress);
+    const mPhone = computed(() => memberInfo.value.mPhone);
+    const mEmail = computed(() => memberInfo.value.mEmail);
     const token = computed(() => memberInfo.value.token);
-    const memberPhoto = computed(() => memberInfo.value.memberPhoto);
-    const memberId = computed(() => memberInfo.value.memberId);
 
     return {
       memberInfo,
       login,
       logout,
       isLoggedIn,
-      memberName,
+      mId,
+      mName,
+      mIdentity,
+      mGender,
+      mAddress,
+      mPhone,
       token,
-      memberPhoto,
-      memberId,
+      mEmail
     };
   },
   {

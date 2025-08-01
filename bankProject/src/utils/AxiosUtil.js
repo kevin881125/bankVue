@@ -4,7 +4,7 @@ const memberStore = useMemberStore();
 
 // === 建立 apiService 物件，設定基礎屬性 ===
 const apiService = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "http://localhost:8080/bank",
 });
 
 // === 請求攔截器 ===
@@ -14,14 +14,12 @@ apiService.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+   if (!config.headers['Content-Type']) {
+    config.headers['Content-Type'] = 'application/json';
+  }
+ 
 
-  const defaultConfig = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-
-  return { ...defaultConfig, ...config };
+  return config;
 });
 
 // === 回應攔截器 ===

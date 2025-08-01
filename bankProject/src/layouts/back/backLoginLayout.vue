@@ -2,13 +2,21 @@
   <div class="contain">
     <div class="login-container">
       <h2>登入</h2>
-      <form action="/login" method="post">
+      <form @submit.prevent="doLogin">
         <div class="form-group">
+          <label for="mIdentity">身分證</label>
+          <input
+            type="text"
+            id="mIdentity"
+            name="mIdentity"
+            placeholder="輸入帳號"
+            required
+          />
           <label for="username">帳號</label>
           <input
             type="text"
-            id="username"
-            name="username"
+            id="mAccount"
+            name="mAccount"
             placeholder="輸入帳號"
             required
           />
@@ -17,8 +25,8 @@
           <label for="password">密碼</label>
           <input
             type="password"
-            id="password"
-            name="password"
+            id="mPassword"
+            name="mPassword"
             placeholder="輸入密碼"
             required
           />
@@ -29,7 +37,56 @@
     </div>
   </div>
 </template>
-<script setup></script>
+<script setup>
+  import { request } from "@/utils/AxiosUtil"; // 你剛才寫的 axios service
+  import { useMemberStore } from "@/stores/MemberStore";
+  import  router  from "@/router/index"
+
+
+  const memberStore = useMemberStore();
+
+  const doLogin = async (mIdentity, mAccount,mPassword) => {
+    
+    try {
+      const response = await request({
+        url: "/auth/login",
+        method: "POST",
+        data: {
+           "mIdentity":mIdentity,
+            "mAccount":mAccount,
+            "mAccount":mPassword
+        }
+      });
+      console.log(response);
+      
+
+
+    // memberStore.login(
+    //   mId,
+    //   mName,
+    //   mIdentity,
+    //   mGender,
+    //   mAddress,
+    //   mPhone,
+    //   mEmail,
+    //   token
+    // );
+
+    router.push("/backmain");
+
+  } catch (error) {
+    alert("登入失敗，請確認帳號密碼");
+    console.error(error);
+  }
+};
+
+
+
+
+
+
+
+</script>
 <style scoped>
 * {
   box-sizing: border-box;
