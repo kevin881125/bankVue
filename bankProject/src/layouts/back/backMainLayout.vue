@@ -59,7 +59,13 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { useMemberStore } from "@/stores/MemberStore";
+const memberStore = useMemberStore();
+console.log(memberStore.mId);
+
+</script>
+
 
 <style scoped>
 * {

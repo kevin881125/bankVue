@@ -4,11 +4,19 @@
       <h2>登入</h2>
       <form @submit.prevent="doLogin">
         <div class="form-group">
+          <label for="mIdentity">身分證</label>
+          <input
+            type="text"
+            id="mIdentity"
+            v-model="mIdentity"
+            placeholder="輸入帳號"
+            required
+          />
           <label for="username">帳號</label>
           <input
             type="text"
             id="mAccount"
-            v-model="wAccount"
+            v-model="mAccount"
             placeholder="輸入帳號"
             required
           />
@@ -18,7 +26,7 @@
           <input
             type="password"
             id="mPassword"
-            v-model="wPassword"
+            v-model="mPassword"
             placeholder="輸入密碼"
             required
           />
@@ -30,16 +38,16 @@
   </div>
 </template>
 <script setup>
-  import { request } from "@/utils/AxiosUtil"; 
-  import { useMemberStore } from "@/stores/Worker";
+  import { request } from "@/utils/AxiosUtil"; // 你剛才寫的 axios service
+  import { useWorkerStore } from "@/stores/MemberStore";
   import {ref} from "vue";
   import  router  from "@/router/index";
 
 
 
-  const memberStore = useMemberStore();
-  const wAccount = ref('')
-  const wPassword = ref('')
+  const workerStore = useWorkerStore();
+  const mAccount = ref('')
+  const mPassword = ref('')
 
 
   const doLogin = async ()=>{
