@@ -1,7 +1,7 @@
 export default [
   {
-     path: "",
-      component: () => import("@/views/back/")
+     path: "account",
+      component: () => import("@/views/back/account/account.vue")
   }
 ]
 

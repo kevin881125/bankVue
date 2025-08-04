@@ -1,7 +1,7 @@
 export default [
   {
-     path: "",
-      component: () => import("@/views/back/")
+     path: "creditCard",
+      component: () => import("@/views/back/creditCard/creditCard.vue")
   }
 ]
 

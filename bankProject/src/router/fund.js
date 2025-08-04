@@ -1,7 +1,7 @@
 export default [
   {
-     path: "",
-      component: () => import("@/views/back/")
+     path: "fund",
+      component: () => import("@/views/back/fund/fund.vue")
   }
 ]
 

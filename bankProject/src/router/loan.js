@@ -1,7 +1,7 @@
 export default [
   {
-     path: "",
-      component: () => import("@/views/back/")
+     path: "loan",
+      component: () => import("@/views/back/loan/loan.vue")
   }
 ]
 

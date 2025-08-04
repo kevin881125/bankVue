@@ -15,22 +15,22 @@
           >
         </li>
         <li>
-          <router-link to="/profile">
+          <router-link to="/backmain/account">
             <span class="mdi mdi-piggy-bank"></span>帳戶管理</router-link
           >
         </li>
         <li>
-          <router-link to="/profile">
+          <router-link to="/backmain/creditCard">
             <span class="mdi mdi-credit-card"></span>信用卡管理</router-link
           >
         </li>
         <li>
-          <router-link to="/profile">
+          <router-link to="/backmain/loan">
             <span class="mdi mdi-cash"></span>貸款管理</router-link
           >
         </li>
         <li>
-          <router-link to="/profile">
+          <router-link to="/backmain/fund">
             <span class="mdi mdi-bank"></span>基金管理</router-link
           >
         </li>
