@@ -50,10 +50,7 @@ const doLogin = async () => {
       },
     });
 
-    const response = await request({
-      url: "/auth/backlogin",
-      method: "POST",
-    });
+
 
     workerStore.login(
       response.wid,
@@ -63,7 +60,7 @@ const doLogin = async () => {
     );
 
     console.log(workerStore.wId);
-    router.push("/backmain");
+    router.push("/backmain/member");
   } catch (error) {
     alert("登入失敗，請確認帳號密碼");
     console.error(error);
