@@ -48,8 +48,11 @@
           <div class="photo">
             <img src="" alt="" />
           </div>
-          <div class="name">陳凱文</div>
-          <span class="mdi mdi-logout"></span>
+          <div class="name">{{ wName }}</div>
+          <span>{{ wAccount }}</span>
+          <button @click="signOut">
+            <span class="mdi mdi-logout"></span>
+          </button>
         </div>
       </div>
       <div class="main">
@@ -60,12 +63,22 @@
 </template>
 
 <script setup>
-import { useMemberStore } from "@/stores/MemberStore";
-const memberStore = useMemberStore();
-console.log(memberStore.mId);
+import { useWorkerStore } from "@/stores/Worker";
+import { ref } from "vue";
+import router from "@/router/index";
 
+const workerStore = useWorkerStore();
+
+const wName = ref(workerStore.wName);
+const wAccount = ref(workerStore.wAccount);
+
+const signOut = () => {
+  workerStore.logout();
+  console.log(workerStore.wId);
+
+  router.push("/backLogin");
+};
 </script>
-
 
 <style scoped>
 * {

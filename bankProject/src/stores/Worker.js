@@ -6,37 +6,28 @@ export const useWorkerStore = defineStore(
   () => {
     const workerInfo = ref({
       isLoggedIn: false,
-      wId:-1,
-      wName:"",
-      wAccount:"",
-      wPassword:"",
+      wId: -1,
+      wName: "",
+      wAccount: "",
       token: "",
     });
 
     // actions
-    const login = (
-      wId,
-      wName,
-      wAccount,
-      wPassword,
-      token
-    ) => {
+    const login = (wId, wName, wAccount, token) => {
       workerInfo.value.isLoggedIn = true;
       workerInfo.value.wId = wId;
       workerInfo.value.wName = wName;
       workerInfo.value.wAccount = wAccount;
-      workerInfo.value.wPassword = wPassword;
       workerInfo.value.token = token;
     };
 
     const logout = () => {
-      memberInfo.value = {
+      workerInfo.value = {
         isLoggedIn: false,
         wId: -1,
         wName: "",
         wAccount: "",
-        wPassword: "",
-        token: ""
+        token: "",
       };
     };
 
@@ -45,9 +36,7 @@ export const useWorkerStore = defineStore(
     const wId = computed(() => workerInfo.value.wId);
     const wName = computed(() => workerInfo.value.wName);
     const wAccount = computed(() => workerInfo.value.wAccount);
-    const wPassword = computed(() => workerInfo.value.wPassword);
     const token = computed(() => workerInfo.value.token);
-
 
     return {
       workerInfo,
@@ -57,7 +46,6 @@ export const useWorkerStore = defineStore(
       wId,
       wName,
       wAccount,
-      wPassword,
       token,
     };
   },

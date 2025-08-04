@@ -30,64 +30,45 @@
   </div>
 </template>
 <script setup>
-  import { request } from "@/utils/AxiosUtil"; 
-  import { useMemberStore } from "@/stores/Worker";
-  import {ref} from "vue";
-  import  router  from "@/router/index";
+import { request } from "@/utils/BackAxiosUtil";
+import { useWorkerStore } from "@/stores/Worker";
+import { ref } from "vue";
+import router from "@/router/index";
 
+const workerStore = useWorkerStore();
+const wAccount = ref("");
+const wPassword = ref("");
 
+const doLogin = async () => {
+  try {
+    const response = await request({
+      url: "/auth/backlogin",
+      method: "POST",
+      data: {
+        mAccount: wAccount.value,
+        mPassword: wPassword.value,
+      },
+    });
 
-  const memberStore = useMemberStore();
-  const wAccount = ref('')
-  const wPassword = ref('')
+    const response = await request({
+      url: "/auth/backlogin",
+      method: "POST",
+    });
 
-
-  const doLogin = async ()=>{
-    try {
-      const response = await request({
-        url: "/auth/login",
-        method: "POST",
-        data: {
-           "mIdentity":mIdentity.value,
-            "mAccount":mAccount.value,
-            "mPassword":mPassword.value
-        }
-      });
-      console.log(response);
-
-
-      console.log(response.mid);
-      console.log(memberStore);
-      
-      
-
-
-    memberStore.login(
-      response.mid,
-      response.mname,
-      response.midentity,
-      response.mgender,
-      response.maddress,
-      response.mphone,
-      response.memail,
+    workerStore.login(
+      response.wid,
+      response.wname,
+      response.waccount,
       response.token
     );
 
-    console.log(memberStore.mId);
-    router.push('/backmain');
-
+    console.log(workerStore.wId);
+    router.push("/backmain");
   } catch (error) {
     alert("登入失敗，請確認帳號密碼");
     console.error(error);
   }
 };
-
-
-
-
-
-
-
 </script>
 <style scoped>
 * {

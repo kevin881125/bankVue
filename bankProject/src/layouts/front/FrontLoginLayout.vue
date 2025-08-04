@@ -38,37 +38,30 @@
   </div>
 </template>
 <script setup>
-  import { request } from "@/utils/AxiosUtil"; // 你剛才寫的 axios service
-  import { useWorkerStore } from "@/stores/MemberStore";
-  import {ref} from "vue";
-  import  router  from "@/router/index";
+import { request } from "@/utils/AxiosUtil"; // 你剛才寫的 axios service
+import { useMemberStore } from "@/stores/MemberStore";
+import { ref } from "vue";
+import router from "@/router/index";
 
+const memberStore = useMemberStore();
+const mAccount = ref("");
+const mPassword = ref("");
 
+const doLogin = async () => {
+  try {
+    const response = await request({
+      url: "/auth/login",
+      method: "POST",
+      data: {
+        mIdentity: mIdentity.value,
+        mAccount: mAccount.value,
+        mPassword: mPassword.value,
+      },
+    });
+    console.log(response);
 
-  const workerStore = useWorkerStore();
-  const mAccount = ref('')
-  const mPassword = ref('')
-
-
-  const doLogin = async ()=>{
-    try {
-      const response = await request({
-        url: "/auth/login",
-        method: "POST",
-        data: {
-           "mIdentity":mIdentity.value,
-            "mAccount":mAccount.value,
-            "mPassword":mPassword.value
-        }
-      });
-      console.log(response);
-
-
-      console.log(response.mid);
-      console.log(memberStore);
-      
-      
-
+    console.log(response.mid);
+    console.log(memberStore);
 
     memberStore.login(
       response.mid,
@@ -82,20 +75,12 @@
     );
 
     console.log(memberStore.mId);
-    router.push('/backmain');
-
+    router.push("/backmain");
   } catch (error) {
     alert("登入失敗，請確認帳號密碼");
     console.error(error);
   }
 };
-
-
-
-
-
-
-
 </script>
 <style scoped>
 * {
