@@ -21,6 +21,9 @@ onMounted(async () => {
 });
 </script>
 <style scoped>
+*{
+  box-sizing: border-box;
+}
 table {
   width: 100%;
   height: 100%;
@@ -48,7 +51,7 @@ th{
 }
 .search {
   width: 100%;
-  height: 15%;
+  height: calc(15% - 10px) ;
   background-color: #ffffff;
   margin-bottom: 10px;
   box-shadow: 0 4px 12px rgba(83, 83, 83, 0.1);
