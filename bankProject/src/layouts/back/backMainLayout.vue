@@ -3,7 +3,7 @@
     <div class="leftbar">
       <div class="icon">
         <img
-          style="width: 250px; height: 250px"
+          style="width: 150px; height: 150px"
           src="../../image/logo_black.svg"
           alt=""
         />
@@ -48,9 +48,8 @@
           <div class="photo">
             <img src="" alt="" />
           </div>
-          <div class="name">{{ wName }}</div>
-          <span>{{ wAccount }}</span>
-          <button @click="signOut">
+          <div class="name">{{ wName }}:{{ wAccount }}</div>
+          <button class="outbtn" @click="signOut">
             <span class="mdi mdi-logout"></span>
           </button>
         </div>
@@ -98,11 +97,12 @@ const signOut = () => {
   background-color: var(--white-color);
 }
 .leftbar {
-  width: 300px;
+  width: 250px;
   height: 100%;
   border-radius: 0 0 50px 0;
   background-color: var(--grey-color);
   border-radius: 20px 0 0 20px;
+  box-shadow: -5px 0 3px rgba(0,0,0,0.1);
 }
 .rightArea {
   width: calc(100% - 80px);
@@ -116,12 +116,13 @@ const signOut = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--lightwhite-color);
 }
 .rightTop-right {
   width: 50%;
+  height: 100%;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   padding-right: 10px;
 }
 
@@ -131,14 +132,14 @@ const signOut = () => {
 .name {
   display: flex;
   align-items: center;
-  font-size: 50px;
+  font-size: 30px;
   padding: 0 20px;
 }
 .photo {
-  width: 80px;
-  height: 80px;
+  width: 50px;
+  height: 65%;
   border-radius: 50%;
-  background-color: #c01a1a;
+  background-color: #616161;
   margin-right: 10px;
 }
 .title {
@@ -149,8 +150,9 @@ const signOut = () => {
 
 .main {
   height: calc(92% - 10px);
-  width: calc(85% - 10px);
+  width: 100%;
   padding: 10px;
+  overflow: auto;
 }
 .icon {
   width: 100%;
@@ -162,21 +164,25 @@ ul {
 }
 li {
   width: 100%;
-  height: 100px;
+  height: 80px;
+
   list-style: none;
+  &:hover{
+    background-color: #f5f5f5;
+    border-right: 10px solid orange;
+  }
 }
 a {
   list-style: none;
   text-decoration: none;
-  font-size: 28px;
+  font-size: 20px;
   display: inline-block;
   width: 100%;
   height: 100%;
-  color: black;
-  padding-left: 40px;
-  padding-top: 20px;
+  padding-left: 50px;
+  padding-top: 30px;
   font-weight: 300;
-  color: var(--lightwhite-color);
+  color: rgb(0, 0, 0);
 }
 a > span {
   margin-right: 12px;
@@ -185,5 +191,8 @@ a > span {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.outbtn:hover{
+  color:orange;
 }
 </style>
