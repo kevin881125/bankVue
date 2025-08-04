@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 import memeber  from "@/router/member"
-// import account  from "@/router/account"
-// import loan  from "@/router/loan"
-// import creditCard  from "@/router/creditCard"
-// import fund  from "@/router/fund"
+import account  from "@/router/account"
+import loan  from "@/router/loan"
+import creditCard  from "@/router/creditCard"
+import fund  from "@/router/fund"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,11 +14,11 @@ const router = createRouter({
       path: "/backmain",
       component: () => import("@/layouts/back/backMainLayout.vue"),
       children: [
-         ...memeber
-        //  ...account,
-        //  ...loan,
-        //  ...creditCard,
-        //  ...fund
+         ...memeber,
+         ...account,
+         ...loan,
+         ...creditCard,
+         ...fund
         
       ],
     },
