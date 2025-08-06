@@ -1,5 +1,34 @@
 <template >
     <div>信用卡管理</div>
+   
+  <v-container class="text-center">
+    <v-row justify="center">
+      <v-col cols="12" md="4" sm="6">
+        <v-btn rounded="xl" size="x-large" block to="/backmain/creditCard/review" tag="router-link">審核信用卡</v-btn>
+      </v-col>
+
+      <v-col cols="12" md="4" sm="6">
+        <v-btn rounded="xl" size="x-large" block>Rounded xs</v-btn>
+      </v-col>
+
+      <v-col cols="12" md="4" sm="6">
+        <v-btn rounded="xl" size="x-large" block>Rounded sm</v-btn>
+      </v-col>
+
+      <v-col cols="12" md="4" sm="6">
+        <v-btn rounded="xl" size="x-large" block>Button</v-btn>
+      </v-col>
+
+      <v-col cols="12" md="4" sm="6">
+        <v-btn rounded="xl" size="x-large" block>Rounded lg</v-btn>
+      </v-col>
+
+      <v-col cols="12" md="4" sm="6">
+        <v-btn rounded="xl" size="x-large" block>Rounded xl</v-btn>
+      </v-col>
+    </v-row>
+  </v-container>
+
 </template>
 <script setup>
 
