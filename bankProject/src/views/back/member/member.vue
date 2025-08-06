@@ -42,22 +42,71 @@
           <th>修改</th>
         </tr>
       </thead>
-      <memberRow v-for="m in members" :member="m" @click="openModal" ></memberRow>
+      <memberRow
+        v-for="m in members"
+        :member="m"
+        @click="openModal"
+        @edit="edit"
+      ></memberRow>
     </table>
   </div>
 
-    <div class="modal" v-if="showModal">
-      <div class="modal-content">
-        <h3>詳細資料</h3>
-        <p>{{memberdetail.mId}}</p>
-        <p>信箱：</p>
-        <p>電話：</p>
-        <button @click="showModal = false">關閉</button>
-      </div>
-    </div>
+  <div class="modal" v-if="showModal">
+    <div class="modal-content" v-if="!isEditing">
+      <h3>詳細資料</h3>
+      <p>編號</p>
+      <p>{{ memberdetail.mId }}</p>
+      <p>姓名</p>
+      <p>{{ memberdetail.mName }}</p>
+      <p>身分證</p>
+      <p>{{ memberdetail.mIdentity }}</p>
+      <p>性別</p>
+      <p>{{ memberdetail.mGender }}</p>
+      <p>帳號</p>
+      <p>{{ memberdetail.mAccount }}</p>
+      <p>密碼</p>
+      <p>{{ memberdetail.mPassword }}</p>
+      <p>地址</p>
+      <p>{{ memberdetail.mAddress }}</p>
+      <p>電話</p>
+      <p>{{ memberdetail.mPhone }}</p>
+      <p>生日</p>
+      <p>{{ memberdetail.mBirthday }}</p>
+      <p>信箱</p>
+      <p>{{ memberdetail.mEmail }}</p>
+      <p>創建日期</p>
+      <p>{{ memberdetail.creation }}</p>
+      <p>狀態</p>
+      <p>{{ memberdetail.mState }}</p>
 
-  <div class="pagination"> 
-    <button @click="changePage(condition.currentPage - 1)" :disabled="condition.currentPage === 1">
+      <button @click="showModal = false">關閉</button>
+      <button @click="edit2">編輯</button>
+    </div>
+    <div class="modal-content" v-else>
+      <h3>詳細資料</h3>
+      <p>{{ memberdetail.mId }}</p>
+      <input type="text" v-model="memberdetail.mName" />
+      <p>{{ memberdetail.mIdentity }}</p>
+      <p>{{ memberdetail.mGender }}</p>
+      <p>{{ memberdetail.mAccount }}</p>
+      <p>{{ memberdetail.mPassword }}</p>
+      <input type="text" v-model="memberdetail.mAddress" />
+      <p>{{ memberdetail.mPhone }}</p>
+      <p>{{ memberdetail.mBirthday }}</p>
+      <p>{{ memberdetail.mEmail }}</p>
+      <p>{{ memberdetail.creation }}</p>
+      <p>{{ memberdetail.mState }}</p>
+
+      <button @click="showModal = false">關閉</button>
+      <button @click="editok()">確認更改</button>
+    </div>
+  </div>
+  <p>{{ memberdetail }}</p>
+  <div class="pagination">
+    <button
+      @click="changePage(condition.currentPage - 1)"
+      :disabled="condition.currentPage === 1"
+    >
       上一頁
     </button>
 
@@ -77,7 +126,6 @@
       下一頁
     </button>
   </div>
-  
 </template>
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
@@ -96,33 +144,33 @@ const condition = ref({
   birthday: null,
   startDate: null,
   endDate: null,
-  currentPage:1,
-  pageSize:10
+  currentPage: 1,
+  pageSize: 10,
 });
 const statedata = ref({});
 statedata.value = { 正常: 1, 停權: 0 };
-
+const isEditing = ref(false);
 const serch = async () => {
   const data = await request({
     url: "/member/search",
     method: "GET",
-    params: condition.value
+    params: condition.value,
   });
   data.content.forEach((item) => {
     item.mBirthday = item.mBirthday.slice(0, 10);
   });
   members.value = data.content;
-  
-  condition.value.currentPage = data.number+1;
+
+  condition.value.currentPage = data.number + 1;
   totalItems.value = data.totalElements;
   totalPages.value = data.totalPages;
 };
 
 onMounted(async () => {
   const data = await request({ url: "/member/search", method: "GET" });
-   members.value = data.content ;
-   members.value.forEach((item) => {
-  item.mBirthday = item.mBirthday.slice(0, 10);
+  members.value = data.content;
+  members.value.forEach((item) => {
+    item.mBirthday = item.mBirthday.slice(0, 10);
   });
   totalItems.value = data.totalElements;
   totalPages.value = data.totalPages;
@@ -133,32 +181,41 @@ const changePage = (page) => {
     condition.value.currentPage = page;
     serch();
   }
-}
+};
 const openModal = async (member) => {
+  const data = await request({ url: "/member/" + member.mId, method: "GET" });
 
-  const data = await request({ url: "/member/"+member.mId, method: "GET" });
-  
-  memberdetail.value=data;
+  memberdetail.value = data;
   console.log(memberdetail.value);
   showModal.value = true;
-
+  isEditing.value = false;
 };
+const edit2 = () => {
+  showModal.value = true;
+  isEditing.value = true;
+};
+const edit = async (member) => {
+  const data = await request({ url: "/member/" + member.mId, method: "GET" });
 
+  memberdetail.value = data;
+  console.log(memberdetail.value);
 
+  showModal.value = true;
+  isEditing.value = true;
+};
+const editok = async () => {
+  console.log(memberdetail.value.mId);
+  const data = await request({
+    url: "/member/" + memberdetail.value.mId,
+    method: "POST",
+    data: memberdetail.value,
+  });
+  console.log(data);
 
-
-
-
-
-
-
-
+  memberdetail.value = data;
+  isEditing.value = false;
+};
 </script>
-
-
-
-
-
 
 <style scoped>
 * {

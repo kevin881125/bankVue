@@ -9,29 +9,33 @@
     <td>{{ member.mEmail }}</td>
     <td>{{ member.mState }}</td>
     <td>
-      <button class="look" @click="viewDetail"><span class="mdi mdi-eye"></span></button>
+      <button class="look" @click="viewDetail">
+        <span class="mdi mdi-eye"></span>
+      </button>
     </td>
     <td>
-      <button class="edit" ><span class="mdi mdi-lead-pencil"></span></button>
+      <button class="edit" @click="viewEdit">
+        <span class="mdi mdi-lead-pencil"></span>
+      </button>
     </td>
   </tr>
 </template>
 <script setup>
-import { defineProps ,defineEmits ,ref } from "vue";
-
+import { defineProps, defineEmits, ref } from "vue";
 
 const props = defineProps({
   member: {
     type: Object,
-    
   },
 });
 
-
-const emit = defineEmits(['click']);
+const emit = defineEmits(["click", "edit"]);
 
 const viewDetail = () => {
-  emit('click', props.member);
+  emit("click", props.member);
+};
+const viewEdit = () => {
+  emit("edit", props.member);
 };
 </script>
 <style scoped>
@@ -50,7 +54,6 @@ td {
   color: rgb(156, 156, 156);
   font-weight: 350;
   text-align: center;
-  
 }
 .look {
   width: 80%;
@@ -74,5 +77,4 @@ td {
     background-color: #fff;
   }
 }
-
 </style>
