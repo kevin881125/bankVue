@@ -4,6 +4,7 @@
       <v-container>
         <!-- 查詢區 -->
         <v-row>
+          <v-col cols="12" sm="1">搜尋:</v-col>
           <v-col cols="12" sm="2">
             <v-text-field v-model="filters.mId" label="客戶編號"></v-text-field>
           </v-col>
@@ -24,19 +25,56 @@
           </v-col>
           <v-col cols="12" sm="2">
             <v-text-field
-              v-model="search"
+              v-model="filters.mName"
               label="姓名搜尋"
-              append-inner-icon="mdi-magnify"
             ></v-text-field>
           </v-col>
-          <v-col cols="12" sm="2">
-            <v-btn @click="fetchAccounts" variant="plain">查詢</v-btn>
+          <v-col cols="12" sm="1" class="d-flex align-center">
+            <v-btn
+              @click="fetchAccounts"
+              variant="plain"
+              size="large"
+              class="px-6"
+              prepend-icon="mdi-magnify"
+              >查詢</v-btn
+            >
           </v-col>
         </v-row>
 
         <!-- 資料表 -->
         <v-data-table :headers="headers" :items="filteredAccounts">
-          <template v-slot:filteredAccounts.balance> </template>
+          <template v-slot:item.balance="{ item }">
+            {{ item.currency }} {{ item.balance.toLocaleString() }}
+          </template>
+          <template v-slot:item.actions="{ item }">
+            <div class="d-flex" style="gap: 10px">
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn v-bind="props" icon size="small">
+                    <v-icon> mdi-hand-coin-outline</v-icon>
+                  </v-btn>
+                </template>
+                <span>交易</span>
+              </v-tooltip>
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn v-bind="props" icon size="small">
+                    <v-icon> mdi-receipt-text-outline</v-icon>
+                  </v-btn>
+                </template>
+                <span>交易明細</span>
+              </v-tooltip>
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn v-bind="props" icon size="small">
+                    <v-icon>mdi-account-edit-outline</v-icon>
+                  </v-btn>
+                </template>
+                <span>修改狀態</span>
+              </v-tooltip location="top">
+             
+            </div>
+          </template>
         </v-data-table>
       </v-container>
     </v-main>
@@ -57,6 +95,7 @@ const fetchAccounts = async () => {
     member: {
       mIdentity: filters.value.mIdentity || null,
       mPhone: filters.value.mPhone || null,
+      mName: filters.value.mName || null,
     },
   };
 
@@ -75,6 +114,7 @@ const filters = ref({
   mIdentity: "",
   mPhone: "",
   accountId: "",
+  mName: "",
 });
 
 const headers = [
