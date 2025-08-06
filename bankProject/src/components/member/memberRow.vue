@@ -1,5 +1,5 @@
 <template>
-  <tr>
+  <tr >
     <td>{{ member.mId }}</td>
     <td>{{ member.mName }}</td>
     <td>{{ member.mIdentity }}</td>
@@ -7,7 +7,10 @@
     <td>{{ member.mBirthday }}</td>
     <td>{{ member.mPhone }}</td>
     <td>{{ member.mEmail }}</td>
-    <td>{{ member.mState }}</td>
+    <td>{{ member.creation }}</td>
+    <td :class="statusClass">
+      {{ statusText }}
+    </td>
     <td>
       <button class="look" @click="viewDetail">
         <span class="mdi mdi-eye"></span>
@@ -21,7 +24,7 @@
   </tr>
 </template>
 <script setup>
-import { defineProps, defineEmits, ref } from "vue";
+import { defineProps, defineEmits, ref ,computed } from "vue";
 
 const props = defineProps({
   member: {
@@ -37,6 +40,14 @@ const viewDetail = () => {
 const viewEdit = () => {
   emit("edit", props.member);
 };
+
+const statusText = computed(() => {
+  return Number(props.member.mState) === 1 ? '正常' : '停用'
+})
+
+const statusClass = computed(() => {
+  return Number(props.member.mState) === 1 ? 'disabled-text2' : 'disabled-text'
+})
 </script>
 <style scoped>
 * {
@@ -44,6 +55,7 @@ const viewEdit = () => {
   position: relative;
 }
 tr {
+
   width: 100%;
   &:hover {
     background-color: #e2e1e1;
@@ -53,6 +65,7 @@ td {
   border-bottom: 1px solid rgb(100, 100, 100);
   color: rgb(156, 156, 156);
   font-weight: 350;
+  height: 62px;
   text-align: center;
 }
 .look {
@@ -77,4 +90,15 @@ td {
     background-color: #fff;
   }
 }
+
+.disabled-text {
+  color: red;
+  font-weight: bold;
+}
+.disabled-text2 {
+  color: rgb(156, 156, 156);
+  font-weight: bold;
+}
+
+
 </style>
