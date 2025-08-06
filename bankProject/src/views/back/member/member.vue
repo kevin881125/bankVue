@@ -3,27 +3,46 @@
     <div class="searchbar">
       <label for="state">身分證</label>
       <input
-        class="identity"
+        class="identity serchbarinput"
         v-model="condition.identity"
         placeholder="身分證"
       />
       <label for="state">姓名</label>
-      <input class="name" v-model="condition.name" placeholder="姓名" />
+      <input
+        class="name serchbarinput"
+        v-model="condition.name"
+        placeholder="姓名"
+      />
       <label for="state">狀態：</label>
-      <select v-model="condition.state" id="state">
+      <select v-model="condition.state" id="state" class="serchbarinput">
         <option disabled value="">請選擇</option>
         <option v-for="(label, key) in statedata" :value="label">
           {{ key }}
         </option>
       </select>
       <label for="birthday">出生日期：</label>
-      <input type="date" v-model="condition.birthday" id="birthday" />
+      <input
+        type="date"
+        v-model="condition.birthday"
+        id="birthday"
+        class="serchbarinput"
+      />
       <label for="date">起始日期：</label>
-      <input type="date" v-model="condition.startDate" id="startDate" />
+      <input
+        type="date"
+        v-model="condition.startDate"
+        id="startDate"
+        class="serchbarinput"
+      />
       <label for="date">結束日期：</label>
-      <input type="date" v-model="condition.endDate" id="endDate" />
+      <input
+        type="date"
+        v-model="condition.endDate"
+        id="endDate"
+        class="serchbarinput"
+      />
       <button class="btn btnborder" @click="serch">查詢</button>
-      <button class="btn btnborder1">新增</button>
+      <button class="btn btnborder1" @click="shownew = true">新增</button>
     </div>
   </div>
   <div class="table">
@@ -54,33 +73,71 @@
   <div class="modal" v-if="showModal">
     <div class="modal-content" v-if="!isEditing">
       <h3>詳細資料</h3>
-      <p>編號</p>
-      <p>{{ memberdetail.mId }}</p>
-      <p>姓名</p>
-      <p>{{ memberdetail.mName }}</p>
-      <p>身分證</p>
-      <p>{{ memberdetail.mIdentity }}</p>
-      <p>性別</p>
-      <p>{{ memberdetail.mGender }}</p>
-      <p>帳號</p>
-      <p>{{ memberdetail.mAccount }}</p>
-      <p>密碼</p>
-      <p>{{ memberdetail.mPassword }}</p>
-      <p>地址</p>
-      <p>{{ memberdetail.mAddress }}</p>
-      <p>電話</p>
-      <p>{{ memberdetail.mPhone }}</p>
-      <p>生日</p>
-      <p>{{ memberdetail.mBirthday }}</p>
-      <p>信箱</p>
-      <p>{{ memberdetail.mEmail }}</p>
-      <p>創建日期</p>
-      <p>{{ memberdetail.creation }}</p>
-      <p>狀態</p>
-      <p>{{ memberdetail.mState }}</p>
+      <div class="detail">
+        <p>編號:</p>
+        <p>{{ memberdetail.mId }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>姓名:</p>
+        <p>{{ memberdetail.mName }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>身分證:</p>
+        <p>{{ memberdetail.mIdentity }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>性別:</p>
+        <p>{{ memberdetail.mGender }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>帳號:</p>
+        <p>{{ memberdetail.mAccount }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>密碼:</p>
+        <p>{{ memberdetail.mPassword }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>地址:</p>
+        <p>{{ memberdetail.mAddress }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>電話:</p>
+        <p>{{ memberdetail.mPhone }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>生日:</p>
+        <p>{{ memberdetail.mBirthday }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>信箱:</p>
+        <p>{{ memberdetail.mEmail }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>創建日期:</p>
+        <p>{{ memberdetail.creation }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <p>狀態:</p>
+        <p>{{ memberdetail.mState }}</p>
+      </div>
+      <hr />
+      <div class="detail">
+        <button @click="showModal = false">關閉</button>
+        <button @click="edit2">編輯</button>    
+      </div>
 
-      <button @click="showModal = false">關閉</button>
-      <button @click="edit2">編輯</button>
     </div>
     <div class="modal-content" v-else>
       <h3>詳細資料</h3>
@@ -101,7 +158,67 @@
       <button @click="editok()">確認更改</button>
     </div>
   </div>
-  <p>{{ memberdetail }}</p>
+  <div class="modal" v-if="shownew">
+    <div class="modal-content">
+      <div class="form-container">
+        <h2>新增會員</h2>
+        <form @submit.prevent="submitForm">
+          <div class="form-group">
+            <label class="newlabel" for="mName">姓名</label>
+            <input type="text" id="mName" v-model="form.mName" />
+          </div>
+
+          <div class="form-group">
+            <label class="newlabel" for="mIdentity">身分證字號</label>
+            <input type="text" id="mIdentity" v-model="form.mIdentity" />
+          </div>
+
+          <div class="form-group">
+            <label class="newlabel" for="mGender">性別</label>
+            <select id="mGender" v-model="form.mGender">
+              <option value="">請選擇</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="newlabel" for="mAccount">帳號</label>
+            <input type="text" id="mAccount" v-model="form.mAccount" />
+          </div>
+
+          <div class="form-group">
+            <label class="newlabel" for="mPassword">密碼</label>
+            <input type="password" id="mPassword" v-model="form.mPassword" />
+          </div>
+
+          <div class="form-group">
+            <label class="newlabel" for="mAddress">地址</label>
+            <input type="text" id="mAddress" v-model="form.mAddress" />
+          </div>
+
+          <div class="form-group">
+            <label class="newlabel" for="mPhone">電話</label>
+            <input type="tel" id="mPhone" v-model="form.mPhone" />
+          </div>
+
+          <div class="form-group">
+            <label class="newlabel" for="mBirthday">生日</label>
+            <input type="date" id="mBirthday" v-model="form.mBirthday" />
+          </div>
+
+          <div class="form-group">
+            <label class="newlabel" for="mEmail">電子信箱</label>
+            <input type="email" id="mEmail" v-model="form.mEmail" />
+          </div>
+          <div class="btns">
+            <button class="newbutton" type="submit">註冊</button>
+            <button class="newbutton" @click="shownew = false">關閉</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   <div class="pagination">
     <button
       @click="changePage(condition.currentPage - 1)"
@@ -129,14 +246,39 @@
 </template>
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import memberRow from "@/components/member/memberRow.vue";
 
 const totalItems = ref(0);
 const totalPages = ref(1);
 const members = ref({});
+const memberdetail = ref({
+  mId: null,
+  mName: "",
+  mIdentity: "",
+  mGender: "",
+  mAccount: "",
+  mPassword: "",
+  mAddress: "",
+  mPhone: "",
+  mBirthday: null,
+  mEmail: "",
+  creation: null,
+  mState: null,
+});
+const form = reactive({
+  mName: "",
+  mIdentity: "",
+  mGender: "",
+  mAccount: "",
+  mPassword: "",
+  mAddress: "",
+  mPhone: "",
+  mBirthday: null,
+  mEmail: "",
+});
 const showModal = ref(false);
-const memberdetail = ref({});
+const shownew = ref(false);
 const condition = ref({
   identity: "",
   name: "",
@@ -147,6 +289,7 @@ const condition = ref({
   currentPage: 1,
   pageSize: 10,
 });
+
 const statedata = ref({});
 statedata.value = { 正常: 1, 停權: 0 };
 const isEditing = ref(false);
@@ -198,23 +341,34 @@ const edit = async (member) => {
   const data = await request({ url: "/member/" + member.mId, method: "GET" });
 
   memberdetail.value = data;
-  console.log(memberdetail.value);
+  console.log("我有抓到直" + memberdetail.value.mId);
 
   showModal.value = true;
   isEditing.value = true;
 };
 const editok = async () => {
-  console.log(memberdetail.value.mId);
   const data = await request({
     url: "/member/" + memberdetail.value.mId,
-    method: "POST",
+    method: "PUT",
     data: memberdetail.value,
   });
-  console.log(data);
+  console.log("我有傳回來喔" + data);
 
   memberdetail.value = data;
   isEditing.value = false;
+
+  serch();
 };
+async function submitForm() {
+  console.log("我有近來新增");
+  const data = await request({
+    url: "/member/member",
+    method: "POST",
+    data: form,
+  });
+
+  console.log(data);
+}
 </script>
 
 <style scoped>
@@ -264,8 +418,8 @@ th {
 label {
   margin-right: 10px;
 }
-input,
-select {
+.serchbarinput {
+  width: 120px;
   border: 1px solid black;
   margin-right: 30px;
 }
@@ -319,5 +473,72 @@ select {
   background: white;
   padding: 20px;
   border-radius: 8px;
+}
+
+/*新增表單區域*/
+.form-container {
+  max-width: 500px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.newlabel {
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+input,
+select {
+  height: 30px;
+  width: 350px;
+  padding: 3px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.btns {
+  display: flex;
+}
+.newbutton {
+  margin: 10px;
+  width: 100%;
+  padding: 10px;
+  color: orange;
+  border: 1px solid orange;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.newbutton:hover {
+  background-color: orange;
+  color: white;
+}
+.detail {
+  display: flex;
+  margin-top: 20px;
+  margin-bottom: 10px;
+
+}
+.detail > p:first-child {
+  width: 80px;
+  margin-right: 30px;
+  padding: 0 5px;
+}
+h3 {
+  text-align: center;
 }
 </style>
