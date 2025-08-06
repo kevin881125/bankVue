@@ -199,6 +199,7 @@ const getFundAccounts = async () => {
 }
 const getForm = reactive({
   id: null,
+  memberId: null,
   name: null,
   riskType: '',
   status: '',
