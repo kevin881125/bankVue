@@ -51,21 +51,6 @@
     <table>
       <thead>
         <tr>
-<<<<<<< HEAD
-          <th>編號</th>
-          <th>名子</th>
-          <th>身分證</th>
-          <th>性別</th>
-          <th>出生</th>
-          <th>電話</th>
-          <th>信箱</th>
-          <th>狀態</th>
-          <th>查看</th>
-          <th>修改</th>
-        </tr>
-      </thead>
-      <memberRow v-for="m in members" :member="m"></memberRow>
-=======
           <th style="width: 5%;">編號</th>
           <th style="width: 12%;">名子</th>
           <th style="width: 8%;">身分證</th>
@@ -85,7 +70,6 @@
         @click="openModal"
         @edit="edit"
       ></memberRow>
->>>>>>> kevin
     </table>
   </div>
   <!-- 查看詳細資料-->
@@ -460,13 +444,7 @@ table {
   width: 100%;
   background-color: rgb(255, 255, 255);
   border-collapse: collapse;
-<<<<<<< HEAD
-  box-shadow: 0 0 10px 10px gray;
-  padding-left: 10px;
-  padding-right: 10px;
-=======
   box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
->>>>>>> kevin
 }
 thead {
   width: 100%;
@@ -487,11 +465,7 @@ th {
 }
 .search {
   width: 100%;
-<<<<<<< HEAD
-  height: calc(15% - 10px);
-=======
   height: calc(8% - 10px);
->>>>>>> kevin
   background-color: #ffffff;
   margin-bottom: 10px;
   box-shadow: 0 4px 12px rgba(83, 83, 83, 0.1);
