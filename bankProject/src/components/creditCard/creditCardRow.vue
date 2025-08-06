@@ -86,6 +86,7 @@
 
         <v-textarea
           v-model="auditComment"
+          class="textArea"
           label="審核備註"
           rows="4"
           auto-grow
@@ -199,5 +200,7 @@ td{
     gap: 8px;
     justify-content: center;
 }
-
+.textArea{
+  margin-top: 30px;
+}
 </style>
