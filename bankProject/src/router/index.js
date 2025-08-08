@@ -31,16 +31,11 @@ const router = createRouter({
     {
       path: "/fontLogin",
       component: () => import("@/layouts/front/FrontLoginLayout.vue"),
-      children: [
-        ...memeber,
-        ...account,
-        ...accountapplication,
-        ...loan,
-        ...creditCard,
-        ...fund
-
-      ],
     },
+    {
+      path: "/MembersArea",
+      component: () => import("@/views/front/member/memberArea.vue")
+    }
     
   ],
 });

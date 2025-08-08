@@ -267,11 +267,6 @@
             <label class="newlabel" for="mEmail">電子信箱</label>
             <input type="email" id="mEmail" v-model="form.mEmail" />
           </div>
-          <div class="form-group">
-            <label class="newlabel" for="mImage">大頭照</label>
-            <input type="file" @change="onFileChange" accept="image/*" />
-            <input type="file" id="mImage" />
-          </div>
 
           <div class="btns">
             <button class="newbutton" type="submit" @click="shownew = false">註冊</button>
@@ -340,7 +335,7 @@ const form = reactive({
   mAddress: "",
   mPhone: "",
   mBirthday: null,
-  mEmail: "",
+  mEmail: ""
 });
 const showModal = ref(false);
 const shownew = ref(false);
@@ -362,11 +357,7 @@ const clean = () => {
   condition.value.startDate = null;
   condition.value.endDate = null;
 };
-const onFileChange =(e)=> {
-      const file = e.target.files[0];
-      this.selectedFile = file;
-      this.previewUrl = URL.createObjectURL(file);
-    }
+
 const statedata = ref({});
 statedata.value = { 正常: 1, 停用: 0 };
 const isEditing = ref(false);
