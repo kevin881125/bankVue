@@ -43,7 +43,7 @@
         class="serchbarinput"
       />
       <button class="btn btnborder" @click="serch">查詢</button>
-      <button class="btn btnborder1" @click="shownew = true">新增</button>
+      <button class="btn btnborder1" @click="()=>{shownew = true;serch();} ">新增</button>
       <button class="btn btnborder2" @click="clean">清除</button>
     </div>
   </div>
@@ -51,20 +51,25 @@
     <table>
       <thead>
         <tr>
-
-          <th>編號</th>
-          <th>名子</th>
-          <th>身分證</th>
-          <th>性別</th>
-          <th>出生</th>
-          <th>電話</th>
-          <th>信箱</th>
-          <th>狀態</th>
-          <th>查看</th>
-          <th>修改</th>
+          <th style="width: 5%;">編號</th>
+          <th style="width: 12%;">名子</th>
+          <th style="width: 8%;">身分證</th>
+          <th style="width: 5%;">性別</th>
+          <th style="width: 12%;">出生</th>
+          <th style="width: 12%;">電話</th>
+          <th style="width: 20%;">信箱</th>
+          <th style="width: 12%;">創辦日期</th>
+          <th >狀態</th>
+          <th >查看</th>
+          <th >修改</th>
         </tr>
       </thead>
-      <memberRow v-for="m in members" :member="m"></memberRow>
+      <memberRow
+        v-for="m in members"
+        :member="m"
+        @click="openModal"
+        @edit="edit"
+      ></memberRow>
     </table>
   </div>
   <!-- 查看詳細資料-->
@@ -263,7 +268,7 @@
             <input type="email" id="mEmail" v-model="form.mEmail" />
           </div>
           <div class="btns">
-            <button class="newbutton" type="submit">註冊</button>
+            <button class="newbutton" type="submit" @click="shownew = false">註冊</button>
             <button class="newbutton" @click="shownew = false">關閉</button>
           </div>
         </form>
@@ -439,10 +444,7 @@ table {
   width: 100%;
   background-color: rgb(255, 255, 255);
   border-collapse: collapse;
-
-  box-shadow: 0 0 10px 10px gray;
-  padding-left: 10px;
-  padding-right: 10px;
+  box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
 }
 thead {
   width: 100%;
@@ -464,7 +466,6 @@ th {
 .search {
   width: 100%;
   height: calc(8% - 10px);
-
   background-color: #ffffff;
   margin-bottom: 10px;
   box-shadow: 0 4px 12px rgba(83, 83, 83, 0.1);
