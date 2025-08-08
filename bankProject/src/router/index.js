@@ -28,6 +28,20 @@ const router = createRouter({
       path: "/backLogin",
       component: () => import("@/layouts/back/backLoginLayout.vue"),
     },
+    {
+      path: "/fontLogin",
+      component: () => import("@/layouts/front/FrontLoginLayout.vue"),
+      children: [
+        ...memeber,
+        ...account,
+        ...accountapplication,
+        ...loan,
+        ...creditCard,
+        ...fund
+
+      ],
+    },
+    
   ],
 });
 
