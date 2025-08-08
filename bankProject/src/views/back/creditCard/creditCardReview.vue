@@ -1,81 +1,116 @@
 <template>
- <h2>待審核卡片</h2>
-  <div class="table">
-    <table>
-      <thead>
-        <tr>
-          <th>編號</th>
-          <th>名字</th>
-          <th>卡種</th>
-          <th>身分證正面</th>
-          <th>身分證反面</th>
-          <th>財力證明</th>
-          <th>申請日期</th>
-          <th>狀態</th>
-          <th>查看</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <creditCardRow v-for="c in creditCards" :key="c.applicationId" :creditCard="c" isPending="true" :handleApprove="handleApprove" :handleReject="handleReject" :card="card" :cardTypeMap="cardTypeMap"/>
-      </tbody>
-    </table>
-  </div>
-  <h2>已通過卡片</h2>
-  <div class="table">
-    <table>
-      <thead>
-        <tr>
-          <th>編號</th>
-          <th>名字</th>
-          <th>卡種</th>
-          <th>身分證正面</th>
-          <th>身分證反面</th>
-          <th>財力證明</th>
-          <th>申請日期</th>
-          <th>狀態</th>
-          <th>查看</th>
-        </tr>
-      </thead>
-      <tbody>
-        <creditCardRow v-for="c in approvedCards" :key="c.applicationId" :creditCard="c" :card="card" :cardTypeMap="cardTypeMap"/>
-      </tbody>
-    </table>
+  <div class="card-review-container">
+    <div class="card-header">
+      <v-btn-toggle v-model="displayMode" class="card-tabs" mandatory>
+        <v-btn value="pending">待審核卡片 ({{ creditCards.length }})</v-btn>
+        <v-btn value="approved">已通過卡片 ({{ approvedCards.length }})</v-btn>
+      </v-btn-toggle>
+
+      <v-text-field
+        v-model="searchQuery"
+        prepend-inner-icon="mdi-magnify"
+        label="模糊查詢 (名字、卡種、日期)"
+        class="search-input"
+        clearable
+        single-line
+        hide-details
+        variant="solo"
+      ></v-text-field>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>編號</th>
+            <th>名字</th>
+            <th>卡種</th>
+            <th>身分證正面</th>
+            <th>身分證反面</th>
+            <th>財力證明</th>
+            <th>申請日期</th>
+            <th>狀態</th>
+            <th>查看</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody class="row">
+          <template v-if="filteredCards.length > 0">
+            <template v-if="displayMode === 'pending'">
+              <creditCardRow v-for="c in filteredCards" :key="c.applicationId" :creditCard="c" isPending="true"
+                :handleApprove="handleApprove" :handleReject="handleReject" :cardTypeMap="cardTypeMap" />
+            </template>
+            <template v-else-if="displayMode === 'approved'">
+              <creditCardRow v-for="c in filteredCards" :key="c.applicationId" :creditCard="c"
+                :handleIssueCard="handleIssueCard" :issuingIds="issuingIds" :cardTypeMap="cardTypeMap" />
+            </template>
+          </template>
+          <tr v-else>
+            <td colspan="10" class="text-center">沒有符合條件的資料</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
+
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive, computed } from "vue";
 import creditCardRow from "@/components/creditCard/creditCardRow.vue";
-import { useRouter } from "vue-router";
 
-const creditCards=ref([]);
+const creditCards = ref([]);
 const approvedCards = ref([]);
+const cardTypeMap = ref({});
+const issuingIds = reactive({});
+const displayMode = ref('pending');
+
+// 模糊查詢相關
+const searchQuery = ref('');
+
+const filteredCards = computed(() => {
+  const currentList = displayMode.value === 'pending' ? creditCards.value : approvedCards.value;
+  if (!searchQuery.value) {
+    return currentList;
+  }
+  const query = searchQuery.value.toLowerCase();
+  return currentList.filter(card => {
+    const cardTypeName = cardTypeMap.value[String(card.cardType)] || '';
+    return (
+      (card.member.mname && card.member.mname.toLowerCase().includes(query)) ||
+      cardTypeName.toLowerCase().includes(query) ||
+      (card.applyDate && card.applyDate.includes(query))
+    );
+  });
+});
 
 async function fetchCardsData() {
   try {
     const response = await request({ url: "/cardBack/review", method: "GET" });
-    console.log("從 /cardBack/review 獲取的原始資料:", response); // 偵錯點
-    console.log(response);
-
-    // 處理資料，並將結果賦值給 ref
     creditCards.value = response.pendingList;
     approvedCards.value = response.approvedList;
-    
   } catch (error) {
     console.error("無法取得卡片資料", error);
-    // 處理錯誤，例如顯示錯誤訊息
   }
 }
 
-// 在 onMounted 時，只呼叫這個函數
-onMounted(() => {
-  fetchCardsData();
+async function fetchCardTypeMap() {
+  try {
+    const res = await request({ url: "/card/apply", method: "GET" });
+    cardTypeMap.value = res;
+  } catch (error) {
+    console.error("卡種對照表錯誤", error);
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([
+    fetchCardsData(),
+    fetchCardTypeMap()
+  ]);
 });
 
-const router = useRouter();
-
-async function handleApprove(card,reviewComment) {
+async function handleApprove(card, reviewComment) {
   try {
     await request({
       url: "/cardBack/updateStatus",
@@ -83,20 +118,17 @@ async function handleApprove(card,reviewComment) {
       params: {
         applicationId: card.applicationId,
         action: "approve",
-        reviewComment:reviewComment || ""
+        reviewComment: reviewComment || ""
       },
     });
     alert("已通過！");
-    // 操作成功後，呼叫這個函數來刷新資料
-    await fetchCardsData(); 
+    await fetchCardsData();
   } catch (err) {
     console.error("通過失敗", err);
   }
 }
 
-const reviewComment = ref("");
-
-async function handleReject(card,reviewComment) {
+async function handleReject(card, reviewComment) {
   try {
     await request({
       url: "/cardBack/updateStatus",
@@ -104,70 +136,105 @@ async function handleReject(card,reviewComment) {
       params: {
         applicationId: card.applicationId,
         action: "reject",
-        reviewComment:reviewComment || ""
+        reviewComment: reviewComment || ""
       },
     });
     alert("已拒絕！");
-    // 操作成功後，呼叫這個函數來刷新資料
     await fetchCardsData();
   } catch (err) {
     console.error("拒絕失敗", err);
   }
 }
-const cardTypeMap = ref({});
 
-async function fetchCardTypeMap() {
+async function handleIssueCard(card) {
+  const id = card.applicationId;
+  if (issuingIds[id]) return;
+  issuingIds[id] = true;
+
   try {
-    const res = await request({ url: "/card/apply", method: "GET" });
-     console.log("從 /card/apply 獲取的卡種對應表:", res); // 偵錯點
-    cardTypeMap.value = res; // 假設是 {1: "白金卡", 2: "黑卡"}
-  } catch (error) {
-    console.error("卡種對照表錯誤", error);
+    await request({
+      url: "/adminCard/issue",
+      method: "POST",
+      params: { applicationId: id }
+    });
+    alert("發卡成功！");
+
+    const targetCardIndex = approvedCards.value.findIndex(c => c.applicationId === card.applicationId);
+    if (targetCardIndex !== -1) {
+      approvedCards.value[targetCardIndex].status = 'ISSUED';
+    }
+
+  } catch (err) {
+    console.error("發卡失敗", err);
+    alert("發卡失敗，請檢查後端日誌");
+  } finally {
+    issuingIds[id] = false;
   }
 }
-// 初始化載入時
-onMounted(async () => {
-  await Promise.all([
-    fetchCardsData(),
-    fetchCardTypeMap()
-  ]);
-});
 </script>
+
 <style scoped>
-*{
-  box-sizing: border-box;
+.card-review-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background-color: #f4f6f8;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
+
+.card-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.search-input {
+  max-width: 400px;
+}
+
+.card-tabs {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  background-color: #ffffff;
+}
+
 table {
   width: 100%;
-  height: 100%;
-  background-color: rgb(255, 255, 255);
-   border-collapse: collapse;
-   box-shadow: 0 0 10px 10px gray;
-   padding-left: 10px;
-   padding-right: 10px;
-}
-thead{
-    width: 100%;
-    height: 50px;
-    background-color:rgb(255, 255, 255);
-    box-shadow: 0 4px 12px rgba(83, 83, 83, 0.1); 
-}
-th{
-    color: #555555;
-    border-right: 1px solid #ffffff;
-    border-left: 1px solid #ffffff;
-    
-}
-.table {
-  height: 85%;
   border-collapse: collapse;
-  overflow: auto;
+  table-layout: fixed;
 }
-.search {
-  width: 100%;
-  height: calc(15% - 10px) ;
-  background-color: #ffffff;
-  margin-bottom: 10px;
-  box-shadow: 0 4px 12px rgba(83, 83, 83, 0.1);
+
+thead th, tbody td {
+  padding: 15px;
+  border-bottom: 1px solid #e9ecef;
+  text-align: center; /* 統一靠中對齊 */
+  vertical-align: middle;
+}
+
+thead th {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  font-weight: 600;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.text-center {
+  padding: 20px;
+  color: #999;
+}
+
+.row{
+  text-align: center;
 }
 </style>
