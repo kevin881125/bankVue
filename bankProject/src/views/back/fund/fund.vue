@@ -1,8 +1,9 @@
-<template >
-    <div>基金管理</div>
+<template>
+  <FundAccountManager />
 </template>
-<script setup>
 
+<script setup>
+import FundAccountManager from '@/components/fund/fundAccountManager.vue'
 </script>
 <style scoped>
     
