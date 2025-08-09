@@ -139,9 +139,9 @@
 import { request } from "@/utils/BackAxiosUtil";
 import { ref, onMounted, watch } from "vue";
 import { useWorkerStore } from "@/stores/Worker";
-import InsertAccountDialog from "@/components/account/accountVue/insertAccountDialog.vue";
-import UpdateAccountDialog from "@/components/account/accountVue/updateAccountDialog.vue";
-import TradeAccountDialog from "@/components/account/accountVue/transactionDetailDialog.vue";
+import InsertAccountDialog from "@/components/account/accountVue/InsertAccountDialog.vue";
+import UpdateAccountDialog from "@/components/account/accountVue/UpdateAccountDialog.vue";
+import TradeAccountDialog from "@/components/account/accountVue/TransactionDetailDialog.vue";
 
 const addDialog = ref(false);
 const tradeDialog = ref(false);

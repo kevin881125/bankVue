@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="internalShow" max-width="900px" persistent>
+  <v-dialog v-model="internalShow" max-width="1200px" persistent>
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <div>
@@ -14,7 +14,7 @@
           </div>
           <div><strong>筆數：</strong> {{ 2 }} 筆</div>
         </div>
-        <v-btn icon @click="detailDialog = false" title="關閉">
+        <v-btn icon @click="internalShow = false" title="關閉">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
@@ -30,9 +30,10 @@
           <template v-slot:item.amount="{ item }">
             {{ item.currency }} {{ Number(item.amount).toLocaleString() }}
           </template>
-          <template v-slot:item.balance="{ item }">
-            {{ item.currency }} {{ Number(item.balance).toLocaleString() }}
+          <template v-slot:item.balanceAfter="{ item }">
+            {{ item.currency }} {{ Number(item.balanceAfter).toLocaleString() }}
           </template>
+
           <template v-slot:item.txTime="{ item }">
             {{ formatDateTime(item.txTime) }}
           </template>
@@ -77,7 +78,7 @@ const headers = [
   { title: "交易日期", key: "txTime", value: "txTime" },
   { title: "交易類型", key: "transactionType", value: "transactionType" },
   { title: "交易金額", key: "amount", value: "amount" },
-  { title: "餘額", key: "balance", value: "balance" },
+  { title: "餘額", key: "balanceAfter", value: "balanceAfter" },
   { title: "交易資訊", key: "info", value: "info" },
   { title: "交易結果", key: "status", value: "status" },
   { title: "備註", key: "memo", value: "memo" },
@@ -88,11 +89,16 @@ const headers = [
 const transactionsList = ref([]);
 
 const getTransactionsRecords = async () => {
-  transactionsList.value = await request({
-    url: "/account/transaction/gettransactionsrecords",
-    method: "GET",
-    params: { accountId: props.selectedAccount?.accountId },
-  });
+  transactionsList.value = (
+    await request({
+      url: "/account/transaction/gettransactionsrecords",
+      method: "GET",
+      params: { accountId: props.selectedAccount?.accountId },
+    })
+  ).map((tx) => ({
+    ...tx,
+    info: `${tx.toBankCode || ""}-${tx.toAccountId || ""}`,
+  }));
   console.log(props.selectedAccount?.accountId);
 
   console.log(transactionsList.value);
