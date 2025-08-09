@@ -8,7 +8,9 @@
     <td>
       {{ (loan.interestRate * 100).toFixed(2) }}<span class="unit">%</span>
     </td>
-    <td>{{ loan.approvalStatus }}</td>
+    <td :class="['status-cell', getStatusClass(loan.approvalStatus)]">
+      {{ translateStatus(loan.approvalStatus) }}
+    </td>
     <td>{{ loan.createdAt }}</td>
     <td>
       <button class="look" @click="onOpenDetail">
@@ -23,6 +25,7 @@
 
 <script setup>
 import { defineProps, defineEmits } from "vue";
+import { translateStatus } from "@/components/loan/utils/statusHelper";
 
 // 定義傳入的 loan 物件
 const props = defineProps({
@@ -31,6 +34,21 @@ const props = defineProps({
     required: true,
   },
 });
+
+function getStatusClass(status) {
+  switch (status) {
+    case "approved":
+      return "status-approved";
+    case "rejected":
+      return "status-rejected";
+    case "supplement":
+      return "status-pending-docs";
+    case "pending":
+      return "status-reviewing";
+    default:
+      return "";
+  }
+}
 
 // 定義可觸發的事件
 const emit = defineEmits(["open-detail", "edit-review"]);
@@ -85,5 +103,41 @@ button.look:hover {
 
 button.edit:hover {
   background-color: #f8d6e3; /* 淡玫紅 */
+}
+
+.status-cell {
+  text-align: left;
+  position: relative;
+  padding-left: 24px;
+  font-weight: 600;
+  color: #666a6a;
+  transform: translateX(38px); /* 往右移 20px */
+}
+
+.status-cell::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-approved::before {
+  background-color: #ebb211;
+}
+
+.status-rejected::before {
+  background-color: #222626;
+}
+
+.status-pending-docs::before {
+  background-color: #ce1465;
+}
+
+.status-reviewing::before {
+  background-color: #444b4b;
 }
 </style>

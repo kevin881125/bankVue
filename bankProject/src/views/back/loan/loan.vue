@@ -1,5 +1,30 @@
 <template>
   <div class="search-wrapper">
+    <!-- 新增的按鈕區域 -->
+    <div class="left-buttons">
+      <!-- 審核狀態切換按鈕 -->
+      <div class="status-filter">
+        <select
+          v-model="selectedStatus"
+          @change="onStatusFilter"
+          class="status-select"
+        >
+          <option value="">全部狀態</option>
+          <option value="pending">待審核</option>
+          <option value="supplement">補件中</option>
+          <option value="approved">審核通過</option>
+          <option value="rejected">拒絕申請</option>
+        </select>
+        <v-icon class="select-icon" small>mdi-menu-down</v-icon>
+      </div>
+
+      <!-- 審核紀錄按鈕 -->
+      <button @click="openAuditRecord" class="audit-record-button">
+        審核紀錄
+      </button>
+    </div>
+
+    <!-- 原有的搜尋表單 -->
     <form @submit.prevent="onSearch" class="search-container">
       <input
         v-model="searchKeyword"
@@ -48,6 +73,12 @@
     @save="trySaveReview"
   />
 
+  <LoanReviewLogsModal
+    :show="isAuditModalVisible"
+    :records="auditRecords"
+    @close="isAuditModalVisible = false"
+  />
+
   <!-- 確認 Modal -->
   <ConfirmModal
     :visible="isConfirmVisible"
@@ -65,18 +96,24 @@ import LoanDetailModal from "@/components/loan/loanDetail/loanDetailModal.vue";
 import LoanReviewModal from "@/components/loan/loanReview/loanReviewModal.vue";
 import { translateStatus } from "@/components/loan/utils/statusHelper";
 import ConfirmModal from "@/components/loan/confirm/confirmModal.vue";
+import LoanReviewLogsModal from "@/components/loan/loanReview/loanReviewLogsModal.vue";
 
 const loans = ref([]);
 const searchKeyword = ref("");
+const selectedStatus = ref(""); // 新增狀態篩選
 
-async function fetchLoans(keyword = "") {
+async function fetchLoans(keyword = "", status = "") {
   try {
+    const params = {};
+    if (keyword) params.search = keyword;
+    if (status) params.status = status;
+
     const data = await request({
       url: `/search/loans`,
       method: "GET",
-      params: { search: keyword },
+      params,
     });
-    loans.value = data.filter((item) => item !== null && item !== undefined);
+    loans.value = data;
   } catch (error) {
     alert("取得貸款資料失敗");
     console.error(error);
@@ -88,7 +125,32 @@ onMounted(() => {
 });
 
 function onSearch() {
-  fetchLoans(searchKeyword.value.trim());
+  fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
+}
+
+// 新增狀態篩選功能
+function onStatusFilter() {
+  fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
+}
+
+const auditRecords = ref([]);
+const isAuditModalVisible = ref(false);
+
+// 新增審核紀錄按鈕功能
+async function openAuditRecord() {
+  try {
+    const data = await request({
+      url: "/review/all", // 確認後端這個 API 有實作
+      method: "GET",
+    });
+    console.log("審核紀錄資料", data);
+
+    auditRecords.value = data;
+    isAuditModalVisible.value = true;
+  } catch (error) {
+    alert("取得審核紀錄失敗");
+    console.error(error);
+  }
 }
 
 const loanDetail = ref({});
@@ -164,7 +226,7 @@ const saveReview = async (updatedReview) => {
     // 更新本地資料狀態
     const index = loans.value.findIndex((l) => l.loanId === loanId);
     if (index !== -1) {
-      loans.value[index].approvalStatus = translateStatus(decision);
+      loans.value[index].approvalStatus = decision;
     }
   } catch (error) {
     alert("送出審核失敗");
@@ -196,10 +258,15 @@ async function onConfirmSave() {
     });
     isModalVisible.value = false;
 
-    // 更新本地狀態
-    const index = loans.value.findIndex((l) => l.loanId === loanId);
-    if (index !== -1) {
-      loans.value[index].approvalStatus = translateStatus(decision);
+    // 如果有篩選條件，重新抓資料
+    if (selectedStatus.value) {
+      await fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
+    } else {
+      // 否則只更新本地資料
+      const index = loans.value.findIndex((l) => l.loanId === loanId);
+      if (index !== -1) {
+        loans.value[index].approvalStatus = decision;
+      }
     }
   } catch (error) {
     alert("送出審核失敗");
@@ -220,7 +287,75 @@ function onCancelSave() {
 <style scoped>
 .search-wrapper {
   display: flex;
-  justify-content: flex-end; /* 將內部 form 靠右 */
+  justify-content: space-between; /* 左右分散排列 */
+  align-items: center;
+
+  .left-buttons {
+    display: flex;
+    align-items: center;
+    gap: 16px; /* 兩個按鈕之間的間距 */
+
+    .status-filter {
+      position: relative;
+      display: inline-block;
+      .status-select {
+        appearance: none;
+        background-color: #ffffff;
+        border-radius: 20px;
+        padding: 8px 36px 8px 16px;
+        font-size: 16px;
+        color: #535353;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.3s;
+        min-width: 120px;
+
+        &:hover {
+          border-color: #e5a900;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        &:focus {
+          border-color: #e5a900;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        option {
+          padding: 8px;
+        }
+      }
+      .select-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        pointer-events: none;
+        transform: translateY(-50%);
+        color: #535353;
+        font-size: 20px;
+      }
+    }
+
+    .audit-record-button {
+      border: 1px solid #b61359;
+      color: #b61359;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s;
+      font-weight: 500;
+
+      &:hover {
+        background-color: #b61359;
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      &:active {
+        transform: translateY(1px);
+      }
+    }
+  }
 
   .search-container {
     display: flex;
@@ -228,7 +363,7 @@ function onCancelSave() {
     border-radius: 30px;
     padding: 8px 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    width: 800px;
+    width: 550px; /* 調整寬度以配合左側按鈕 */
 
     .search-input {
       flex: 1;
@@ -256,6 +391,7 @@ function onCancelSave() {
     }
   }
 }
+
 .table table {
   width: 100%;
   border-collapse: collapse;
