@@ -143,7 +143,6 @@ async function openAuditRecord() {
       url: "/review/all", // 確認後端這個 API 有實作
       method: "GET",
     });
-    console.log("審核紀錄資料", data);
 
     auditRecords.value = data;
     isAuditModalVisible.value = true;
