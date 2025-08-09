@@ -267,6 +267,7 @@
             <label class="newlabel" for="mEmail">電子信箱</label>
             <input type="email" id="mEmail" v-model="form.mEmail" />
           </div>
+
           <div class="btns">
             <button class="newbutton" type="submit" @click="shownew = false">註冊</button>
             <button class="newbutton" @click="shownew = false">關閉</button>
@@ -323,6 +324,7 @@ const memberdetail = ref({
   mEmail: "",
   creation: null,
   mState: null,
+  
 });
 const form = reactive({
   mName: "",
@@ -333,7 +335,7 @@ const form = reactive({
   mAddress: "",
   mPhone: "",
   mBirthday: null,
-  mEmail: "",
+  mEmail: ""
 });
 const showModal = ref(false);
 const shownew = ref(false);
