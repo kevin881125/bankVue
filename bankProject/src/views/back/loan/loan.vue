@@ -1,107 +1,122 @@
-<template>
-  <div class="search-wrapper">
-    <!-- 新增的按鈕區域 -->
-    <div class="left-buttons">
-      <!-- 審核狀態切換按鈕 -->
-      <div class="status-filter">
-        <select
-          v-model="selectedStatus"
-          @change="onStatusFilter"
-          class="status-select"
-        >
-          <option value="">全部狀態</option>
-          <option value="pending">待審核</option>
-          <option value="supplement">補件中</option>
-          <option value="approved">審核通過</option>
-          <option value="rejected">拒絕申請</option>
-        </select>
-        <v-icon class="select-icon" small>mdi-menu-down</v-icon>
+<<template>
+  <div>
+    <!-- 搜尋與狀態篩選 -->
+    <div class="search-wrapper">
+      <div class="left-buttons">
+        <div class="status-filter">
+          <select v-model="selectedStatus" @change="onFilterChange" class="status-select">
+            <option value="">全部狀態</option>
+            <option value="pending">待審核</option>
+            <option value="supplement">補件中</option>
+            <option value="approved">審核通過</option>
+            <option value="rejected">拒絕申請</option>
+          </select>
+          <v-icon class="select-icon" small>mdi-menu-down</v-icon>
+        </div>
+        <button @click="openAuditRecord" class="audit-record-button">審核紀錄</button>
       </div>
 
-      <!-- 審核紀錄按鈕 -->
-      <button @click="openAuditRecord" class="audit-record-button">
-        審核紀錄
-      </button>
+      <form @submit.prevent="onSearch" class="search-container">
+        <input
+          v-model="searchKeyword"
+          type="text"
+          class="search-input"
+          placeholder="請輸入搜尋內容"
+        />
+        <button type="submit" class="search-button">搜尋</button>
+      </form>
     </div>
 
-    <!-- 原有的搜尋表單 -->
-    <form @submit.prevent="onSearch" class="search-container">
-      <input
-        v-model="searchKeyword"
-        type="text"
-        class="search-input"
-        placeholder="請輸入搜尋內容"
-      />
-      <button type="submit" class="search-button">搜尋</button>
-    </form>
-  </div>
-  <div class="table">
-    <table>
-      <thead>
-        <tr>
-          <th>貸款帳戶</th>
-          <th>姓名</th>
-          <th>貸款類型</th>
-          <th>貸款期數(月)</th>
-          <th>貸款金額</th>
-          <th>貸款利率</th>
-          <th>審核狀態</th>
-          <th>申請時間</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <loanRow
-          v-for="l in loans"
-          :key="l.loanId"
-          :loan="l"
-          @open-detail="handleOpenDetail"
-          @edit-review="openReviewModal"
-        ></loanRow>
-      </tbody>
-    </table>
-  </div>
-  <LoanDetailModal
-    :show="showModal"
-    :data="loanDetail"
-    @close="showModal = false"
-  />
-  <LoanReviewModal
-    :visible="isModalVisible"
-    :review="currentReview"
-    @close="closeReviewModal"
-    @save="trySaveReview"
-  />
+    <!-- 貸款列表 -->
+    <div class="table">
+      <table>
+        <thead>
+          <tr>
+            <th>貸款帳戶</th>
+            <th>姓名</th>
+            <th>貸款類型</th>
+            <th>貸款期數(月)</th>
+            <th>貸款金額</th>
+            <th>貸款利率</th>
+            <th>審核狀態</th>
+            <th>申請時間</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <loanRow
+            v-for="l in loans"
+            :key="l.loanId"
+            :loan="l"
+            @open-detail="handleOpenDetail"
+            @edit-review="openReviewModal"
+          />
+        </tbody>
+      </table>
+    </div>
 
-  <LoanReviewLogsModal
-    :show="isAuditModalVisible"
-    :records="auditRecords"
-    @close="isAuditModalVisible = false"
-  />
-
-  <!-- 確認 Modal -->
-  <ConfirmModal
-    :visible="isConfirmVisible"
-    message="確定要儲存審核結果嗎？"
-    @confirm="onConfirmSave"
-    @cancel="onCancelSave"
-  />
+    <!-- 各種 Modal -->
+    <LoanDetailModal
+      :show="showDetailModal"
+      :data="loanDetail"
+      @close="showDetailModal = false"
+    />
+    <LoanReviewModal
+      :visible="isReviewModalVisible"
+      :review="currentReview"
+      @close="closeReviewModal"
+      @save="handleSaveReview"
+    />
+    <LoanReviewLogsModal
+      :show="isAuditModalVisible"
+      :records="auditRecords"
+      @close="isAuditModalVisible = false"
+    />
+    <ConfirmModal
+      :visible="isConfirmVisible"
+      message="確定要儲存審核結果嗎？"
+      @confirm="onConfirmSave"
+      @cancel="onCancelSave"
+    />
+  </div>
 </template>
+
 <script setup>
+import { ref, onMounted } from "vue";
 import { request } from "@/utils/BackAxiosUtil";
 import { useWorkerStore } from "@/stores/Worker";
-import { ref, onMounted } from "vue";
+
 import loanRow from "@/components/loan/loanRow.vue";
 import LoanDetailModal from "@/components/loan/loanDetail/loanDetailModal.vue";
 import LoanReviewModal from "@/components/loan/loanReview/loanReviewModal.vue";
-import { translateStatus } from "@/components/loan/utils/statusHelper";
-import ConfirmModal from "@/components/loan/confirm/confirmModal.vue";
 import LoanReviewLogsModal from "@/components/loan/loanReview/loanReviewLogsModal.vue";
+import ConfirmModal from "@/components/loan/confirm/confirmModal.vue";
 
+// 資料
 const loans = ref([]);
 const searchKeyword = ref("");
-const selectedStatus = ref(""); // 新增狀態篩選
+const selectedStatus = ref("");
 
+// 審核紀錄
+const auditRecords = ref([]);
+const isAuditModalVisible = ref(false);
+
+// 詳細資料 Modal
+const loanDetail = ref({});
+const showDetailModal = ref(false);
+
+// 審核 Modal
+const isReviewModalVisible = ref(false);
+const currentReview = ref(null);
+
+// 確認 Modal
+const isConfirmVisible = ref(false);
+let reviewToSave = null;
+
+const workerStore = useWorkerStore();
+const workerId = workerStore.wId;
+
+// 載入貸款清單 (依關鍵字和狀態篩選)
 async function fetchLoans(keyword = "", status = "") {
   try {
     const params = {};
@@ -121,29 +136,23 @@ async function fetchLoans(keyword = "", status = "") {
 }
 
 onMounted(() => {
-  fetchLoans(); // 頁面載入先抓全部或空字串搜尋
+  fetchLoans();
 });
 
 function onSearch() {
   fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
 }
-
-// 新增狀態篩選功能
-function onStatusFilter() {
+function onFilterChange() {
   fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
 }
 
-const auditRecords = ref([]);
-const isAuditModalVisible = ref(false);
-
-// 新增審核紀錄按鈕功能
+// 審核紀錄
 async function openAuditRecord() {
   try {
     const data = await request({
-      url: "/review/all", // 確認後端這個 API 有實作
+      url: "/review/all",
       method: "GET",
     });
-
     auditRecords.value = data;
     isAuditModalVisible.value = true;
   } catch (error) {
@@ -152,49 +161,33 @@ async function openAuditRecord() {
   }
 }
 
-const loanDetail = ref({});
-const showModal = ref(false);
-
-const handleOpenDetail = async (loanId) => {
+// 貸款詳細資料
+async function handleOpenDetail(loanId) {
   try {
     const res = await request({
       url: `/loans/${loanId}`,
       method: "GET",
     });
     loanDetail.value = res;
-    showModal.value = true;
+    showDetailModal.value = true;
   } catch (error) {
     alert("取得詳細資料失敗");
     console.error(error);
   }
-};
+}
 
-const isModalVisible = ref(false);
-const currentReview = ref(null);
-
-// 父層 setup script 中
-
-const openReviewModal = async (loanId) => {
-  const workerStore = useWorkerStore();
-  const workerId = workerStore.wId;
-
+// 開啟審核 Modal 並載入資料
+async function openReviewModal(loanId) {
   try {
-    // 拿該筆貸款資料
-    const loan = await request({
-      url: `/loans/${loanId}`,
-      method: "GET",
-    });
-
-    // 如果要顯示補件/證明文件：
+    const loan = await request({ url: `/loans/${loanId}`, method: "GET" });
     const document = await request({
       url: `/loans/${loanId}/latest-review`,
       method: "GET",
     });
 
-    // 準備要傳給 Modal 的內容
     currentReview.value = {
       loanId: loan.loanId,
-      mName: loan.mname,
+      mName: loan.mName || loan.mname || "",
       reviewerId: workerId,
       reviewTime: document?.reviewTime || new Date().toISOString(),
       decision: document?.decision || "",
@@ -202,87 +195,85 @@ const openReviewModal = async (loanId) => {
       proofDocumentUrl: document?.proofDocumentUrl || null,
     };
 
-    isModalVisible.value = true;
+    isReviewModalVisible.value = true;
   } catch (error) {
     alert("無法取得審核資料");
     console.error(error);
   }
-};
-
-// 儲存審核結果
-const saveReview = async (updatedReview) => {
-  const { loanId, reviewerId, decision, notes } = updatedReview;
-
-  try {
-    await request({
-      url: `/loans/${loanId}/status`,
-      method: "POST",
-      data: { newStatus: decision, reviewerId, notes },
-    });
-
-    isModalVisible.value = false;
-
-    // 更新本地資料狀態
-    const index = loans.value.findIndex((l) => l.loanId === loanId);
-    if (index !== -1) {
-      loans.value[index].approvalStatus = decision;
-    }
-  } catch (error) {
-    alert("送出審核失敗");
-    console.error(error);
-  }
-};
-
-const isConfirmVisible = ref(false);
-let reviewToSave = null;
-
-// 用在 saveReview 前的觸發
-function trySaveReview(updatedReview) {
-  reviewToSave = updatedReview;
-  isConfirmVisible.value = true;
 }
 
-// 當使用者確認儲存
-async function onConfirmSave() {
-  isConfirmVisible.value = false;
-  if (!reviewToSave) return;
-
-  const { loanId, reviewerId, decision, notes } = reviewToSave;
-
+// 儲存審核 - 先存基本資料，若有合約檔案再上傳
+async function saveReviewSimple({ loanId, reviewerId, decision, notes }) {
   try {
     await request({
       url: `/loans/${loanId}/review`,
       method: "POST",
       data: { reviewerId, decision, notes },
     });
-    isModalVisible.value = false;
-
-    // 如果有篩選條件，重新抓資料
-    if (selectedStatus.value) {
-      await fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
-    } else {
-      // 否則只更新本地資料
-      const index = loans.value.findIndex((l) => l.loanId === loanId);
-      if (index !== -1) {
-        loans.value[index].approvalStatus = decision;
-      }
-    }
   } catch (error) {
     alert("送出審核失敗");
-    console.error(error);
+    throw error;
   }
 }
 
-function closeReviewModal() {
-  isModalVisible.value = false;
-  currentReview.value = null; // 清空審核資料，避免殘留
+async function saveReviewWithContract(contractFile, loanId) {
+  const formData = new FormData();
+  formData.append("file", contractFile);
+
+  try {
+    await request({
+      url: `/loans/${loanId}/upload-contract`,
+      method: "POST",
+      data: formData,
+    });
+  } catch (error) {
+    alert("合約檔案上傳失敗");
+    throw error;
+  }
 }
 
-// 當使用者取消儲存
+// 觸發儲存，先跳確認框
+function handleSaveReview(reviewData) {
+  reviewToSave = reviewData;
+  isConfirmVisible.value = true;
+}
+
+// 確認送出
+async function onConfirmSave() {
+  isConfirmVisible.value = false;
+  if (!reviewToSave) return;
+
+  try {
+    await saveReviewSimple(reviewToSave);
+
+    if (
+      reviewToSave.decision === "approved" &&
+      reviewToSave.contractFile instanceof File
+    ) {
+      await saveReviewWithContract(reviewToSave.contractFile, reviewToSave.loanId);
+    }
+
+    // 關閉 Modal 與更新清單
+    isReviewModalVisible.value = false;
+    reviewToSave = null;
+    await fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
+  } catch {
+    // 失敗時可適度提示，已在 catch 處理
+  }
+}
+
+// 取消儲存
 function onCancelSave() {
   isConfirmVisible.value = false;
+  reviewToSave = null;
+}
+
+function closeReviewModal() {
+  isReviewModalVisible.value = false;
+  currentReview.value = null;
 }
 </script>
+
 <style scoped>
 .search-wrapper {
   display: flex;

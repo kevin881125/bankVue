@@ -19,6 +19,13 @@
       <button class="edit" @click="onEditReview">
         <span class="mdi mdi-lead-pencil"></span>
       </button>
+      <button
+    v-if="loan.approvalStatus === 'approved' && loan.contractPath"
+    class="download"
+    @click="onDownloadContract"
+  >
+    <span class="mdi mdi-download"></span>
+  </button>
     </td>
   </tr>
 </template>
@@ -49,6 +56,18 @@ function getStatusClass(status) {
       return "";
   }
 }
+
+function onDownloadContract() {
+  // contractPath 是類似 "/uploadImg/contract/loanId_timestamp.ext"
+  // 可根據實際的路徑組合完整下載 URL
+
+  const baseUrl = "http://localhost:8080";  // 你的後端網址或環境變數
+  const url = baseUrl + loan.contractPath;
+
+  // 新分頁開啟下載連結
+  window.open(url, "_blank");
+}
+
 
 // 定義可觸發的事件
 const emit = defineEmits(["open-detail", "edit-review"]);
@@ -86,7 +105,8 @@ tr:hover td {
 
 /* 操作按鈕樣式統一 */
 button.look,
-button.edit {
+button.edit,
+button.download{
   border: none;
   background-color: transparent;
   cursor: pointer;
@@ -103,6 +123,10 @@ button.look:hover {
 
 button.edit:hover {
   background-color: #f8d6e3; /* 淡玫紅 */
+}
+
+button.download:hover {
+  background-color: #cce5ff; /* 淡藍色 */
 }
 
 .status-cell {
@@ -140,4 +164,5 @@ button.edit:hover {
 .status-reviewing::before {
   background-color: #444b4b;
 }
+
 </style>
