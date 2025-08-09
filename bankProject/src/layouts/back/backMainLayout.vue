@@ -20,6 +20,11 @@
           >
         </li>
         <li>
+          <router-link to="/backmain/accountapplication">
+            <span class="mdi mdi-hand-coin"></span>帳戶申請管理</router-link
+          >
+        </li>
+        <li>
           <router-link to="/backmain/creditCard">
             <span class="mdi mdi-credit-card"></span>信用卡管理</router-link
           >
@@ -32,11 +37,6 @@
         <li>
           <router-link to="/backmain/fund">
             <span class="mdi mdi-bank"></span>基金管理</router-link
-          >
-        </li>
-        <li>
-          <router-link to="/profile">
-            <span class="mdi mdi-hand-coin"></span>繳費管理</router-link
           >
         </li>
       </ul>
@@ -102,7 +102,7 @@ const signOut = () => {
   border-radius: 0 0 50px 0;
   background-color: var(--grey-color);
   border-radius: 20px 0 0 20px;
-  box-shadow: -5px 0 3px rgba(0,0,0,0.1);
+  box-shadow: -5px 0 3px rgba(0, 0, 0, 0.1);
 }
 .rightArea {
   width: calc(100% - 80px);
@@ -167,7 +167,7 @@ li {
   height: 80px;
 
   list-style: none;
-  &:hover{
+  &:hover {
     background-color: #f5f5f5;
     border-right: 10px solid orange;
   }
@@ -192,7 +192,7 @@ a > span {
   justify-content: center;
   align-items: center;
 }
-.outbtn:hover{
-  color:orange;
+.outbtn:hover {
+  color: orange;
 }
 </style>
