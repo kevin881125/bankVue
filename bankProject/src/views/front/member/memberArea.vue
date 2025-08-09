@@ -9,6 +9,11 @@
       style="width: 150px; height: 150px; border-radius: 50%"
     />
     <p>{{ mImage }}</p>
+
+    <h2>你的大頭照</h2>
+    <div>
+      <img :src="showpictrue" alt="">
+    </div>
     <button @click = "subm">送出</button>
   </div>
 </template>
@@ -18,6 +23,7 @@ import { ref } from "vue";
 const previewUrl = ref({});
 const mImage =ref({});
 const formData = new FormData();
+const showpictrue = ref({});
 
 const onFileChange =(e)=> {
       const file = e.target.files[0];
@@ -30,16 +36,17 @@ const onFileChange =(e)=> {
 
 const subm = async()=>{
     console.log(formData);
-
-
     const data = await request({
     url: "/member/upload-mimage",
     method: "POST",
     data:formData
   });
-  console.log("我已經結束了");
-  console.log(mImage.value);
+  showpictrue.value =  "http://localhost:8080"+data["新增成功路徑為"]
+
+
+  console.log(showpictrue.value);
   
+
   
 
 }
