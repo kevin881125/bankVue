@@ -59,7 +59,8 @@
           </template>
         </v-data-table>
       </v-container>
-      <applicationDetail
+
+      <ApplicationDetail
         :model-value="dialog"
         @update:model-value="(val) => (dialog = val)"
         :selected-item="selectedItem"
@@ -70,7 +71,8 @@
             selectedItem.status === '待補件')
         "
         @updated="fetchApplications"
-      ></applicationDetail>
+      >
+      </ApplicationDetail>
     </v-main>
   </v-app>
 </template>
@@ -78,7 +80,7 @@
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
 import { ref, onMounted, watch } from "vue";
-import applicationDetail from "@/components/member/applicationDetail.vue";
+import ApplicationDetail from "@/components/account/applicationDetail.vue";
 import { formatDateTime } from "@/utils/DataUtil";
 
 const search = ref("");

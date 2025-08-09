@@ -44,9 +44,11 @@
               <!-- 新增帳戶 -->
               <v-tooltip location="top">
                 <template #activator="{ props }">
-                  <v-btn v-bind="props" icon size="large" @click="openAddDialog">
+                  <v-btn v-bind="props" icon size="large" @click="addDialog = true">
                     <v-icon>mdi-account-edit-outline</v-icon>
                   </v-btn>
+                  <!-- 新增 Dialog -->
+                  <insert-account-dialog  v-model:show="addDialog" @added="fetchAllAccounts"></insert-account-dialog>
                 </template>
                 <span>新增帳戶</span>
               </v-tooltip>
@@ -80,14 +82,18 @@
                 </template>
                 <span>交易</span>
               </v-tooltip>
+
               <v-tooltip location="top">
                 <template #activator="{ props }">
-                  <v-btn v-bind="props" icon size="large" @click="detailDialog = true">
+                  <v-btn v-bind="props" icon size="large" @click="openDetailDialog(item)">
                     <v-icon> mdi-receipt-text-outline</v-icon>
                   </v-btn>
                 </template>
                 <span>交易明細</span>
               </v-tooltip>
+              <trade-account-dialog v-model:show="detailDialog"
+              :selected-account="selectedAccount" ></trade-account-dialog>
+              
               <v-tooltip location="top">
                 <template #activator="{ props }">
                   <v-btn v-bind="props" icon size="large" @click="openUpdateDialog(item)">
@@ -96,26 +102,18 @@
                 </template>
                 <span>修改狀態</span>
               </v-tooltip location="top">
+              <update-account-dialog v-model:show="updateDialog"
+              :selected-account="selectedAccount"
+              :update-form="updateForm"
+              @submit-update-status="submitUpdateStatus"></update-account-dialog>
              
             </div>
           </template>
         </v-data-table>
 
-        <!-- 新增帳戶 addDialog -->
-        <v-dialog v-model="addDialog" width="300">
-          <v-card>
-            <v-card-title>新增帳戶</v-card-title>
-            <v-card-text>
-              <v-text-field v-model="newAccount.mId" clearable label="會員編號"></v-text-field>
-              <v-text-field v-model="newAccount.accountName" clearable label="帳戶名稱"></v-text-field>
-              <v-select v-model="newAccount.currency" label="幣別" :items="['台幣', '外幣']"></v-select>
-            </v-card-text>
-            <v-card-actions>
-              <v-btn text @click="submitNewAccount">新增</v-btn>
-              <v-btn text @click="addDialog = false">取消</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+        
+
+
 
         <!-- 交易 tradeDialog -->
         <v-dialog v-model="tradeDialog" width="500">
@@ -128,50 +126,9 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-        <!-- 明細 detailDialog -->
-        <v-dialog v-model="detailDialog" width="500">
-          <v-card>
-            <v-card-title>交易明細</v-card-title>
-            <v-card-text>這裡放交易明細</v-card-text>
-            <v-card-actions>
-              <v-spacer />
-              <v-btn text @click="detailDialog = false">關閉</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>        
+       
         <!-- 修改 updateDialog -->
-        <v-dialog v-model="updateDialog" width="400">
-          <v-card>
-            <v-card-title>修改帳戶狀態</v-card-title>
-            <v-card-text>
-              <v-row class="mb-3">
-                <v-col cols="12" class="text-h6">
-                  客戶名稱：{{ selectedAccount.member?.mName }}
-                </v-col>
-                <v-col cols="12" class="text-h6">
-                  帳戶名稱：{{ selectedAccount.accountName }}
-                </v-col>
-                <v-col cols="12" class="text-h6">
-                  帳戶號碼：{{ selectedAccount.accountId }}
-                </v-col>
-              </v-row>   
-              <v-row dense>
-                  <v-col cols="12" >           
-                    <v-select v-model="updateForm.status" label="狀態" :items="['啟用','凍結','限制']"></v-select>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-textarea v-model="updateForm.memo" label="備註" rows="2" auto-grow />
-                  </v-col> 
-                </v-row>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer />
-              <v-btn text @click="submitUpdateStatus">確定</v-btn>
-              <v-btn text @click="updateDialog = false">取消</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-
+       
 
       </v-container>
     </v-main>
@@ -182,6 +139,9 @@
 import { request } from "@/utils/BackAxiosUtil";
 import { ref, onMounted, watch } from "vue";
 import { useWorkerStore } from "@/stores/Worker";
+import InsertAccountDialog from "@/components/account/accountVue/insertAccountDialog.vue";
+import UpdateAccountDialog from "@/components/account/accountVue/updateAccountDialog.vue";
+import TradeAccountDialog from "@/components/account/accountVue/transactionDetailDialog.vue";
 
 const addDialog = ref(false);
 const tradeDialog = ref(false);
@@ -204,7 +164,8 @@ const fetchAccounts = async () => {
   const isAllEmpty = Object.values(filters.value).every(val => !val || val.trim() === "");
 
   if ( isAllEmpty ) {
-    alert("請輸入查詢條件")
+    console.log("查詢條件為空，略過查詢");
+    return;
   }
 
   const requestBody = {
@@ -235,6 +196,26 @@ const filters = ref({
   mName: "",
 });
 
+// 搜尋全部帳戶
+const fetchAllAccounts = async () => {
+  const requestBody = {
+    mId: null,
+    accountId: null,
+    member: {
+      mIdentity: null,
+      mPhone: null,
+      mName: null,
+    },
+  };
+
+  filteredAccounts.value = await request({
+    url: "/account/searchallaccount",
+    method: "POST",
+    data: requestBody,
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
 // table 抬頭 
 const headers = [
   { title: "客戶編號", key: "mId" },
@@ -247,61 +228,10 @@ const headers = [
   { title: "操作", key: "actions", sortable: false },
 ];
 
-// 新增帳戶 
-const openAddDialog = () => {
-  newAccount.value = {mId: "", accountName: "", currency: ""},
-  addDialog.value = true;
-}
-
-const newAccount = ref({
-  mId: "",
-  accountName: "",
-  currency: ""
-});
-
-const submitNewAccount = async () => {
-  if(
-    !newAccount.value.mId || !newAccount.value.accountName || !newAccount.value.currency
-  ){
-    alert("請填寫所有欄位")
-    return;
-  }
-
-  // 驗證會員編號是否存在
-  try {
-    const mIdresult = await request({
-      url:"/member/"+newAccount.value.mId,
-      method:"GET",
-    });
-  
-    if(!mIdresult){
-      alert("會員編號不存在")
-      return;
-    }
-  
-    if( newAccount.value.currency === '台幣' ){
-      newAccount.value.currency = 'NT'
-    }
-    
-    const result = await request({
-      url:"/account/insert",
-      method:"POST",
-      data:{
-        mId: newAccount.value.mId,
-        accountName: newAccount.value.accountName,
-        currency: newAccount.value.currency,
-      },
-      headers: { "Content-Type": "application/json" },
-    });
-  
-    alert("新增帳戶成功");
-    addDialog.value = false; //關閉dialog
-    newAccount.value = {mId:"", accountName:"", currency:""}; // 清空欄位
-    
-  } catch (error) {
-    alert("新增失敗，請稍後再試")
-    console.error(error);
-  }
+// 帳戶明細dialog
+const openDetailDialog = (item) => {
+  selectedAccount.value = item;
+  detailDialog.value = true;
 }
 
 // 修改帳戶狀態
@@ -343,7 +273,7 @@ const submitUpdateStatus = async () => {
 
     alert("修改狀態成功");
     updateDialog.value = false;
-
+    fetchAccounts();
   }
 </script>
 
