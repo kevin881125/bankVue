@@ -7,7 +7,12 @@ export default [
   {
   path: "creditCard/review",
   component: () => import("@/views/back/creditCard/creditCardReview.vue")
-}
+},
+
+{
+    path: "creditCard/transaction",
+    component: () => import("@/views/back/creditCard/creditTransaction.vue"),
+  },
 ]
 
 
