@@ -28,6 +28,15 @@ const router = createRouter({
       path: "/backLogin",
       component: () => import("@/layouts/back/backLoginLayout.vue"),
     },
+    {
+      path: "/fontLogin",
+      component: () => import("@/layouts/front/FrontLoginLayout.vue"),
+    },
+    {
+      path: "/MembersArea",
+      component: () => import("@/views/front/member/memberArea.vue")
+    }
+    
   ],
 });
 

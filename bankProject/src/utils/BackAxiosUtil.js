@@ -17,6 +17,11 @@ apiService.interceptors.request.use((config) => {
   if (!config.headers["Content-Type"]) {
     config.headers["Content-Type"] = "application/json";
   }
+  if (config.data instanceof FormData) {
+    console.log("我有變圖片檔");
+
+    config.headers["Content-Type"] = "multipart/form-data";
+  }
 
   return config;
 });
