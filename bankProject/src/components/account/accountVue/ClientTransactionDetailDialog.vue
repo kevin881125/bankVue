@@ -1,6 +1,6 @@
 <template>
-  <v-dialog v-model="internalShow" max-width="1380px" persistent>
-    <!-- 目前查詢日期後端還沒測試 -->
+  <v-dialog v-model="internalShow" max-width="1200px" persistent>
+    <!-- 目前查詢日期後端還沒測試  getTransactionsRecords()  startDate, endDate-->
     <v-card>
       <!-- 關閉按鈕（放在 v-card 裡，但絕對定位） -->
       <v-btn icon @click="internalShow = false" title="關閉" class="close-btn">
@@ -23,12 +23,16 @@
               min-width="auto"
             />
             <v-col cols="auto">
-              <v-btn
-                color="primary"
-                class="search-action"
-                @click="getTransactionsRecords"
+              <v-btn color="primary" class="search-action" @click="onSearch"
                 >查詢</v-btn
               >
+            </v-col>
+          </v-row>
+
+          <!-- 提示文字 -->
+          <v-row class="hint-row">
+            <v-col class="hint-text">
+              依「交易日」排序提供近一年往來明細，每次查詢區間最多三個月。
             </v-col>
           </v-row>
 
@@ -36,20 +40,20 @@
           <v-row justify="center" align="center" class="mb-3">
             <v-col cols="auto" class="search-title"> 快速查詢 </v-col>
             <v-col cols="auto" class="text-center">
-              <v-btn text small class="search-btn" @click="setLast3Months"
-                >三個月</v-btn
+              <v-btn text small class="search-btn" @click="setToday"
+                >本日</v-btn
               >
               <v-divider vertical class="mx-2" />
-              <v-btn text small class="search-btn" @click="setLast6Months"
-                >半年</v-btn
+              <v-btn text small class="search-btn" @click="setLast7Days"
+                >最近一週</v-btn
               >
               <v-divider vertical class="mx-2" />
-              <v-btn text small class="search-btn" @click="setLast1Year"
-                >一年</v-btn
+              <v-btn text small class="search-btn" @click="setThisMonth"
+                >本月</v-btn
               >
               <v-divider vertical class="mx-2" />
-              <v-btn text small class="search-btn" @click="setLast2Years"
-                >兩年</v-btn
+              <v-btn text small class="search-btn" @click="setLastMonth"
+                >上月</v-btn
               >
             </v-col>
           </v-row>
@@ -73,15 +77,6 @@
             {{ transactionsList.length }} 筆
           </v-col>
           <v-spacer></v-spacer>
-          <v-col cols="auto">
-            <v-btn
-              color="indigo-darken-2"
-              class="search-action"
-              variant="outlined"
-              @click="downloadJSON"
-              >匯出JSON檔</v-btn
-            >
-          </v-col>
         </v-row>
       </v-card-title>
       <v-divider></v-divider>
@@ -114,21 +109,6 @@ import { ref, watch, defineProps, defineEmits, computed, nextTick } from "vue";
 import { request } from "@/utils/BackAxiosUtil";
 import { formatDateOnly, formatDateTime } from "@/utils/DataUtil";
 import { VDateInput } from "vuetify/labs/VDateInput";
-import type { AxiosResponse } from "axios";
-
-// 型別守衛：判斷物件是否為 AxiosResponse
-// 安全拆箱：把不確定型別的 res 變成真正的 Blob
-function toBlob(res: unknown): Blob {
-  if (res instanceof Blob) return res; // 已是 Blob
-  if (res && typeof res === "object") {
-    const maybe = res as Partial<AxiosResponse<any>>;
-    if ("data" in maybe && maybe!.data instanceof Blob) {
-      return maybe!.data as Blob; // AxiosResponse<Blob>
-    }
-  }
-  if (res instanceof ArrayBuffer) return new Blob([res]); //（保險）若是 ArrayBuffer
-  throw new Error("Response is not a Blob");
-}
 
 /** ========= Props / Emits / Dialog 同步 ========= **/
 const props = defineProps({
@@ -145,11 +125,7 @@ watch(
 
 watch(internalShow, (val) => {
   emit("update:show", val);
-  if (val) {
-    getTransactionsRecords();
-  } else {
-    dateRange.value = [];
-  }
+  if (val) getTransactionsRecords();
 });
 
 const headers = [
@@ -161,7 +137,6 @@ const headers = [
   { title: "交易資訊", key: "info", value: "info" },
   { title: "交易結果", key: "status", value: "status" },
   { title: "備註", key: "memo", value: "memo" },
-  { title: "操作人員", key: "operatorId", value: "operatorId" },
 ];
 
 /** ========= 日期篩選（v-date-input） ========= **/
@@ -175,31 +150,24 @@ const d = (y: number, m: number, day: number) => new Date(y, m, day);
 const now = new Date();
 const maxDate = formatDateOnly(now);
 
-// 三個月
-const setLast3Months = () => {
+// 快速查詢
+const setToday = () => {
+  const today = d(now.getFullYear(), now.getMonth(), now.getDate());
+  dateRange.value = [today, today];
+};
+const setLast7Days = () => {
   const end = d(now.getFullYear(), now.getMonth(), now.getDate());
-  const start = d(now.getFullYear(), now.getMonth() - 3, now.getDate());
+  const start = d(now.getFullYear(), now.getMonth(), now.getDate() - 6);
   dateRange.value = [start, end];
 };
-
-// 半年
-const setLast6Months = () => {
+const setThisMonth = () => {
+  const start = d(now.getFullYear(), now.getMonth(), 1);
   const end = d(now.getFullYear(), now.getMonth(), now.getDate());
-  const start = d(now.getFullYear(), now.getMonth() - 6, now.getDate());
   dateRange.value = [start, end];
 };
-
-// 一年
-const setLast1Year = () => {
-  const end = d(now.getFullYear(), now.getMonth(), now.getDate());
-  const start = d(now.getFullYear() - 1, now.getMonth(), now.getDate());
-  dateRange.value = [start, end];
-};
-
-// 兩年
-const setLast2Years = () => {
-  const end = d(now.getFullYear(), now.getMonth(), now.getDate());
-  const start = d(now.getFullYear() - 2, now.getMonth(), now.getDate());
+const setLastMonth = () => {
+  const start = d(now.getFullYear(), now.getMonth() - 1, 1);
+  const end = d(now.getFullYear(), now.getMonth(), 0);
   dateRange.value = [start, end];
 };
 
@@ -212,9 +180,25 @@ const getStartEnd = (): [string | null, string | null] => {
 
   const toYmd = (v: DateLike) =>
     typeof v === "string" ? v.slice(0, 10) : formatDateOnly(v as Date);
-  console.log(toYmd(start));
 
   return [toYmd(start), toYmd(end)];
+};
+
+// 三個月內檢查（粗抓 31*3 天）
+function within3Months() {
+  const [s, e] = getStartEnd();
+  if (!s || !e) return true;
+  const ms = (x: string) => new Date(x + "T00:00:00").getTime();
+  const diff = ms(e) - ms(s);
+  return diff >= 0 && diff <= 1000 * 60 * 60 * 24 * 31 * 3;
+}
+
+const onSearch = () => {
+  if (!within3Months()) {
+    alert("查詢區間不可超過三個月");
+    return;
+  }
+  getTransactionsRecords();
 };
 
 // 查詢交易明細
@@ -223,7 +207,7 @@ const transactionsList = ref([]);
 const getTransactionsRecords = async () => {
   const [startDate, endDate] = getStartEnd();
   const res = await request({
-    url: "/account/transaction/gettransactionsrecords",
+    url: "/account/transaction/getsuccesstxrecords",
     method: "GET",
     params: {
       accountId: props.selectedAccount?.accountId,
@@ -232,9 +216,7 @@ const getTransactionsRecords = async () => {
     },
   });
 
-  console.log(res);
-
-  transactionsList.value = res.map((tx: any) => ({
+  transactionsList.value = (res.data || []).map((tx: any) => ({
     ...tx,
     info: `${tx.toBankCode || ""}-${tx.toAccountId || ""}`,
   }));
@@ -247,31 +229,6 @@ watch(
   },
   { deep: true }
 );
-
-// 輸出JSON檔
-const downloadJSON = async () => {
-  const [startDate, endDate] = getStartEnd();
-  const res = await request({
-    url: "/account/transaction/exportjson",
-    method: "GET",
-    params: {
-      accountId: props.selectedAccount?.accountId,
-      startDate,
-      endDate,
-      type: "worker",
-    },
-    responseType: "blob",
-  });
-
-  const blob = toBlob(res); // ← 安全取得 Blob
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  const acc = props.selectedAccount?.accountId ?? "ACCOUNT";
-  a.href = url;
-  a.download = `交易紀錄_${acc}_${startDate ?? "NA"}_${endDate ?? "NA"}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
 </script>
 
 <style scoped>
@@ -304,6 +261,16 @@ const downloadJSON = async () => {
 .date-row {
   margin-bottom: 4px;
   padding: 30px 10px 0px 10px;
+}
+
+.hint-row {
+  margin-top: 0px;
+}
+
+.hint-text {
+  color: rgba(255, 0, 0, 0.753);
+  font-size: 14px;
+  text-align: center;
 }
 
 /* 快速查詢 */
