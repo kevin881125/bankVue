@@ -12,7 +12,7 @@ const router = createRouter({
 
     /*主布局*/
     {
-      path: "/backmain",
+      path: "/yuzubank/backmain",
       component: () => import("@/layouts/back/backMainLayout.vue"),
       children: [
         ...memeber,
@@ -25,15 +25,15 @@ const router = createRouter({
       ],
     },
     {
-      path: "/backLogin",
+      path: "/yuzubank/backLogin",
       component: () => import("@/layouts/back/backLoginLayout.vue"),
     },
     {
-      path: "/fontLogin",
+      path: "/yuzubank/fontLogin",
       component: () => import("@/layouts/front/FrontLoginLayout.vue"),
     },
     {
-      path: "/MembersArea",
+      path: "/yuzubank/MembersArea",
       component: () => import("@/views/front/member/memberArea.vue")
     }
     
