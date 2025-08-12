@@ -38,7 +38,7 @@
   </div>
 </template>
 <script setup>
-import { request } from "@/utils/AxiosUtil"; // 你剛才寫的 axios service
+import { request } from "@/utils/FontAxiosUtil"; // 你剛才寫的 axios service
 import { useMemberStore } from "@/stores/MemberStore";
 import { ref } from "vue";
 import router from "@/router/index";
@@ -46,6 +46,7 @@ import router from "@/router/index";
 const memberStore = useMemberStore();
 const mAccount = ref("");
 const mPassword = ref("");
+const mIdentity = ref("");
 
 const doLogin = async () => {
   try {
@@ -60,7 +61,6 @@ const doLogin = async () => {
     });
     console.log(response);
 
-    console.log(response.mid);
     console.log(memberStore);
 
     memberStore.login(
@@ -75,7 +75,7 @@ const doLogin = async () => {
     );
 
     console.log(memberStore.mId);
-    router.push("/backmain");
+    router.push("/MembersArea");
   } catch (error) {
     alert("登入失敗，請確認帳號密碼");
     console.error(error);
