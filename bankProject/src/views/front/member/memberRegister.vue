@@ -6,19 +6,19 @@
           <img src="../../../image/member/rigster.png" alt="" />
           <h2>註冊</h2>
         </div>
-        <form @submit.prevent="doLogin">
+        <form @submit.prevent="submitForm">
           <div>
             <div class="inputbox">
               <span class="must">*</span>
-              <label for="mIdentity">姓名</label>
+              <label for="mName">姓名</label>
               <div class="input">
                 <input
                   type="text"
-                  id="mIdentity"
-                  v-model="mIdentity"
-                  placeholder="輸入身分證"
+                  id="mName"
+                  v-model="form.mName"
+                  placeholder="輸入姓名"
                   required
-                /><span class="icon mdi mdi-eye-closed"></span>
+                />
               </div>
               <div class="warningtet">身分證字號</div>
             </div>
@@ -31,16 +31,16 @@
                     <input
                       type="text"
                       id="mIdentity"
-                      v-model="mIdentity"
+                      v-model="form.mIdentity"
                       placeholder="輸入身分證"
                       required
-                    /><span class="icon mdi mdi-eye-closed"></span>
+                    />
                   </div>
                   <div class="warningtet">你有錯誤</div>
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mAccount">使用者帳號</label>
+                  <label for="mAccount">帳號</label>
                   <div class="input">
                     <input
                       type="text"
@@ -71,7 +71,7 @@
                   <label for="mPassword">出生日</label>
                   <div class="input">
                     <input
-                      type="text"
+                      type="date"
                       id="mPassword"
                       v-model="mPassword"
                       placeholder="密碼英文+數字"
@@ -84,7 +84,7 @@
               <div class="right">
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="gender">使用者性別</label>
+                  <label for="gender">性別</label>
                   <div class="input">
                     <select id="gender" name="gender">
                       <option value="">請選擇</option>
@@ -92,12 +92,13 @@
                       <option value="女">女</option>
                       <option value="其他">其他</option>
                     </select>
+                    <span class="icon mdi mdi-triangle-down"></span>
                   </div>
                   <div class="warningtet">你有錯誤</div>
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mAccount">使用者密碼</label>
+                  <label for="mAccount">密碼</label>
                   <div class="input">
                     <input
                       type="text"
@@ -111,7 +112,7 @@
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mPassword">使用者電話</label>
+                  <label for="mPassword">電話</label>
                   <div class="input">
                     <input
                       type="text"
@@ -125,7 +126,7 @@
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mPassword">使用者信箱</label>
+                  <label for="mPassword">信箱</label>
                   <div class="input">
                     <input
                       type="text"
@@ -151,11 +152,36 @@
   </div>
 </template>
 <script setup>
+import { request } from "@/utils/FontAxiosUtil";
+import { ref, onMounted, reactive } from "vue";
 const emit = defineEmits(["moveslideClick"]);
 
 const moveslide = () => {
   emit("moveslideClick");
 };
+
+const form = reactive({
+  mName: "",
+  mIdentity: "",
+  mGender: "",
+  mAccount: "",
+  mPassword: "",
+  mAddress: "",
+  mPhone: "",
+  mBirthday: null,
+  mEmail: ""
+});
+
+async function submitForm() {
+  console.log("我有近來新增");
+  const data = await request({
+    url: "/member/member",
+    method: "POST",
+    data: form,
+  });
+
+  console.log(data);
+}
 </script>
 <style scoped>
 * {
