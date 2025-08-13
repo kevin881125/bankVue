@@ -29,7 +29,7 @@
           <li><router-link to="/login">繳費</router-link></li>
           <li><router-link to="/login">基金</router-link></li>
         </ul>
-        <router-link to="/login" class="login-button">登入</router-link>
+        <router-link to="/yuzubank/frontLogin" class="login-button">登入</router-link>
       </nav>
     </header>
     <div class="main">
@@ -144,21 +144,21 @@
 </template>
 
 <script setup>
-// import { useWorkerStore } from "@/stores/MemberStore";
-// import { ref } from "vue";
-// import router from "@/router/index";
+import { useMemberStore } from "@/stores/MemberStore";
+import { ref } from "vue";
+import router from "@/router/index";
 
-// const memberStore = useWorkerStore();
+const memberStore = useMemberStore();
 
-// const mName = ref(memberStore.mName);
-// const mAccount = ref(memberStore.mAccount);
+const mName = ref(memberStore.mName);
+const mAccount = ref(memberStore.mAccount);
 
-// const signOut = () => {
-//   memberStore.logout();
-//   console.log(memberStore.mId);
+const signOut = () => {
+  memberStore.logout();
+  console.log(memberStore.mId);
 
-//   router.push("/yuzubank/frontLogin");
-// };
+  router.push("/yuzubank/frontLogin");
+};
 </script>
 
 <style scoped>

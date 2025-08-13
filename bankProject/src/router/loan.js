@@ -8,6 +8,6 @@ export default [
   // 前台
   {
     path: "loanHome",
-    component: () => import("@/views/front/loan/loan.vue"),
+    component: () => import("@/views/front/loan/loanHome.vue"),
   },
 ];

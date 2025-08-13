@@ -115,7 +115,7 @@ const doLogin = async () => {
     );
 
     console.log(memberStore.mId);
-    router.push("/yuzubank/MembersArea");
+    router.push("/yuzubank");
   } catch (error) {
     alert("登入失敗，請確認帳號密碼");
     console.error(error);
