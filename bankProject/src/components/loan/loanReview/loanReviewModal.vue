@@ -83,14 +83,19 @@
               <p v-if="contractFileName">已選擇檔案：{{ contractFileName }}</p>
             </div>
 
-            <p><strong>審核時間：</strong> {{ formattedReviewTime }}</p>
+            <p><strong>更新時間：</strong> {{ formattedReviewTime }}</p>
           </div>
         </div>
       </div>
 
       <!-- 按鈕置中 -->
       <div class="buttons">
-        <button type="button" @click="submitReview" class="btn-save" :disabled="!localReview.decision">
+        <button
+          type="button"
+          @click="submitReview"
+          class="btn-save"
+          :disabled="!localReview.decision"
+        >
           儲存
         </button>
         <button type="button" @click="close" class="btn-cancel">取消</button>

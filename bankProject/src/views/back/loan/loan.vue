@@ -1,10 +1,21 @@
-<<template>
+<template>
   <div>
+    <!-- 貸款水門 -->
+    <LoanSummaryDoughnuts
+      :totalAmount="totalAmount"
+      :totalThreshold="totalThreshold"
+      :loans="categorizedLoans"
+    />
+
     <!-- 搜尋與狀態篩選 -->
     <div class="search-wrapper">
       <div class="left-buttons">
         <div class="status-filter">
-          <select v-model="selectedStatus" @change="onFilterChange" class="status-select">
+          <select
+            v-model="selectedStatus"
+            @change="onSearchOrFilterChange"
+            class="status-select"
+          >
             <option value="">全部狀態</option>
             <option value="pending">待審核</option>
             <option value="supplement">補件中</option>
@@ -13,15 +24,17 @@
           </select>
           <v-icon class="select-icon" small>mdi-menu-down</v-icon>
         </div>
-        <button @click="openAuditRecord" class="audit-record-button">審核紀錄</button>
+        <button @click="openAuditRecord" class="audit-record-button">
+          審核紀錄
+        </button>
       </div>
 
-      <form @submit.prevent="onSearch" class="search-container">
+      <form @submit.prevent="onSearchOrFilterChange" class="search-container">
         <input
           v-model="searchKeyword"
           type="text"
           class="search-input"
-          placeholder="請輸入搜尋內容"
+          placeholder="請輸入用戶名稱"
         />
         <button type="submit" class="search-button">搜尋</button>
       </form>
@@ -33,7 +46,7 @@
         <thead>
           <tr>
             <th>貸款帳戶</th>
-            <th>姓名</th>
+            <th>申請人</th>
             <th>貸款類型</th>
             <th>貸款期數(月)</th>
             <th>貸款金額</th>
@@ -45,7 +58,7 @@
         </thead>
         <tbody>
           <loanRow
-            v-for="l in loans"
+            v-for="l in filteredLoans"
             :key="l.loanId"
             :loan="l"
             @open-detail="handleOpenDetail"
@@ -82,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { request } from "@/utils/BackAxiosUtil";
 import { useWorkerStore } from "@/stores/Worker";
 
@@ -91,9 +104,15 @@ import LoanDetailModal from "@/components/loan/loanDetail/loanDetailModal.vue";
 import LoanReviewModal from "@/components/loan/loanReview/loanReviewModal.vue";
 import LoanReviewLogsModal from "@/components/loan/loanReview/loanReviewLogsModal.vue";
 import ConfirmModal from "@/components/loan/confirm/confirmModal.vue";
+import LoanSummaryDoughnuts from "@/components/loan/Chart/loanSummaryDoughnuts.vue";
 
-// 資料
-const loans = ref([]);
+// 全部貸款資料
+const allLoans = ref([]);
+
+// 篩選後用於顯示的資料
+const filteredLoans = ref([]);
+
+// 搜尋關鍵字與狀態
 const searchKeyword = ref("");
 const selectedStatus = ref("");
 
@@ -116,34 +135,68 @@ let reviewToSave = null;
 const workerStore = useWorkerStore();
 const workerId = workerStore.wId;
 
-// 載入貸款清單 (依關鍵字和狀態篩選)
-async function fetchLoans(keyword = "", status = "") {
-  try {
-    const params = {};
-    if (keyword) params.search = keyword;
-    if (status) params.status = status;
+// 總貸款門檻
+const totalThreshold = ref(10000000);
 
-    const data = await request({
-      url: `/search/loans`,
-      method: "GET",
-      params,
-    });
-    loans.value = data;
+// 總貸款金額計算（所有貸款金額加總）
+const totalAmount = computed(() => {
+  return allLoans.value.reduce((acc, cur) => acc + Number(cur.loanAmount || 0), 0);
+});
+
+// 分類貸款資料與門檻設定（示範車貸、房貸、學貸）
+const categorizedLoans = computed(() => {
+  const thresholds = {
+    車貸: 5000000,
+    房貸: 5000000,
+    學貸: 20000000,
+  };
+
+  const amounts = { 車貸: 0, 房貸: 0, 學貸: 0 };
+
+  allLoans.value.forEach((loan) => {
+    if (loan.loanTypeName && amounts.hasOwnProperty(loan.loanTypeName)) {
+      amounts[loan.loanTypeName] += Number(loan.loanAmount || 0);
+    }
+  });
+
+  return Object.entries(amounts).map(([label, amount]) => ({
+    label,
+    amount,
+    threshold: thresholds[label],
+  }));
+});
+
+// 載入全部貸款資料
+async function loadLoans() {
+  try {
+    const data = await request({ url: "/loans", method: "GET" });
+    allLoans.value = data;
+    filterLoans(); // 初次載入後直接篩選一次，預設全部
   } catch (error) {
     alert("取得貸款資料失敗");
     console.error(error);
   }
 }
 
-onMounted(() => {
-  fetchLoans();
-});
+// 依關鍵字和狀態篩選
+function filterLoans() {
+  const keyword = searchKeyword.value.trim().toLowerCase();
+  const status = selectedStatus.value;
 
-function onSearch() {
-  fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
+  filteredLoans.value = allLoans.value.filter((loan) => {
+    const matchesKeyword =
+      !keyword ||
+      (loan.mName && loan.mName.toLowerCase().includes(keyword)) ||
+      (loan.loanTypeName && loan.loanTypeName.toLowerCase().includes(keyword));
+
+    const matchesStatus = !status || loan.approvalStatus === status;
+
+    return matchesKeyword && matchesStatus;
+  });
 }
-function onFilterChange() {
-  fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
+
+function onSearchOrFilterChange() {
+  filterLoans();
 }
 
 // 審核紀錄
@@ -153,7 +206,9 @@ async function openAuditRecord() {
       url: "/review/all",
       method: "GET",
     });
-    auditRecords.value = data;
+    auditRecords.value = data.sort(
+      (a, b) => new Date(b.reviewTime) - new Date(a.reviewTime)
+    );
     isAuditModalVisible.value = true;
   } catch (error) {
     alert("取得審核紀錄失敗");
@@ -161,7 +216,7 @@ async function openAuditRecord() {
   }
 }
 
-// 貸款詳細資料
+// 顯示貸款詳細資料
 async function handleOpenDetail(loanId) {
   try {
     const res = await request({
@@ -176,7 +231,7 @@ async function handleOpenDetail(loanId) {
   }
 }
 
-// 開啟審核 Modal 並載入資料
+// 開啟審核 Modal
 async function openReviewModal(loanId) {
   try {
     const loan = await request({ url: `/loans/${loanId}`, method: "GET" });
@@ -202,7 +257,7 @@ async function openReviewModal(loanId) {
   }
 }
 
-// 儲存審核 - 先存基本資料，若有合約檔案再上傳
+// 儲存審核資料(不含合約檔案)
 async function saveReviewSimple({ loanId, reviewerId, decision, notes }) {
   try {
     await request({
@@ -216,6 +271,7 @@ async function saveReviewSimple({ loanId, reviewerId, decision, notes }) {
   }
 }
 
+// 上傳合約檔案
 async function saveReviewWithContract(contractFile, loanId) {
   const formData = new FormData();
   formData.append("file", contractFile);
@@ -232,7 +288,7 @@ async function saveReviewWithContract(contractFile, loanId) {
   }
 }
 
-// 觸發儲存，先跳確認框
+// 觸發儲存(跳確認框)
 function handleSaveReview(reviewData) {
   reviewToSave = reviewData;
   isConfirmVisible.value = true;
@@ -253,12 +309,13 @@ async function onConfirmSave() {
       await saveReviewWithContract(reviewToSave.contractFile, reviewToSave.loanId);
     }
 
-    // 關閉 Modal 與更新清單
     isReviewModalVisible.value = false;
     reviewToSave = null;
-    await fetchLoans(searchKeyword.value.trim(), selectedStatus.value);
+
+    // 更新清單
+    await loadLoans();
   } catch {
-    // 失敗時可適度提示，已在 catch 處理
+    // 錯誤已提示
   }
 }
 
@@ -272,6 +329,10 @@ function closeReviewModal() {
   isReviewModalVisible.value = false;
   currentReview.value = null;
 }
+
+onMounted(async () => {
+  await loadLoans();
+});
 </script>
 
 <style scoped>
@@ -279,107 +340,101 @@ function closeReviewModal() {
   display: flex;
   justify-content: space-between; /* 左右分散排列 */
   align-items: center;
+}
 
-  .left-buttons {
-    display: flex;
-    align-items: center;
-    gap: 16px; /* 兩個按鈕之間的間距 */
+.search-wrapper .left-buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
-    .status-filter {
-      position: relative;
-      display: inline-block;
-      .status-select {
-        appearance: none;
-        background-color: #ffffff;
-        border-radius: 20px;
-        padding: 8px 36px 8px 16px;
-        font-size: 16px;
-        color: #535353;
-        cursor: pointer;
-        outline: none;
-        transition: all 0.3s;
-        min-width: 120px;
+.status-filter {
+  position: relative;
+  display: inline-block;
+}
 
-        &:hover {
-          border-color: #e5a900;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+.status-select {
+  appearance: none;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 9px 36px 9px 16px;
+  font-size: 16px;
+  color: #535353;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s;
+  min-width: 120px;
+}
 
-        &:focus {
-          border-color: #e5a900;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+.status-select:hover,
+.status-select:focus {
+  border-color: #e5a900;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
-        option {
-          padding: 8px;
-        }
-      }
-      .select-icon {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        pointer-events: none;
-        transform: translateY(-50%);
-        color: #535353;
-        font-size: 20px;
-      }
-    }
+.select-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  pointer-events: none;
+  transform: translateY(-50%);
+  color: #535353;
+  font-size: 20px;
+}
 
-    .audit-record-button {
-      border: 1px solid #b61359;
-      color: #b61359;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.3s;
-      font-weight: 500;
+.audit-record-button {
+  border: 1px solid #b61359;
+  color: #b61359;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+  font-weight: 500;
+}
 
-      &:hover {
-        background-color: #b61359;
-        color: white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
+.audit-record-button:hover {
+  background-color: #b61359;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
-      &:active {
-        transform: translateY(1px);
-      }
-    }
-  }
+.audit-record-button:active {
+  transform: translateY(1px);
+}
 
-  .search-container {
-    display: flex;
-    background-color: #ffffff;
-    border-radius: 30px;
-    padding: 8px 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    width: 550px; /* 調整寬度以配合左側按鈕 */
+.search-container {
+  display: flex;
+  background-color: #ffffff;
+  border-radius: 30px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 550px;
+}
 
-    .search-input {
-      flex: 1;
-      border: none;
-      outline: none;
-      font-size: 16px;
-      color: #535353;
-      padding: 8px;
-      background-color: transparent;
-    }
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #535353;
+  padding: 8px;
+  background-color: transparent;
+}
 
-    .search-button {
-      border: none;
-      background-color: #ebb211;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s;
+.search-button {
+  border: none;
+  background-color: #ebb211;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
 
-      &:hover {
-        background-color: #e5a900;
-      }
-    }
-  }
+.search-button:hover {
+  background-color: #e5a900;
 }
 
 .table table {
@@ -398,17 +453,15 @@ function closeReviewModal() {
   z-index: 1;
 }
 
-/* 欄位標頭樣式 */
 .table th {
-  background-color: #ffffff; /* 白底 */
-  color: #444848; /* 夜幕灰字體 */
+  background-color: #ffffff;
+  color: #444848;
   font-weight: 600;
   text-align: center;
   padding: 14px 10px;
   font-size: 16px;
 }
 
-/* 可選：資料列 hover 效果 */
 .table tr:hover {
   background-color: #f9f9f9;
 }
