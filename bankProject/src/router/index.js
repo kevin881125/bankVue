@@ -1,15 +1,14 @@
 import { createRouter, createWebHistory } from "vue-router";
-import memeber from "@/router/member"
-import accountapplication from "@/router/accountapplication"
-import loan from "@/router/loan"
-import creditCard from "@/router/creditCard"
-import fund from "@/router/fund"
-import account from "@/router/account"
+import memeber from "@/router/member";
+import accountapplication from "@/router/accountapplication";
+import loan from "@/router/loan";
+import creditCard from "@/router/creditCard";
+import fund from "@/router/fund";
+import account from "@/router/account";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-
     /*主布局*/
     {
       path: "/yuzubank/backmain",
@@ -20,8 +19,7 @@ const router = createRouter({
         ...accountapplication,
         ...loan,
         ...creditCard,
-        ...fund
-
+        ...fund,
       ],
     },
     {
@@ -29,11 +27,22 @@ const router = createRouter({
       component: () => import("@/layouts/back/backLoginLayout.vue"),
     },
     {
-      path: "/yuzubank/fontLogin",
+      path: "/yuzubank/frontLogin",
       component: () => import("@/layouts/front/FrontLoginLayoutnew.vue"),
     },
 
-    
+    {
+      path: "/yuzubank",
+      component: () => import("@/layouts/front/FrontHomeLayout.vue"),
+      children: [
+        ...memeber,
+        ...account,
+        ...accountapplication,
+        ...loan,
+        ...creditCard,
+        ...fund,
+      ],
+    },
   ],
 });
 

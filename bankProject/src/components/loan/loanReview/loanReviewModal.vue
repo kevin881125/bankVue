@@ -73,14 +73,29 @@
               placeholder="輸入備註"
             ></textarea>
 
-            <p><strong>審核時間：</strong> {{ formattedReviewTime }}</p>
+            <div v-if="localReview.decision === 'approved'" class="info-group">
+              <h4>合約文件上傳</h4>
+              <input
+                type="file"
+                @change="onContractFileChange"
+                accept=".pdf,.doc,.docx,.jpg,.png"
+              />
+              <p v-if="contractFileName">已選擇檔案：{{ contractFileName }}</p>
+            </div>
+
+            <p><strong>更新時間：</strong> {{ formattedReviewTime }}</p>
           </div>
         </div>
       </div>
 
       <!-- 按鈕置中 -->
       <div class="buttons">
-        <button type="button" @click="submitReview" class="btn-save">
+        <button
+          type="button"
+          @click="submitReview"
+          class="btn-save"
+          :disabled="!localReview.decision"
+        >
           儲存
         </button>
         <button type="button" @click="close" class="btn-cancel">取消</button>
@@ -100,38 +115,41 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "save"]);
 
-const localReview = ref(props.review ? { ...props.review } : {});
+const localReview = ref({});
 
+// watch props.review 複製到 localReview，避免直接修改 props
 watch(
   () => props.review,
   (newVal) => {
     localReview.value = newVal ? { ...newVal } : {};
-  }
+  },
+  { immediate: true }
 );
 
-// 檔名 (擷取 proofDocumentUrl 最後段)
+// 合約上傳檔案物件
+const contractFile = ref(null);
+const contractFileName = computed(() => contractFile.value?.name || "");
+
+function onContractFileChange(e) {
+  contractFile.value = e.target.files[0];
+}
+
+// 下載與預覽相關
 const fileName = computed(() => {
   if (!localReview.value?.proofDocumentUrl) return "";
   return localReview.value.proofDocumentUrl.split("/").pop();
 });
-
-// 下載用 URL (請依實際狀況調整)
 const fileUrl = computed(() => {
-  if (!localReview.value?.proofDocumentUrl) return "";
+  if (!fileName.value) return "";
   return `http://localhost:8080/bank/download/loanImg/${fileName.value}`;
 });
-
-// 預覽用 URL（此處直接用前端提供的 URL 或調整成完整路徑）
 const previewUrl = computed(() => {
   if (!fileName.value) return "";
   return `http://localhost:8080/bank/uploadImg/loanImg/${fileName.value}`;
 });
-
-// 是否為 PDF，決定預覽用 iframe 或 img
 const isPdf = computed(() => {
   return localReview.value?.proofDocumentUrl?.toLowerCase().endsWith(".pdf");
 });
-
 function downloadFile() {
   if (!fileUrl.value) {
     alert("無法下載檔案");
@@ -150,11 +168,17 @@ function close() {
 }
 
 function submitReview() {
-  if (!localReview.value || !localReview.value.loanId) {
-    alert("審核資料異常，請重新開啟此視窗");
+  if (!localReview.value.loanId || !localReview.value.decision) {
+    alert("請填寫審核狀態");
     return;
   }
-  emit("save", { ...localReview.value });
+  emit("save", {
+    loanId: localReview.value.loanId,
+    decision: localReview.value.decision,
+    notes: localReview.value.notes || "",
+    reviewerId: localReview.value.reviewerId || "",
+    contractFile: contractFile.value || null,
+  });
 }
 
 const formattedReviewTime = computed(() => {
