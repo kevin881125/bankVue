@@ -1,72 +1,137 @@
 <template>
-  <div class="background">
-    <div :class="['outlay',{active:slide}]">
-        <div :class="['container']">
-          <div class="left">
-            <h1>登入你的YuzuBank</h1>
-            <h3>簡單存錢 簡單轉帳</h3>
-            <img class="logo-img" src="../../image/member/log.png" alt="" />
-          </div>
-          <div class="right">
-            <div class="form">
-              <div class="topbar">
-                <img src="../../image/member/logicon.png" alt="" />
-                <h2>我要登入</h2>
-              </div>
+  <div :class="['background',{blackout:blackout}]">
+    <div :class="['outlay', { active: slide }]">
+      <div :class="['container']">
+        <div class="left">
+          <h1>登入你的YuzuBank</h1>
+          <h3>簡單存錢 簡單轉帳</h3>
+          <img class="logo-img" src="../../image/member/log.png" alt="" />
+        </div>
+        <div class="right">
+          <div class="form">
+            <div class="topbar">
+              <img src="../../image/member/logicon.png" alt="" />
+              <h2>我要登入</h2>
+            </div>
+            <form @submit.prevent="doLogin">
               <div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="">身分證字號</label>
+                  <label for="mIdentity">身分證字號</label>
                   <div class="input">
-                    <input type="text" /><span
-                      class="icon mdi mdi-eye-closed"
-                    ></span>
+                    <input
+                      type="text"
+                      id="mIdentity"
+                      v-model="mIdentity"
+                      placeholder="輸入身分證"
+                      required
+                    /><span class="icon mdi mdi-eye-closed"></span>
                   </div>
                   <div class="warningtet">你有錯誤</div>
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="">使用者帳號</label>
+                  <label for="mAccount">使用者帳號</label>
                   <div class="input">
-                    <input type="text" /><span
-                      class="icon mdi mdi-eye-closed"
-                    ></span>
+                    <input
+                      type="text"
+                      id="mAccount"
+                      v-model="mAccount"
+                      placeholder="帳號英文+數字"
+                      required
+                    /><span class="icon mdi mdi-eye-closed"></span>
                   </div>
                   <div class="warningtet">你有錯誤</div>
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="">使用者密碼</label>
+                  <label for="mPassword">使用者密碼</label>
                   <div class="input">
-                    <input type="text" /><span class="icon mdi mdi-keyboard"></span>
+                    <input
+                      type="text"
+                      id="mPassword"
+                      v-model="mPassword"
+                      placeholder="密碼英文+數字"
+                      required
+                    /><span class="icon mdi mdi-keyboard"></span>
                   </div>
                   <div class="warningtet">你有錯誤</div>
                 </div>
-                <button class="btn">登入</button>
+                <button type="submit" class="btn">登入</button>
                 <button class="forgetbtn">忘記帳號或密碼</button>
               </div>
-            </div>
-            <div class="decorate"></div>
+            </form>
           </div>
-          <div class="register">你還沒有加入會員嗎?<button @click="moveslide">立即註冊</button></div>
+          <div class="decorate"></div>
         </div>
+        <div class="register">
+          你還沒有加入會員嗎?<button @click="moveslide">立即註冊</button>
+        </div>
+      </div>
     </div>
-    <div :class="['outlay','cc',{active:slide}]">
-
+    <div :class="['outlay', { active: slide }]">
+      <memberRegister @moveslideClick="moveslide"></memberRegister>
     </div>
   </div>
 </template>
 <script setup>
-import { request } from "@/utils/BackAxiosUtil";
-import { ref, onMounted, reactive } from "vue";
+import { request } from "@/utils/FontAxiosUtil";
+import { useMemberStore } from "@/stores/MemberStore";
+import { ref } from "vue";
+import router from "@/router/index";
+import memberRegister from "@/views/front/member/memberRegister.vue"
+
+/*登入邏輯*/
+const memberStore = useMemberStore();
+const mAccount = ref("");
+const mPassword = ref("");
+const mIdentity = ref("");
+const blackout = ref(false);
+
+const doLogin = async () => {
+  try {
+    const response = await request({
+      url: "/auth/login",
+      method: "POST",
+      data: {
+        mIdentity: mIdentity.value,
+        mAccount: mAccount.value,
+        mPassword: mPassword.value,
+      },
+    });
+    console.log(response);
+
+    console.log(memberStore);
+
+    memberStore.login(
+      response.mid,
+      response.mname,
+      response.midentity,
+      response.mgender,
+      response.maddress,
+      response.mphone,
+      response.memail,
+      response.token
+    );
+
+    console.log(memberStore.mId);
+    router.push("/yuzubank/MembersArea");
+  } catch (error) {
+    alert("登入失敗，請確認帳號密碼");
+    console.error(error);
+  }
+};
+
+//切換滑動
 
 const slide = ref(false);
 
-const moveslide = ()=>{
-    slide.value = !slide.value
-}
-
+const moveslide = () => {
+  slide.value = !slide.value;
+  blackout.value = !blackout.value;
+};
 </script>
+
 <style scoped>
 * {
   position: relative;
@@ -83,23 +148,28 @@ const moveslide = ()=>{
   background-repeat: no-repeat;
   background-size: 80% auto;
   overflow: hidden;
+  transition: 0.8s;
 }
-.outlay{
+.background.blackout {
+  background-image: none;
+  background-color: #1B2028;
+}
+.outlay {
   top: 0;
   width: 60%;
-  height: 100%;
+  min-height: 100%;
   margin-right: auto;
   margin-left: auto;
   transition: 0.5s;
 }
-.active{
-    top: -100%;
+.active {
+  top: -100%;
 }
-.cc{
+.cc {
   background-color: #991212;
 }
 .container {
- top: 120px;
+  top: 120px;
   width: 100%;
   height: 75%;
   display: flex;
@@ -144,6 +214,7 @@ input {
   border-radius: 50px;
   margin-left: auto;
   margin-right: auto;
+  overflow: hidden;
 }
 .inputbox {
   margin-top: 20px;
@@ -178,7 +249,11 @@ button {
 .forgetbtn {
   margin-top: 20px;
   color: #02a9b9;
+  &:hover{
+    color: #18dbec;
+  }
 }
+
 h1 {
   font-size: 40px;
   font-weight: 500;
@@ -235,5 +310,8 @@ label {
 .register > button {
   margin-left: 5px;
   color: #13aebd;
+}
+.register > button:hover{
+  color: #18dbec;
 }
 </style>
