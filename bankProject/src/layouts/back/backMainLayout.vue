@@ -75,7 +75,7 @@ const signOut = () => {
   workerStore.logout();
   console.log(workerStore.wId);
 
-  router.push("/backLogin");
+  router.push("/yuzubank/backLogin");
 };
 </script>
 
