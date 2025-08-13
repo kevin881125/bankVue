@@ -101,7 +101,7 @@
                     v-bind="props"
                     icon
                     size="large"
-                    @click="tradeDialog = true"
+                    @click="openTradeDiolog(item)"
                   >
                     <v-icon> mdi-hand-coin-outline</v-icon>
                   </v-btn>
@@ -140,12 +140,6 @@
           </template>
         </v-data-table>
 
-        <trade-account-dialog
-          v-model:show="detailDialog"
-          :selected-account="selectedAccount"
-        >
-        </trade-account-dialog>
-
         <update-account-dialog
           v-model:show="updateDialog"
           :selected-account="selectedAccount"
@@ -154,19 +148,16 @@
         >
         </update-account-dialog>
 
-        <!-- 交易 tradeDialog -->
-        <v-dialog v-model="tradeDialog" width="500">
-          <v-card>
-            <v-card-title>交易</v-card-title>
-            <v-card-text>這裡放交易功能</v-card-text>
-            <v-card-actions>
-              <v-spacer />
-              <v-btn text @click="tradeDialog = false">關閉</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+        <transaction-detail-dialog
+          v-model:show="detailDialog"
+          :selected-account="selectedAccount"
+        ></transaction-detail-dialog>
 
-        <!-- 修改 updateDialog -->
+        <trade-account-dialog
+          v-model:show="tradeDialog"
+          :selected-account="selectedAccount"
+          @tx-success="onTxSuccess"
+        ></trade-account-dialog>
       </v-container>
     </v-main>
   </v-app>
@@ -178,7 +169,8 @@ import { ref, onMounted, watch } from "vue";
 import { useWorkerStore } from "@/stores/Worker";
 import InsertAccountDialog from "@/components/account/accountVue/InsertAccountDialog.vue";
 import UpdateAccountDialog from "@/components/account/accountVue/UpdateAccountDialog.vue";
-import TradeAccountDialog from "@/components/account/accountVue/TransactionDetailDialog.vue";
+import TransactionDetailDialog from "@/components/account/accountVue/TransactionDetailDialog.vue";
+import TradeAccountDialog from "@/components/account/accountVue/TradeAccountDialog.vue";
 
 const addDialog = ref(false);
 const tradeDialog = ref(false);
@@ -222,8 +214,6 @@ const fetchAccounts = async () => {
     data: requestBody,
     headers: { "Content-Type": "application/json" },
   });
-
-  console.log(filteredAccounts.value);
 };
 
 const filters = ref({
@@ -265,6 +255,12 @@ const headers = [
   { title: "狀態", key: "status" },
   { title: "操作", key: "actions", sortable: false },
 ];
+
+// 交易 dialog
+const openTradeDiolog = (item) => {
+  selectedAccount.value = item;
+  tradeDialog.value = true;
+};
 
 // 帳戶明細dialog
 const openDetailDialog = (item) => {
@@ -312,6 +308,49 @@ const submitUpdateStatus = async () => {
   alert("修改狀態成功");
   updateDialog.value = false;
   fetchAccounts();
+};
+
+const onTxSuccess = async () => {
+  // 判斷是否有任何查詢條件（至少一個非空白）
+  const hasFilters = Object.values(filters.value).some(
+    (v) => v && v.trim && v.trim() !== ""
+  );
+
+  if (hasFilters) {
+    await fetchAccounts(); // 用使用者的條件重撈
+  } else if (selectedAccount.value?.accountId) {
+    // 沒條件 → 至少用目前選中的帳號精準更新
+    const req = {
+      mId: null,
+      accountId: selectedAccount.value.accountId,
+      member: { mIdentity: null, mPhone: null, mName: null },
+    };
+    const res = await request({
+      url: "/account/searchaccount",
+      method: "POST",
+      data: req,
+      headers: { "Content-Type": "application/json" },
+    });
+    const list = Array.isArray(res)
+      ? res
+      : Array.isArray(res?.data)
+      ? res.data
+      : [];
+    const updated = list[0];
+
+    if (updated) {
+      // 就地替換表格中的那一筆
+      const idx = filteredAccounts.value.findIndex(
+        (a) => String(a.accountId) === String(updated.accountId)
+      );
+      if (idx >= 0) filteredAccounts.value.splice(idx, 1, updated);
+      // 同步 selectedAccount（避免顯示舊餘額）
+      selectedAccount.value = updated;
+    }
+  } else {
+    // 最後手段：全撈
+    await fetchAllAccounts();
+  }
 };
 </script>
 
