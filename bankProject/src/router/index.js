@@ -30,7 +30,7 @@ const router = createRouter({
     },
     {
       path: "/yuzubank/fontLogin",
-      component: () => import("@/layouts/front/FrontLoginLayout.vue"),
+      component: () => import("@/layouts/front/FrontLoginLayoutnew.vue"),
     },
     {
       path: "/yuzubank/MembersArea",
