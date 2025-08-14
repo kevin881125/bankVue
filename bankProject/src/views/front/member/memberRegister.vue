@@ -45,21 +45,21 @@
                     <input
                       type="text"
                       id="mAccount"
-                      v-model="mAccount"
+                      v-model="form.mAccount"
                       placeholder="帳號英文+數字"
                       required
-                    /><span class="icon mdi mdi-eye-closed"></span>
+                    />
                   </div>
                   <div class="warningtet">你有錯誤</div>
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mPassword">居住地址</label>
+                  <label for="mAddress">居住地址</label>
                   <div class="input">
                     <input
                       type="text"
-                      id="mPassword"
-                      v-model="mPassword"
+                      id="mAddress"
+                      v-model="form.mAddress"
                       placeholder="密碼英文+數字"
                       required
                     /><span class="icon mdi mdi-keyboard"></span>
@@ -68,12 +68,12 @@
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mPassword">出生日</label>
+                  <label for="mBirthday">出生日</label>
                   <div class="input">
                     <input
                       type="date"
-                      id="mPassword"
-                      v-model="mPassword"
+                      id="mBirthday"
+                      v-model="form.mBirthday"
                       placeholder="密碼英文+數字"
                       required
                     /><span class="icon mdi mdi-keyboard"></span>
@@ -84,9 +84,9 @@
               <div class="right">
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="gender">性別</label>
+                  <label for="mGender">性別</label>
                   <div class="input">
-                    <select id="gender" name="gender">
+                    <select id="mGender" name="gender" v-model="form.mGender">
                       <option value="">請選擇</option>
                       <option value="男">男</option>
                       <option value="女">女</option>
@@ -98,12 +98,12 @@
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mAccount">密碼</label>
+                  <label for="mPassword">密碼</label>
                   <div class="input">
                     <input
                       type="text"
-                      id="mAccount"
-                      v-model="mAccount"
+                      id="mPassword"
+                     v-model="form.mPassword"
                       placeholder="帳號英文+數字"
                       required
                     /><span class="icon mdi mdi-eye-closed"></span>
@@ -112,12 +112,12 @@
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mPassword">電話</label>
+                  <label for="mPhone">電話</label>
                   <div class="input">
                     <input
                       type="text"
-                      id="mPassword"
-                      v-model="mPassword"
+                      id="mPhone"
+                      v-model="form.mPhone"
                       placeholder="密碼英文+數字"
                       required
                     /><span class="icon mdi mdi-keyboard"></span>
@@ -126,12 +126,12 @@
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mPassword">信箱</label>
+                  <label for="mEmail">信箱</label>
                   <div class="input">
                     <input
                       type="text"
-                      id="mPassword"
-                      v-model="mPassword"
+                      id="mEmail"
+                      v-model="form.mEmail"
                       placeholder="密碼英文+數字"
                       required
                     /><span class="icon mdi mdi-keyboard"></span>
@@ -154,6 +154,8 @@
 <script setup>
 import { request } from "@/utils/FontAxiosUtil";
 import { ref, onMounted, reactive } from "vue";
+
+
 const emit = defineEmits(["moveslideClick"]);
 
 const moveslide = () => {
@@ -173,14 +175,12 @@ const form = reactive({
 });
 
 async function submitForm() {
-  console.log("我有近來新增");
   const data = await request({
     url: "/member/member",
     method: "POST",
     data: form,
   });
-
-  console.log(data);
+moveslide();
 }
 </script>
 <style scoped>

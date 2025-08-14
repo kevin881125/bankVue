@@ -17,11 +17,11 @@
               <div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mIdentity">身分證字號</label>
+                  <label for="mIdentityLogin">身分證字號</label>
                   <div class="input">
                     <input
                       type="text"
-                      id="mIdentity"
+                      id="mIdentityLogin"
                       v-model="mIdentity"
                       placeholder="輸入身分證"
                       required
@@ -31,11 +31,11 @@
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mAccount">使用者帳號</label>
+                  <label for="mAccountLogin">使用者帳號</label>
                   <div class="input">
                     <input
                       type="text"
-                      id="mAccount"
+                      id="mAccountLogin"
                       v-model="mAccount"
                       placeholder="帳號英文+數字"
                       required
@@ -45,11 +45,11 @@
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
-                  <label for="mPassword">使用者密碼</label>
+                  <label for="mPasswordLogin">使用者密碼</label>
                   <div class="input">
                     <input
                       type="text"
-                      id="mPassword"
+                      id="mPasswordLogin"
                       v-model="mPassword"
                       placeholder="密碼英文+數字"
                       required
