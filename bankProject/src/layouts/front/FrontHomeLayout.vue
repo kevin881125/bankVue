@@ -42,7 +42,7 @@
         <!-- 已登入 -->
         <div v-else class="member-info">
           <div class="avatar">
-            <router-link to="/yuzubank/memberHome">
+            <router-link to="/yuzubank/memberProfile">
               <img src="../../image/avatar.jpg" alt="會員頭像" />
             </router-link>
           </div>

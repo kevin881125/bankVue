@@ -6,8 +6,8 @@ export default [
 
   // 前台
   {
-     path: "memberHome",
-      component: () => import("@/views/front/member/memberArea.vue")
+     path: "memberProfile",
+      component: () => import("@/views/front/member/memberProfile.vue")
 
   }
 ]
