@@ -8,11 +8,11 @@
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
-        <v-btn rounded="xl" size="x-large" block>Rounded xs</v-btn>
+        <v-btn rounded="xl" size="x-large" block to="/backmain/creditCard/transaction" tag="router-link">交易管理</v-btn>
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
-        <v-btn rounded="xl" size="x-large" block>Rounded sm</v-btn>
+        <v-btn rounded="xl" size="x-large" block to="/backmain/creditCard/bill" tag="router-link">帳單管理</v-btn>
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
