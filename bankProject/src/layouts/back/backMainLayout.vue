@@ -10,32 +10,32 @@
       </div>
       <ul class="featurelist">
         <li>
-          <router-link to="/backmain/member"
+          <router-link to="/yuzubank/backmain/member"
             ><span class="mdi mdi-account"></span>會員管理</router-link
           >
         </li>
         <li>
-          <router-link to="/backmain/account">
+          <router-link to="/yuzubank/backmain/account">
             <span class="mdi mdi-piggy-bank"></span>帳戶管理</router-link
           >
         </li>
         <li>
-          <router-link to="/backmain/accountapplication">
+          <router-link to="/yuzubank/backmain/accountapplication">
             <span class="mdi mdi-hand-coin"></span>帳戶申請管理</router-link
           >
         </li>
         <li>
-          <router-link to="/backmain/creditCard">
+          <router-link to="/yuzubank/backmain/creditCard">
             <span class="mdi mdi-credit-card"></span>信用卡管理</router-link
           >
         </li>
         <li>
-          <router-link to="/backmain/loan">
+          <router-link to="/yuzubank/backmain/loan">
             <span class="mdi mdi-cash"></span>貸款管理</router-link
           >
         </li>
         <li>
-          <router-link to="/backmain/fund">
+          <router-link to="/yuzubank/backmain/fund">
             <span class="mdi mdi-bank"></span>基金管理</router-link
           >
         </li>
@@ -75,7 +75,7 @@ const signOut = () => {
   workerStore.logout();
   console.log(workerStore.wId);
 
-  router.push("/backLogin");
+  router.push("/yuzubank/backLogin");
 };
 </script>
 

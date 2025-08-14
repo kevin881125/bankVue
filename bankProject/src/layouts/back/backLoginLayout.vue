@@ -60,7 +60,7 @@ const doLogin = async () => {
     );
 
     console.log(workerStore.wId);
-    router.push("/backmain/member");
+    router.push("/yuzubank/backmain/member");
   } catch (error) {
     alert("登入失敗，請確認帳號密碼");
     console.error(error);

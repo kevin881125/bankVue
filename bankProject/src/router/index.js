@@ -1,18 +1,17 @@
 import { createRouter, createWebHistory } from "vue-router";
-import memeber from "@/router/member"
-import accountapplication from "@/router/accountapplication"
-import loan from "@/router/loan"
-import creditCard from "@/router/creditCard"
-import fund from "@/router/fund"
-import account from "@/router/account"
+import memeber from "@/router/member";
+import accountapplication from "@/router/accountapplication";
+import loan from "@/router/loan";
+import creditCard from "@/router/creditCard";
+import fund from "@/router/fund";
+import account from "@/router/account";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-
     /*主布局*/
     {
-      path: "/backmain",
+      path: "/yuzubank/backmain",
       component: () => import("@/layouts/back/backMainLayout.vue"),
       children: [
         ...memeber,
@@ -20,23 +19,30 @@ const router = createRouter({
         ...accountapplication,
         ...loan,
         ...creditCard,
-        ...fund
-
+        ...fund,
       ],
     },
     {
-      path: "/backLogin",
+      path: "/yuzubank/backLogin",
       component: () => import("@/layouts/back/backLoginLayout.vue"),
     },
     {
-      path: "/fontLogin",
-      component: () => import("@/layouts/front/FrontLoginLayout.vue"),
+      path: "/yuzubank/frontLogin",
+      component: () => import("@/layouts/front/FrontLoginLayoutnew.vue"),
     },
+
     {
-      path: "/MembersArea",
-      component: () => import("@/views/front/member/memberArea.vue")
-    }
-    
+      path: "/yuzubank",
+      component: () => import("@/layouts/front/FrontHomeLayout.vue"),
+      children: [
+        ...memeber,
+        ...account,
+        ...accountapplication,
+        ...loan,
+        ...creditCard,
+        ...fund,
+      ],
+    },
   ],
 });
 
