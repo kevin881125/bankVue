@@ -4,15 +4,15 @@
   <v-container class="text-center">
     <v-row justify="center">
       <v-col cols="12" md="4" sm="6">
-        <v-btn rounded="xl" size="x-large" block to="/backmain/creditCard/review" tag="router-link">審核信用卡</v-btn>
+        <v-btn rounded="xl" size="x-large" block to="/yuzubank/backmain/creditCard/review" tag="router-link">審核信用卡</v-btn>
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
-        <v-btn rounded="xl" size="x-large" block to="/backmain/creditCard/transaction" tag="router-link">交易管理</v-btn>
+        <v-btn rounded="xl" size="x-large" block to="/yuzubank/backmain/creditCard/transaction" tag="router-link">交易管理</v-btn>
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
-        <v-btn rounded="xl" size="x-large" block to="/backmain/creditCard/bill" tag="router-link">帳單管理</v-btn>
+        <v-btn rounded="xl" size="x-large" block to="/yuzubank/backmain/creditCard/bill" tag="router-link">帳單管理</v-btn>
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
