@@ -154,6 +154,8 @@
 <script setup>
 import { request } from "@/utils/FontAxiosUtil";
 import { ref, onMounted, reactive } from "vue";
+
+
 const emit = defineEmits(["moveslideClick"]);
 
 const moveslide = () => {
@@ -173,15 +175,12 @@ const form = reactive({
 });
 
 async function submitForm() {
-  console.log("我有近來新增");
-  console.log(form);
   const data = await request({
     url: "/member/member",
     method: "POST",
     data: form,
   });
-
-  console.log(data);
+moveslide();
 }
 </script>
 <style scoped>
