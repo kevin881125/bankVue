@@ -13,6 +13,11 @@ export default [
     path: "creditCard/transaction",
     component: () => import("@/views/back/creditCard/creditTransaction.vue"),
   },
+
+  {
+    path: "creditCard/bill",
+    component: () => import("@/views/back/creditCard/creditBill.vue"),
+  },
 ]
 
 

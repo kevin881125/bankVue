@@ -44,61 +44,83 @@
       :items="transactions"
       :loading="loading"
       class="elevation-1"
-      dense
-      disable-sort
       item-key="transactionId"
+      show-header
     >
-      <!-- 交易ID -->
+      <!-- 表頭 slot -->
+      <template #header.transactionId>
+        <span class="text-center">交易ID</span>
+      </template>
+      <template #header.transactionCode>
+        <span class="text-center">交易碼</span>
+      </template>
+      <template #header.cardId>
+        <span class="text-center">卡片ID</span>
+      </template>
+      <template #header.memberName>
+        <span class="text-center">會員姓名</span>
+      </template>
+      <template #header.amount>
+        <span class="text-center">消費金額</span>
+      </template>
+      <template #header.cashback>
+        <span class="text-center">回饋金額</span>
+      </template>
+      <template #header.transactionTime>
+        <span class="text-center">交易時間</span>
+      </template>
+      <template #header.merchantType>
+        <span class="text-center">消費類別</span>
+      </template>
+      <template #header.description>
+        <span class="text-center">描述</span>
+      </template>
+      <template #header.actions>
+        <span class="text-center">操作</span>
+      </template>
+
+      <!-- 內容 slot -->
       <template #item.transactionId="{ item }">
         {{ item.transactionId }}
       </template>
 
-      <!-- 交易碼 -->
       <template #item.transactionCode="{ item }">
         {{ item.transactionCode }}
       </template>
 
-      <!-- 卡片ID -->
       <template #item.cardId="{ item }">
-        {{ item.cardDetail?.cardId || '' }}
+        {{ item.cardDetail?.cardId || "" }}
       </template>
 
-      <!-- 會員姓名 -->
       <template #item.memberName="{ item }">
-        {{ item.member?.mName || '' }}
+        {{ item.member?.mName || "" }}
       </template>
 
-      <!-- 消費金額 -->
       <template #item.amount="{ item }">
         {{ formatCurrency(item.amount) }}
       </template>
 
-      <!-- 回饋金額 -->
       <template #item.cashback="{ item }">
         {{ formatCurrency(item.cashback) }}
       </template>
 
-      <!-- 交易時間 -->
       <template #item.transactionTime="{ item }">
         {{ formatDateTime(item.transactionTime) }}
       </template>
 
-      <!-- 消費類別 -->
       <template #item.merchantType="{ item }">
         {{ item.merchantType }}
       </template>
 
-      <!-- 描述 -->
       <template #item.description="{ item }">
         {{ item.description }}
       </template>
 
-      <!-- 操作 -->
       <template #item.actions="{ item }">
         <v-btn
           color="red"
           small
-          v-if="item.amount >= 0"
+          v-if="item.amount >= 0 && (!item.description || !item.description.includes('（已退款）'))"
           @click="refundTransaction(item.transactionId)"
         >
           退款
@@ -184,7 +206,6 @@ async function searchTransactions() {
   loading.value = true;
   try {
     const yearMonth = selectedYear.value + selectedMonth.value;
-    // 這裡不要在前端加 % ，讓後端自己處理模糊查詢
     const res = await request({
       url: "/transactionBack/searchByNameAndMonth",
       method: "GET",
