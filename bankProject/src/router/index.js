@@ -41,6 +41,10 @@ const router = createRouter({
         ...loan,
         ...creditCard,
         ...fund,
+        {
+          path: "index",
+          component: () => import("@/views/front/index.vue"),
+        },
       ],
     },
   ],
