@@ -1,7 +1,7 @@
 <template>
-  <section class="loan-section">
-    <h1 class="title">貸款申請，隨借隨用</h1>
-    <div class="steps">
+  <section class="credit-section">
+    <h1 class="title">信用卡申請</h1>
+    <div class="steps credit-steps">
       <div class="step">
         <v-icon size="40">mdi-book-check</v-icon>
         <h3>填寫資料</h3>
@@ -19,34 +19,27 @@
         <h3>案件審核</h3>
         <p style="text-align: center">送出申請後<br />隨時可追蹤案件狀態</p>
       </div>
-      <v-icon size="40">mdi-chevron-right</v-icon>
-      <div class="step">
-        <v-icon size="40">mdi-cash-multiple</v-icon>
-        <h3>取得額度</h3>
-        <p>最快 20 分鐘完成審核</p>
-      </div>
     </div>
     <router-link to="/login" class="apply-button">立即申請</router-link>
   </section>
 </template>
 <script setup></script>
 <style scoped>
-.loan-section {
-  background-color: #ffffff;
+.credit-section {
+  padding: 80px 20px;
   display: flex;
   flex-direction: column;
-  align-items: center; /* 水平置中 */
-  padding: 80px 20px; /* 保留內距 */
+  align-items: center; /* 讓標題與步驟置中 */
 }
 
-.loan-section .title {
-  color: #009e60;
+.credit-section .title {
+  color: #ce1465;
 }
 
 .title {
   font-size: 32px;
   text-align: center;
-  margin-bottom: 48px; /* 與下方步驟的距離 */
+  margin-bottom: 48px;
 }
 
 .steps {
@@ -54,21 +47,21 @@
   width: 100%;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* 置中步驟內容 */
+  justify-content: center; /* 水平置中 */
   align-items: center;
-  gap: 40px; /* 步驟間距 */
+  gap: 40px; /* 元素間距 */
 }
 
 .steps .step {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   text-align: center;
 }
 
 .apply-button {
-  margin-top: 40px; /* 與步驟分開 */
+  margin-top: 40px;
   background-color: #ebb211;
   font-size: 16px;
   color: #ffffff;
