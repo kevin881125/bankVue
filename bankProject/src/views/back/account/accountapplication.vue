@@ -1,12 +1,12 @@
 <template>
   <v-app>
     <v-main>
-      <v-container>
+      <v-container style="max-width: 1500px; margin: auto">
         <!-- 篩選 審核、未審核 按鈕  -->
         <!-- <v-btn-toggle> 是 Vuetify 中用來建立「按鈕切換群組」的元件，可以讓使用者從一組按鈕中選擇一個（或多個）選項。它常用於 tab 選擇、過濾器、切換開關等。
             mandatory 是 <v-btn-toggle> 的一個布林屬性，用來強制必須選擇一個選項。
             -->
-        <v-btn-toggle v-model="filterStatus" class="mb-4" mandatory>
+        <v-btn-toggle v-model="filterStatus" class="mb-4 status-area" mandatory>
           <v-btn value="undone">待審核</v-btn>
           <v-btn value="done">已審核</v-btn>
         </v-btn-toggle>
@@ -22,6 +22,7 @@
           flat
           hide-details
           single-line
+          class="search-area"
         ></v-text-field>
 
         <!-- 資料表格 -->
@@ -43,6 +44,9 @@
             'status',
             'mId',
           ]"
+          :items-per-page="5"
+          :items-per-page-options="[5, 10, 20]"
+          class="my-data-table"
         >
           <template #item.actions="{ item }">
             <v-btn @click="memberDetailDialog(item)">
@@ -55,7 +59,8 @@
           </template>
         </v-data-table>
       </v-container>
-      <applicationDetail
+
+      <ApplicationDetail
         :model-value="dialog"
         @update:model-value="(val) => (dialog = val)"
         :selected-item="selectedItem"
@@ -66,7 +71,8 @@
             selectedItem.status === '待補件')
         "
         @updated="fetchApplications"
-      ></applicationDetail>
+      >
+      </ApplicationDetail>
     </v-main>
   </v-app>
 </template>
@@ -74,7 +80,7 @@
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
 import { ref, onMounted, watch } from "vue";
-import applicationDetail from "@/components/member/applicationDetail.vue";
+import ApplicationDetail from "@/components/account/applicationDetail.vue";
 import { formatDateTime } from "@/utils/DataUtil";
 
 const search = ref("");
@@ -130,3 +136,24 @@ function memberDetailDialog(item) {
   dialog.value = true; // 打開彈窗
 }
 </script>
+
+<style scoped>
+.my-data-table >>> .v-data-table-header th {
+  font-size: 20px; /* header 字體 */
+  font-weight: bold;
+}
+
+.my-data-table >>> .v-data-table__td {
+  font-size: 17px; /* 內文字體 */
+  font-weight: normal; /* 不要粗體 */
+  vertical-align: middle; /* 垂直置中 */
+  padding-top: 12px;
+  padding-bottom: 12px; /* 上下間距 */
+}
+
+.my-data-table,
+.status-area,
+.search-area {
+  margin-top: 20px;
+}
+</style>
