@@ -1,57 +1,61 @@
 <template>
   <div class="homepage">
     <header>
-      <div class="logo">
-        <router-link to="/yuzubank/index"
-          ><img src="../../image/logo_white.svg" alt="logo"
-        /></router-link>
-      </div>
-      <nav class="main-nav">
-        <ul class="nav-list">
-          <li>
-            <router-link to="/yuzubank/accountHome">我的帳戶</router-link>
-          </li>
-
-          <li class="dropdown">
-            <a href="#">信用卡</a>
-            <ul class="dropdown-menu">
-              <li>
-                <router-link to="/yuzubank/cardApply">信用卡申請</router-link>
-              </li>
-              <li>
-                <router-link to="/yuzubank/creditTransaction">交易</router-link>
-              </li>
-              <li>
-                <router-link to="/yuzubank/myBill">我的帳單</router-link>
-              </li>
-            </ul>
-          </li>
-          <li><router-link to="/yuzubank/loanHome">貸款</router-link></li>
-          <li><router-link to="/yuzubank/fundHome">基金</router-link></li>
-        </ul>
-
-        <!-- 未登入 -->
-        <router-link
-          v-if="!memberStore.isLoggedIn"
-          to="/yuzubank/frontLogin"
-          class="login-button"
-        >
-          登入
-        </router-link>
-
-        <!-- 已登入 -->
-        <div v-else class="member-info">
-          <div class="avatar">
-            <router-link to="/yuzubank/memberProfile">
-              <img src="../../image/avatar.jpg" alt="會員頭像" />
-            </router-link>
-          </div>
-          <span class="member-name">歡迎，{{ memberStore.mName }}</span>
-          <button class="logout-button" @click="showLogoutModal = true">
-            登出
-          </button>
+      <div class="header">
+        <div class="logo">
+          <router-link to="/yuzubank/index"
+            ><img src="../../image/logo_white.svg" alt="logo"
+          /></router-link>
         </div>
-      </nav>
+        <nav class="main-nav">
+          <ul class="nav-list">
+            <li>
+              <router-link to="/yuzubank/accountHome">我的帳戶</router-link>
+            </li>
+
+            <li class="dropdown">
+              <a href="#">信用卡</a>
+              <ul class="dropdown-menu">
+                <li>
+                  <router-link to="/yuzubank/cardApply">信用卡申請</router-link>
+                </li>
+                <li>
+                  <router-link to="/yuzubank/creditTransaction"
+                    >交易</router-link
+                  >
+                </li>
+                <li>
+                  <router-link to="/yuzubank/myBill">我的帳單</router-link>
+                </li>
+              </ul>
+            </li>
+            <li><router-link to="/yuzubank/loanHome">貸款</router-link></li>
+            <li><router-link to="/yuzubank/fundHome">基金</router-link></li>
+          </ul>
+
+          <!-- 未登入 -->
+          <router-link
+            v-if="!memberStore.isLoggedIn"
+            to="/yuzubank/frontLogin"
+            class="login-button"
+          >
+            登入
+          </router-link>
+
+          <!-- 已登入 -->
+          <div v-else class="member-info">
+            <div class="avatar">
+              <router-link to="/yuzubank/memberProfile">
+                <img src="../../image/avatar.jpg" alt="會員頭像" />
+              </router-link>
+            </div>
+            <span class="member-name">歡迎，{{ memberStore.mName }}</span>
+            <button class="logout-button" @click="showLogoutModal = true">
+              登出
+            </button>
+          </div>
+        </nav>
+      </div>
     </header>
 
     <div class="main">
@@ -125,7 +129,6 @@ const handleLogout = () => {
   align-items: center;
   justify-content: space-between;
   flex: 1;
-  margin-left: 40px;
 }
 
 .nav-list {
@@ -144,7 +147,7 @@ const handleLogout = () => {
   text-decoration: none;
   color: #ffffff;
   font-weight: 300;
-  padding: 10px 8px;
+  padding: 10px 12px;
   transition: color 0.3s;
 }
 
@@ -156,7 +159,8 @@ const handleLogout = () => {
 .dropdown-menu {
   position: absolute;
   top: 100%;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   display: none;
   flex-direction: column;
   background-color: #000000;
@@ -165,6 +169,7 @@ const handleLogout = () => {
   list-style: none;
   padding: 16px 0;
   margin: 0;
+  margin-top: 8px;
   min-width: 120px;
   z-index: 1000;
 }
@@ -181,27 +186,25 @@ const handleLogout = () => {
   white-space: nowrap;
 }
 
-.dropdown-menu li a:hover {
-  background-color: #f5f5f542;
-}
-
 .member-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .member-info .avatar img {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
+  margin-top: 8px;
   border-radius: 50%;
   object-fit: cover;
 }
 
 .member-name {
   color: #fff;
-  font-weight: 500;
-  font-size: 16px;
+  font-weight: 400;
+  font-size: 18px;
+  padding-right: 20px;
 }
 
 .login-button {
@@ -224,11 +227,12 @@ const handleLogout = () => {
 
 .logout-button {
   background: transparent;
-  border: 1px solid #fff;
+  border: 0.25px solid #fff;
   border-radius: 20px;
   color: #fff;
-  padding: 4px 12px;
+  padding: 4px 14px;
   cursor: pointer;
+  font-weight: 400;
 }
 
 .logout-button:hover {
@@ -244,10 +248,17 @@ header {
   width: 100%;
   z-index: 999;
   height: 100px;
-  padding: 10px 20px;
   display: flex;
+  justify-content: center;
   align-items: center;
+}
+
+header .header {
+  width: 100%;
+  max-width: 1280px;
+  display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 header .logo {
@@ -257,9 +268,10 @@ header .logo {
 }
 
 header .logo img {
-  width: 128px;
-  height: 80px;
+  width: 116px;
+  height: auto;
   object-fit: cover;
+  margin-right: 20px;
 }
 
 footer {
