@@ -21,6 +21,7 @@
               rounded="lg"
               prepend-icon="mdi-cash-minus"
               @click="openWithdraw"
+              :disabled="disableTrade(selectedAccount?.status)"
             >
               提款
             </v-btn>
@@ -48,6 +49,7 @@
               rounded="lg"
               prepend-icon="mdi-bank-transfer"
               @click="openTransfer"
+              :disabled="disableTrade(selectedAccount?.status)"
             >
               轉帳
             </v-btn>
@@ -512,6 +514,12 @@ const toBankName = computed(
     bankCodeOptions.value.find((b) => b.code === form.value.toBankCode)?.name ||
     ""
 );
+
+// 狀態是限制的話 不能轉帳跟提款
+function disableTrade(status) {
+  // 假設狀態為 '限制' 時不能進行交易
+  return status === "限制";
+}
 
 // 「我的帳戶」按鈕：之後可開你的“選我的另一個帳戶”的 dialog
 const onMyAccountsDialog = ref(false);

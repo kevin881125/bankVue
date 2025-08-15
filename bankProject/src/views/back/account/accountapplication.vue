@@ -1,78 +1,96 @@
 <template>
   <v-app>
     <v-main>
-      <v-container style="max-width: 1500px; margin: auto">
-        <!-- 篩選 審核、未審核 按鈕  -->
-        <!-- <v-btn-toggle> 是 Vuetify 中用來建立「按鈕切換群組」的元件，可以讓使用者從一組按鈕中選擇一個（或多個）選項。它常用於 tab 選擇、過濾器、切換開關等。
+      <v-sheet color="surface" class="pa-6 min-h">
+        <v-container style="max-width: 1500px; margin: auto">
+          <!-- 篩選 審核、未審核 按鈕  -->
+          <!-- <v-btn-toggle> 是 Vuetify 中用來建立「按鈕切換群組」的元件，可以讓使用者從一組按鈕中選擇一個（或多個）選項。它常用於 tab 選擇、過濾器、切換開關等。
             mandatory 是 <v-btn-toggle> 的一個布林屬性，用來強制必須選擇一個選項。
             -->
-        <v-btn-toggle v-model="filterStatus" class="mb-4 status-area" mandatory>
-          <v-btn value="undone">待審核</v-btn>
-          <v-btn value="done">已審核</v-btn>
-        </v-btn-toggle>
+          <v-btn-toggle
+            v-model="filterStatus"
+            class="mb-4 status-area"
+            mandatory
+          >
+            <v-btn value="undone">待審核</v-btn>
+            <v-btn value="done">已審核</v-btn>
+          </v-btn-toggle>
 
-        <v-spacer></v-spacer>
+          <v-spacer></v-spacer>
 
-        <v-text-field
-          v-model="search"
-          density="compact"
-          label="Search"
-          prepend-inner-icon="mdi-magnify"
-          variant="solo-filled"
-          flat
-          hide-details
-          single-line
-          class="search-area"
-        ></v-text-field>
+          <v-text-field
+            v-model="search"
+            density="compact"
+            label="Search"
+            prepend-inner-icon="mdi-magnify"
+            variant="solo-filled"
+            flat
+            hide-details
+            single-line
+            class="search-area"
+          ></v-text-field>
 
-        <!-- 資料表格 -->
-        <!-- item-value這裡是設定每筆資料的唯一值欄位，預設是 'id'，但我們的主鍵是 applicationId 
+          <!-- 資料表格 -->
+          <!-- item-value這裡是設定每筆資料的唯一值欄位，預設是 'id'，但我們的主鍵是 applicationId 
           :sort-by="['applyTime']"  一開始按照這個排序
           :sort-desc="[true]"       由新到舊 
           :custom-sort="customSort" 自定義排序
         -->
-        <v-data-table
-          :headers="headers"
-          :items="applicationlist"
-          item-value="applicationId"
-          v-model:search="search"
-          :filter-keys="[
-            'member.mName',
-            'applicationId',
-            'member.mIdentity',
-            'applyTime',
-            'status',
-            'mId',
-          ]"
-          :items-per-page="5"
-          :items-per-page-options="[5, 10, 20]"
-          class="my-data-table"
-        >
-          <template #item.actions="{ item }">
-            <v-btn @click="memberDetailDialog(item)">
-              <v-icon>mdi-eye</v-icon>
-              詳細資訊
-            </v-btn>
-          </template>
-          <template v-slot:item.applyTime="{ item }">
-            {{ formatDateTime(item.applyTime) }}
-          </template>
-        </v-data-table>
-      </v-container>
+          <v-data-table
+            :headers="headers"
+            :items="applicationlist"
+            item-value="applicationId"
+            v-model:search="search"
+            :filter-keys="[
+              'member.mName',
+              'applicationId',
+              'member.mIdentity',
+              'applyTime',
+              'status',
+              'mId',
+            ]"
+            :items-per-page="5"
+            :items-per-page-options="[5, 10, 20]"
+            class="my-data-table"
+          >
+            <template #item.actions="{ item }">
+              <v-btn @click="memberDetailDialog(item)">
+                <v-icon>mdi-eye</v-icon>
+                詳細資訊
+              </v-btn>
+            </template>
 
-      <ApplicationDetail
-        :model-value="dialog"
-        @update:model-value="(val) => (dialog = val)"
-        :selected-item="selectedItem"
-        :readonly="
-          selectedItem &&
-          (selectedItem.status === '通過' ||
-            selectedItem.status === '未通過' ||
-            selectedItem.status === '待補件')
-        "
-        @updated="fetchApplications"
-      >
-      </ApplicationDetail>
+            <template v-slot:item.applyTime="{ item }">
+              {{ formatDateTime(item.applyTime) }}
+            </template>
+
+            <template v-slot:item.status="{ item }">
+              <v-chip
+                :color="statusColor(item.status)"
+                text-color="white"
+                size="large"
+                label
+              >
+                {{ item.status }}
+              </v-chip>
+            </template>
+          </v-data-table>
+        </v-container>
+
+        <ApplicationDetail
+          :model-value="dialog"
+          @update:model-value="(val) => (dialog = val)"
+          :selected-item="selectedItem"
+          :readonly="
+            selectedItem &&
+            (selectedItem.status === '通過' ||
+              selectedItem.status === '未通過' ||
+              selectedItem.status === '待補件')
+          "
+          @updated="fetchApplications"
+        >
+        </ApplicationDetail>
+      </v-sheet>
     </v-main>
   </v-app>
 </template>
@@ -80,7 +98,7 @@
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
 import { ref, onMounted, watch } from "vue";
-import ApplicationDetail from "@/components/account/applicationDetail.vue";
+import ApplicationDetail from "@/components/account/ApplicationDetail.vue";
 import { formatDateTime } from "@/utils/DataUtil";
 
 const search = ref("");
@@ -101,6 +119,24 @@ const applicationlist = ref([]);
 
 // 篩選狀態 預設是"未審核"
 const filterStatus = ref("undone");
+
+// 狀態顏色對應
+const statusColor = (status) => {
+  switch (status) {
+    case "通過":
+      return "blue-darken-2";
+    case "未通過":
+      return "red-darken-2";
+    case "待補件":
+      return "green-darken-2";
+    case "待審核":
+      return "blue-darken-2";
+    case "已補件待審核":
+      return "green-darken-2";
+    default:
+      return "grey"; // 預設顏色
+  }
+};
 
 // 根據狀態載入資料
 const fetchApplications = async () => {
@@ -138,6 +174,9 @@ function memberDetailDialog(item) {
 </script>
 
 <style scoped>
+.min-h {
+  min-height: 100vh;
+}
 .my-data-table >>> .v-data-table-header th {
   font-size: 20px; /* header 字體 */
   font-weight: bold;
