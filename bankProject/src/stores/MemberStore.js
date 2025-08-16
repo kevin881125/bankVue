@@ -14,6 +14,7 @@ export const useMemberStore = defineStore(
       mPhone: "",
       mEmail: "",
       token: "",
+      mImage:""
     });
 
     // actions
@@ -25,7 +26,8 @@ export const useMemberStore = defineStore(
       mAddress,
       mPhone,
       mEmail,
-      token
+      token,
+      mImage
     ) => {
       memberInfo.value.isLoggedIn = true;
       memberInfo.value.mId = mId;
@@ -36,6 +38,7 @@ export const useMemberStore = defineStore(
       memberInfo.value.mPhone = mPhone;
       memberInfo.value.mEmail = mEmail;
       memberInfo.value.token = token;
+      memberInfo.value.mImage = mImage;
     };
 
     const logout = () => {
@@ -49,6 +52,7 @@ export const useMemberStore = defineStore(
         mPhone: "",
         mEmail: "",
         token: "",
+        mImage:""
       };
     };
 
@@ -62,6 +66,15 @@ export const useMemberStore = defineStore(
     const mPhone = computed(() => memberInfo.value.mPhone);
     const mEmail = computed(() => memberInfo.value.mEmail);
     const token = computed(() => memberInfo.value.token);
+    const mImage = computed(() => memberInfo.value.mImage);
+
+
+    const setmImage=(mImage)=>{
+      memberInfo.value.mImage = mImage;
+    }
+    const setmName=(name)=>{
+      memberInfo.value.mName = name;
+    }
 
     return {
       memberInfo,
@@ -75,7 +88,10 @@ export const useMemberStore = defineStore(
       mAddress,
       mPhone,
       token,
-      mEmail
+      mEmail,
+      mImage,
+      setmImage,
+      setmName
     };
   },
   {

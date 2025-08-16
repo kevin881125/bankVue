@@ -46,7 +46,7 @@
           <div v-else class="member-info">
             <div class="avatar">
               <router-link to="/yuzubank/memberProfile">
-                <img src="../../image/avatar.jpg" alt="會員頭像" />
+                <img :src="memberStore.mImage" alt="會員頭像" />
               </router-link>
             </div>
             <span class="member-name">歡迎，{{ memberStore.mName }}</span>

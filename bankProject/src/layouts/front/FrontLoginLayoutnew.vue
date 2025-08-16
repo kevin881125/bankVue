@@ -111,7 +111,8 @@ const doLogin = async () => {
       response.maddress,
       response.mphone,
       response.memail,
-      response.token
+      response.token,
+      "http://localhost:8080"+response.mimage
     );
 
     console.log(memberStore.mId);
