@@ -48,9 +48,14 @@
             <v-img
               :src="`http://localhost:8080/bank/uploadImg/accountImg/${selectedItem.idCardFront}`"
               alt="身份證正面"
-              max-width="100%"
-              max-height="200"
-              contain
+              aspect-ratio="7/9"
+              cover
+              class="cursor-pointer"
+              @click="
+                openDialog(
+                  `http://localhost:8080/bank/uploadImg/accountImg/${selectedItem.idCardFront}`
+                )
+              "
             />
           </v-col>
           <v-col cols="12" sm="4" v-if="selectedItem.idCardBack">
@@ -58,9 +63,14 @@
             <v-img
               :src="`http://localhost:8080/bank/uploadImg/accountImg/${selectedItem.idCardBack}`"
               alt="身份證反面"
-              max-width="100%"
-              max-height="200"
-              contain
+              aspect-ratio="7/9"
+              cover
+              class="cursor-pointer"
+              @click="
+                openDialog(
+                  `http://localhost:8080/bank/uploadImg/accountImg/${selectedItem.idCardBack}`
+                )
+              "
             />
           </v-col>
           <v-col cols="12" sm="4" v-if="selectedItem.secondDoc">
@@ -68,9 +78,14 @@
             <v-img
               :src="`http://localhost:8080/bank/uploadImg/accountImg/${selectedItem.secondDoc}`"
               alt="第二證件"
-              max-width="100%"
-              max-height="200"
-              contain
+              aspect-ratio="7/9"
+              cover
+              class="cursor-pointer"
+              @click="
+                openDialog(
+                  `http://localhost:8080/bank/uploadImg/accountImg/${selectedItem.secondDoc}`
+                )
+              "
             />
           </v-col>
         </v-row>
@@ -112,6 +127,15 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+  <!-- 共用的 Dialog -->
+  <v-dialog v-model="dialog" max-width="600">
+    <v-card>
+      <v-img :src="selectedImage" aspect-ratio="7/9" cover />
+      <v-card-actions class="justify-center">
+        <v-btn color="primary" @click="dialog = false">關閉</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -128,6 +152,14 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue", "updated"]);
+
+const dialog = ref(false);
+const selectedImage = ref("");
+
+function openDialog(src) {
+  selectedImage.value = src;
+  dialog.value = true;
+}
 
 // 下拉式選單的狀態選項
 const statusOptions = ["待補件", "通過", "未通過"];
