@@ -1,21 +1,13 @@
 <template>
   <div>
     <!-- 貸款水門 -->
-    <LoanSummaryDoughnuts
-      :totalAmount="totalAmount"
-      :totalThreshold="totalThreshold"
-      :loans="categorizedLoans"
-    />
+    <LoanSummaryDoughnuts :totalAmount="totalAmount" :totalThreshold="totalThreshold" :loans="categorizedLoans" />
 
     <!-- 搜尋與狀態篩選 -->
     <div class="search-wrapper">
       <div class="left-buttons">
         <div class="status-filter">
-          <select
-            v-model="selectedStatus"
-            @change="onSearchOrFilterChange"
-            class="status-select"
-          >
+          <select v-model="selectedStatus" @change="onSearchOrFilterChange" class="status-select">
             <option value="">全部狀態</option>
             <option value="pending">待審核</option>
             <option value="supplement">補件中</option>
@@ -30,12 +22,7 @@
       </div>
 
       <form @submit.prevent="onSearchOrFilterChange" class="search-container">
-        <input
-          v-model="searchKeyword"
-          type="text"
-          class="search-input"
-          placeholder="請輸入用戶名稱"
-        />
+        <input v-model="searchKeyword" type="text" class="search-input" placeholder="請輸入用戶名稱" />
         <button type="submit" class="search-button">搜尋</button>
       </form>
     </div>
@@ -57,40 +44,18 @@
           </tr>
         </thead>
         <tbody>
-          <loanRow
-            v-for="l in filteredLoans"
-            :key="l.loanId"
-            :loan="l"
-            @open-detail="handleOpenDetail"
-            @edit-review="openReviewModal"
-          />
+          <loanRow v-for="l in filteredLoans" :key="l.loanId" :loan="l" @open-detail="handleOpenDetail"
+            @edit-review="openReviewModal" />
         </tbody>
       </table>
     </div>
 
     <!-- 各種 Modal -->
-    <LoanDetailModal
-      :show="showDetailModal"
-      :data="loanDetail"
-      @close="showDetailModal = false"
-    />
-    <LoanReviewModal
-      :visible="isReviewModalVisible"
-      :review="currentReview"
-      @close="closeReviewModal"
-      @save="handleSaveReview"
-    />
-    <LoanReviewLogsModal
-      :show="isAuditModalVisible"
-      :records="auditRecords"
-      @close="isAuditModalVisible = false"
-    />
-    <ConfirmModal
-      :visible="isConfirmVisible"
-      message="確定要儲存審核結果嗎？"
-      @confirm="onConfirmSave"
-      @cancel="onCancelSave"
-    />
+    <LoanDetailModal :show="showDetailModal" :data="loanDetail" @close="showDetailModal = false" />
+    <LoanReviewModal :visible="isReviewModalVisible" :review="currentReview" @close="closeReviewModal"
+      @save="handleSaveReview" />
+    <LoanReviewLogsModal :show="isAuditModalVisible" :records="auditRecords" @close="isAuditModalVisible = false" />
+    <ConfirmModal :visible="isConfirmVisible" message="確定要儲存審核結果嗎？" @confirm="onConfirmSave" @cancel="onCancelSave" />
   </div>
 </template>
 
@@ -104,7 +69,7 @@ import LoanDetailModal from "@/components/loan/loanDetail/loanDetailModal.vue";
 import LoanReviewModal from "@/components/loan/loanReview/loanReviewModal.vue";
 import LoanReviewLogsModal from "@/components/loan/loanReview/loanReviewLogsModal.vue";
 import ConfirmModal from "@/components/loan/confirm/confirmModal.vue";
-import LoanSummaryDoughnuts from "@/components/loan/Chart/loanSummaryDoughnuts.vue";
+import LoanSummaryDoughnuts from "@/components/loan/chart/loanSummaryDoughnuts.vue";
 
 // 全部貸款資料
 const allLoans = ref([]);
@@ -186,7 +151,7 @@ function filterLoans() {
   filteredLoans.value = allLoans.value.filter((loan) => {
     const matchesKeyword =
       !keyword ||
-      (loan.mName && loan.mName.toLowerCase().includes(keyword)) ||
+      (loan.mname && loan.mname.toLowerCase().includes(keyword)) ||
       (loan.loanTypeName && loan.loanTypeName.toLowerCase().includes(keyword));
 
     const matchesStatus = !status || loan.approvalStatus === status;
@@ -338,7 +303,8 @@ onMounted(async () => {
 <style scoped>
 .search-wrapper {
   display: flex;
-  justify-content: space-between; /* 左右分散排列 */
+  justify-content: space-between;
+  /* 左右分散排列 */
   align-items: center;
 }
 

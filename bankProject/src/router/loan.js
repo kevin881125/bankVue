@@ -9,5 +9,11 @@ export default [
   {
     path: "loanHome",
     component: () => import("@/views/front/loan/loanHome.vue"),
+    children: [
+      {
+        path: "loanApplicationForm",
+        component: () => import("@/components/loan/front/loanApplicationForm.vue"),
+      },
+    ],
   },
 ];
