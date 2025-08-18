@@ -1,51 +1,122 @@
 <template>
   <div class="loan-container">
-    <!-- 第一區：貸款繳納進度 -->
-    <section class="loan-status">
-      <div class="status-header">
-        <h1>個人貸款</h1>
-      </div>
-      <div class="divider"></div>
-      <div class="status-content">
-        <div class="chart-box">
-          <canvas ref="loanChart"></canvas>
-          <div class="chart-legend">
-            <span class="legend-item">
-              <span class="color-box" style="background-color:#E0E0E0;"></span>剩餘
-            </span>
-            <span class="legend-item">
-              <span class="color-box" style="background-color:#EBB211;"></span>已還款
-            </span>
+    <!-- 個人貸款資訊 -->
+    <section class="loan-status-carousel">
+      <h1 class="loan-status-title">個人貸款</h1>
+
+      <div class="loan-status-wrapper">
+        <!-- 左箭頭 -->
+        <v-btn
+          icon
+          variant="text"
+          class="arrow-btn left"
+          @click="prevLoan"
+          :disabled="loans.length === 0"
+        >
+          <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>
+
+        <!-- 卡片 -->
+        <div v-if="loans.length > 0" class="loan-status-card">
+          <div class="status-header">
+            <h2>
+              申貸帳戶:{{ currentLoan.account }} - {{ currentLoan.typeName }}
+              <button class="look" @click="onOpenDetail">
+                <span class="mdi mdi-eye"></span>
+              </button>
+            </h2>
+          </div>
+          <div class="divider"></div>
+          <div class="status-content">
+            <div class="chart-box">
+              <canvas ref="activeChart"></canvas>
+              <div class="chart-legend">
+                <span class="legend-item">
+                  <span
+                    class="color-box"
+                    style="background-color: #e0e0e0"
+                  ></span
+                  >剩餘
+                </span>
+                <span class="legend-item">
+                  <span
+                    class="color-box"
+                    style="background-color: #ebb211"
+                  ></span
+                  >已還款
+                </span>
+              </div>
+            </div>
+
+            <div class="info-box">
+              <div class="row">
+                <div class="label">貸款金額 :</div>
+                <div class="value">
+                  NT$ {{ currentLoan.amount.toLocaleString() }}
+                </div>
+                <div
+                  class="review-status"
+                  :class="statusClass(currentLoan.status)"
+                >
+                  <!-- 按鈕在右側 -->
+                  <div class="loan-action-buttons">
+                    <button
+                      v-if="currentLoan.status === 'supplement'"
+                      class="action-btn upload-btn"
+                      @click="onUploadSupplement"
+                    >
+                      <v-icon size="20">mdi-upload</v-icon>
+                    </button>
+
+                    <button
+                      v-else-if="currentLoan.status === 'approved'"
+                      class="action-btn download-btn"
+                      @click="onDownloadContract"
+                    >
+                      <v-icon size="20">mdi-download</v-icon>
+                    </button>
+                  </div>
+                  <span class="status-text">{{
+                    translateStatus(currentLoan.status)
+                  }}</span>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="label">貸款利率 :</div>
+                <div class="value">{{ formatRate(currentLoan.rate) }}</div>
+                <div class="label">還款期數 :</div>
+                <div class="value">
+                  第 {{ currentPeriod }} / {{ currentLoan.months }} 期
+                </div>
+              </div>
+              <hr />
+              <div class="progress-info">
+                <strong>還款進度 : </strong>
+                NT$ {{ currentLoan.paid.toLocaleString() }}
+                <span
+                  >/ NT$ {{ currentLoan.amount.toLocaleString() }} (已還
+                  {{ currentLoan.progress }}%)</span
+                >
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="info-box">
-          <div class="row">
-            <div class="label">貸款帳號 :</div>
-            <div class="value">7153000051</div>
-            <span class="mdi mdi-eye"></span>
-            <div class="review-status">貸款中</div>
-          </div>
-
-          <div class="row">
-            <div class="label">貸款類型 :</div>
-            <div class="value">信貸</div>
-            <div class="label">貸款利率 :</div>
-            <div class="value">{{ formatRate(interestRateDisplay) }}</div>
-          </div>
-
-          <div class="row">
-            <div class="label">貸款期數 :</div>
-            <div class="value">{{ form.loanMonths }} 個月</div>
-            <div class="label">貸款開始時間 :</div>
-            <div class="value">2025/08/01</div>
-          </div>
-          <hr>
-          <div class="progress-info">
-            <strong>還款進度 : </strong>
-            NT$ 500,000 <span>/ NT$ 1,000,000 (已還 50%)</span>
-          </div>
+        <div v-else class="loan-status-card empty">
+          <p>目前沒有貸款資料</p>
         </div>
+
+        <!-- 右箭頭 -->
+        <v-btn
+          icon
+          variant="text"
+          class="arrow-btn right"
+          @click="nextLoan"
+          :disabled="loans.length === 0"
+        >
+          <v-icon>mdi-chevron-right</v-icon>
+        </v-btn>
       </div>
     </section>
 
@@ -83,11 +154,17 @@
     <!-- 第三區：貸款試算 -->
     <section class="loan-calculator">
       <div class="calc-left">
-        <label>貸款金額
-          <input type="number" placeholder="請輸入金額（NT$）" v-model.number="form.loanAmount">
+        <label
+          >貸款金額
+          <input
+            type="number"
+            placeholder="請輸入金額（NT$）"
+            v-model.number="form.loanAmount"
+          />
         </label>
 
-        <label>貸款類型
+        <label
+          >貸款類型
           <select v-model="form.loanTypeId">
             <option value="">選擇貸款類型</option>
             <option value="LT001">車貸</option>
@@ -96,10 +173,13 @@
           </select>
         </label>
 
-        <label>貸款期數（月）
+        <label
+          >貸款期數（月）
           <select v-model.number="form.loanMonths">
             <option value="">選擇月份</option>
-            <option v-for="m in monthOptions" :key="m" :value="m">{{ m }} 個月</option>
+            <option v-for="m in monthOptions" :key="m" :value="m">
+              {{ m }} 個月
+            </option>
           </select>
         </label>
 
@@ -107,15 +187,24 @@
       </div>
 
       <div class="calc-right">
-        <img src="../../../image/background.png" alt="背景圖">
+        <img src="../../../image/background.png" alt="背景圖" />
         <div class="calc-result">
           <h3>利率試算</h3>
-          <p>每月只需還
-            <span class="cash">NT$<span class="highlight">
-                {{ calcResult.monthlyPayment != null ? Math.round(calcResult.monthlyPayment).toLocaleString() : 0 }}
-              </span> 元</span>
+          <p>
+            每月只需還
+            <span class="cash"
+              >NT$<span class="highlight">
+                {{
+                  calcResult.monthlyPayment != null
+                    ? Math.round(calcResult.monthlyPayment).toLocaleString()
+                    : 0
+                }}
+              </span>
+              元</span
+            >
           </p>
-          <small>最低年利率：{{ formatRate(interestRateDisplay) }}</small><br>
+          <small>最低年利率：{{ formatRate(interestRateDisplay) }}</small
+          ><br />
           <button @click="applyLoan">立即申請</button>
         </div>
       </div>
@@ -149,7 +238,11 @@
           <p>最快 20 分鐘完成審核</p>
         </div>
       </div>
-      <router-link to="/yuzubank/loanHome/loanApplicationForm" class="apply-button">立即申請</router-link>
+      <router-link
+        to="/yuzubank/loanHome/loanApplicationForm"
+        class="apply-button"
+        >立即申請</router-link
+      >
     </section>
 
     <div class="main">
@@ -159,26 +252,234 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed, nextTick } from "vue";
 import Chart from "chart.js/auto";
 import { request } from "@/utils/FontAxiosUtil";
+import { useMemberStore } from "@/stores/MemberStore";
+import { translateStatus } from "@/components/loan/utils/statusHelper";
 
-const loanChart = ref(null);
+const memberStore = useMemberStore();
+const memberId = memberStore.mId;
+console.log(memberId);
 
-onMounted(() => {
-  new Chart(loanChart.value, {
+const loans = ref([]);
+const currentIndex = ref(0);
+const activeChart = ref(null);
+let chartInstance = null;
+
+const currentLoan = computed(() => loans.value[currentIndex.value] || {});
+
+// 取得會員貸款資料
+const fetchMemberLoans = async () => {
+  if (!memberStore.isLoggedIn) return;
+
+  try {
+    const res = await request({
+      url: `/loans/member/${memberId}`,
+      method: "get",
+    });
+
+    // 判斷回傳資料格式
+    let data = [];
+    if (Array.isArray(res)) {
+      data = res;
+    } else if (res && Array.isArray(res.data)) {
+      data = res.data;
+    } else if (res && typeof res === "object") {
+      // 單筆物件
+      data = [res];
+    }
+
+    loans.value = data.map((loan) => ({
+      loanId: loan.loanId,
+      account: loan.account || loan.loanId,
+      typeName: loan.loanTypeName || "",
+      amount: loan.loanAmount || 0,
+      paid: loan.paidAmount || 0,
+      progress: loan.progress || 0,
+      rate: loan.interestRate || 0,
+      months: loan.loanTerm || 0,
+      status: loan.approvalStatus || "未知",
+      contractPath: loan.getontractPath || "",
+    }));
+
+    currentIndex.value = 0;
+    await nextTick();
+    renderChart();
+  } catch (err) {
+    console.error("取得會員貸款資料失敗:", err);
+    loans.value = [];
+  }
+};
+
+// 狀態顏色變換
+const statusClass = (status) => {
+  switch (status) {
+    case "approved":
+      return "status-approved";
+    case "rejected":
+      return "status-rejected";
+    case "pending":
+      return "status-pending";
+    case "reviewing":
+      return "status-reviewing";
+    default:
+      return "";
+  }
+};
+
+// 上傳補件檔案
+const onUploadSupplement = async () => {
+  const loanId = currentLoan.value.loanId;
+  if (!loanId) {
+    alert("找不到貸款資料");
+    return;
+  }
+
+  // 建立 input 元素讓使用者選檔
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = ".pdf,.jpg,.png"; // 限制檔案類型，可依需求調整
+  fileInput.onchange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await request({
+        url: `/loans/${loanId}/upload-proof`,
+        method: "post",
+        data: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert("補件上傳成功");
+      // 可重新抓一次貸款資料更新前端
+      await fetchMemberLoans();
+    } catch (err) {
+      console.error("上傳失敗:", err);
+      alert("補件上傳失敗，請稍後再試");
+    }
+  };
+
+  fileInput.click();
+};
+
+// 下載合約
+const onDownloadContract = async () => {
+  const contractPath = currentLoan.value.contractPath;
+  if (!contractPath) {
+    alert("尚無合約檔案");
+    return;
+  }
+
+  const filename = contractPath.split("/").pop();
+
+  try {
+    const response = await request({
+      url: `/download/contract/${filename}`,
+      method: "get",
+      responseType: "blob",
+    });
+
+    // 建立 blob URL
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url); // 釋放 URL
+  } catch (err) {
+    console.error("下載失敗:", err);
+    alert("下載失敗，請稍後再試");
+  }
+};
+
+// 還款期數 動態計算目前是第幾期
+const currentPeriod = computed(() => {
+  if (!currentLoan.value || !currentLoan.value.months) return 0;
+
+  const period = Math.floor(
+    (currentLoan.value.progress / 100) * currentLoan.value.months
+  );
+
+  // 避免顯示成第 0 期，至少要從 1 開始
+  return period > 0 ? period : 1;
+});
+
+// Carousel 左右切換
+const prevLoan = async () => {
+  if (currentIndex.value === 0) currentIndex.value = loans.value.length - 1;
+  else currentIndex.value--;
+  await nextTick();
+  renderChart();
+};
+
+const nextLoan = async () => {
+  if (currentIndex.value === loans.value.length - 1) currentIndex.value = 0;
+  else currentIndex.value++;
+  await nextTick();
+  renderChart();
+};
+
+// 更新 donut 圖表
+const renderChart = () => {
+  if (!currentLoan.value || !activeChart.value) return;
+  if (chartInstance) chartInstance.destroy();
+
+  // 確保 progress 是 0~100 之間
+  const progress = Math.min(Math.max(currentLoan.value.progress || 0, 0), 100);
+
+  chartInstance = new Chart(activeChart.value, {
     type: "doughnut",
     data: {
       labels: ["已還款", "剩餘"],
-      datasets: [{ data: [50, 50], backgroundColor: ["#EBB211", "#E0E0E0"], borderWidth: 0 }],
+      datasets: [
+        {
+          data: [progress, 100 - progress], // progress 直接當百分比用
+          backgroundColor: ["#EBB211", "#E0E0E0"],
+          borderWidth: 0,
+        },
+      ],
     },
-    options: { cutout: "60%", plugins: { legend: { display: false } }, maintainAspectRatio: false },
+    options: {
+      cutout: "60%",
+      plugins: { legend: { display: false } },
+      maintainAspectRatio: false,
+    },
   });
-});
+};
+
+// Chart 隨 currentIndex 變動更新
+watch(currentIndex, renderChart);
+
+const formatRate = (rate) =>
+  rate != null ? Number(rate * 100).toFixed(1) + "%" : "載入中...";
+const onOpenDetail = () => {
+  console.log("查看貸款詳細:", currentLoan.value.loanId);
+};
+
+onMounted(fetchMemberLoans);
 
 const records = ref([
-  { loanAccount: "7211000051", date: "2025/08/10", status: "扣款成功", amount: 10000, paymentMethod: "7153000051" },
-  { loanAccount: "7221000721", date: "2025/07/10", status: "扣款成功", amount: 10000, paymentMethod: "Line Pay" },
+  {
+    loanAccount: "7211000051",
+    date: "2025/08/10",
+    status: "扣款成功",
+    amount: 10000,
+    paymentMethod: "7153000051",
+  },
+  {
+    loanAccount: "7221000721",
+    date: "2025/07/10",
+    status: "扣款成功",
+    amount: 10000,
+    paymentMethod: "Line Pay",
+  },
 ]);
 
 const form = ref({
@@ -190,17 +491,21 @@ const form = ref({
 const monthOptions = [6, 10, 12, 16, 24, 36, 40, 48, 56, 60];
 
 const interestRateDisplay = ref(null); // 初始為 null
-const calcResult = ref({ monthlyPayment: 0, totalInterest: 0, totalPayment: 0 });
+const calcResult = ref({
+  monthlyPayment: 0,
+  totalInterest: 0,
+  totalPayment: 0,
+});
 
 // 格式化函數
-const formatMoney = (amount) => amount != null ? Math.round(amount).toLocaleString() : "0";
-const formatRate = (rate) => rate != null ? Number(rate).toFixed(1) + "%" : "載入中...";
+const formatMoney = (amount) =>
+  amount != null ? Math.round(amount).toLocaleString() : "0";
 
 // 將月份對應到 Term ID
 const monthToTermId = (months) => {
-  if (months >= 6 && months <= 12) return "TERM001";   // short: 6-12個月
-  if (months >= 13 && months <= 36) return "TERM002";  // mid: 13-36個月  
-  if (months >= 37 && months <= 60) return "TERM003";  // long: 37-60個月
+  if (months >= 6 && months <= 12) return "TERM001"; // short: 6-12個月
+  if (months >= 13 && months <= 36) return "TERM002"; // mid: 13-36個月
+  if (months >= 37 && months <= 60) return "TERM003"; // long: 37-60個月
   return null;
 };
 
@@ -219,7 +524,7 @@ const fetchLoanCalculation = async () => {
     loanTypeId: form.value.loanTypeId,
     loanTermId: termId,
     loanMonths: form.value.loanMonths,
-    amount: form.value.loanAmount
+    amount: form.value.loanAmount,
   });
 
   // 取得利率
@@ -244,19 +549,23 @@ const fetchLoanCalculation = async () => {
       interestRateDisplay.value = null;
     } else {
       // 嘗試不同的回應格式
-      if (typeof rateResponse === 'number') {
+      if (typeof rateResponse === "number") {
         rateValue = rateResponse;
-      } else if (rateResponse && typeof rateResponse.data === 'number') {
+      } else if (rateResponse && typeof rateResponse.data === "number") {
         rateValue = rateResponse.data;
       } else if (rateResponse && !isNaN(parseFloat(rateResponse))) {
         rateValue = parseFloat(rateResponse);
-      } else if (rateResponse && rateResponse.data && !isNaN(parseFloat(rateResponse.data))) {
+      } else if (
+        rateResponse &&
+        rateResponse.data &&
+        !isNaN(parseFloat(rateResponse.data))
+      ) {
         rateValue = parseFloat(rateResponse.data);
       }
 
       if (rateValue != null && rateValue > 0) {
         // 後端回傳的是小數形式，轉換為百分比
-        interestRateDisplay.value = Number(rateValue) * 100;
+        interestRateDisplay.value = Number(rateValue);
         console.log("設定利率顯示:", interestRateDisplay.value + "%");
       } else {
         console.log("無法解析利率值:", rateResponse);
@@ -290,26 +599,38 @@ const fetchLoanCalculation = async () => {
       // 處理回應
       if (paymentResponse && paymentResponse.error) {
         console.error("月付款 API 錯誤:", paymentResponse.error);
-        calcResult.value = { monthlyPayment: 0, totalInterest: 0, totalPayment: 0 };
+        calcResult.value = {
+          monthlyPayment: 0,
+          totalInterest: 0,
+          totalPayment: 0,
+        };
       } else if (paymentResponse) {
         // 直接使用回應資料
         const result = paymentResponse.data || paymentResponse;
         calcResult.value = {
           monthlyPayment: result.monthlyPayment || 0,
           totalInterest: result.totalInterest || 0,
-          totalPayment: result.totalPayment || 0
+          totalPayment: result.totalPayment || 0,
         };
         console.log("設定計算結果:", calcResult.value);
       } else {
         console.log("月付款回應為空");
-        calcResult.value = { monthlyPayment: 0, totalInterest: 0, totalPayment: 0 };
+        calcResult.value = {
+          monthlyPayment: 0,
+          totalInterest: 0,
+          totalPayment: 0,
+        };
       }
     } catch (err) {
       console.error("計算月付款時發生錯誤:", err);
       if (err.response) {
         console.error("錯誤回應:", err.response.data);
       }
-      calcResult.value = { monthlyPayment: 0, totalInterest: 0, totalPayment: 0 };
+      calcResult.value = {
+        monthlyPayment: 0,
+        totalInterest: 0,
+        totalPayment: 0,
+      };
     }
   } else {
     console.log("貸款金額無效，跳過月付款計算");
@@ -322,7 +643,14 @@ const applyLoan = () => {
 };
 
 onMounted(fetchLoanCalculation);
-watch([() => form.value.loanAmount, () => form.value.loanTypeId, () => form.value.loanMonths], fetchLoanCalculation);
+watch(
+  [
+    () => form.value.loanAmount,
+    () => form.value.loanTypeId,
+    () => form.value.loanMonths,
+  ],
+  fetchLoanCalculation
+);
 </script>
 
 <style scoped>
@@ -337,59 +665,93 @@ watch([() => form.value.loanAmount, () => form.value.loanTypeId, () => form.valu
   padding-bottom: 20px;
 }
 
-/* 第一區 */
-
-/* 標題水平與垂直置中，底框 */
-.status-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f5f5f5;
-  /* 底色 */
-  height: 120px;
-  /* 高度可調 */
-  border-radius: 12px;
-  margin-top: 56px;
+/* 第一區：貸款繳納進度 - 卡片輪播 */
+.loan-status-carousel {
+  margin: 40px 0;
 }
 
-.status-header h1 {
+.loan-status-title {
   font-size: 28px;
   font-weight: 600;
+  margin-bottom: 24px;
+  text-align: center;
 }
 
-/* 排版圖表與資訊 */
-.status-content {
+button .look {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  font-size: 18px;
+}
+
+.loan-status-wrapper {
   display: flex;
-  align-items: flex-start;
-  gap: 80px;
+  justify-content: center;
+  position: relative; /* 讓箭頭可以絕對定位 */
 }
 
-/* 垂直分隔線 */
-.divider {
-  width: 1px;
-  background-color: #959595;
-  align-self: stretch;
+.arrow-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  color: #555;
+  transition: 0.2s;
 }
 
-.loan-status {
-  display: flex;
+.arrow-btn:hover {
+  color: #ebb211 !important;
+}
+
+/* 左右箭頭位置 */
+.arrow-btn.left {
+  left: -48px; /* 可依需求調整，超出 container */
+}
+
+.arrow-btn.right {
+  right: -48px;
+}
+
+.loan-status-card {
   background: #f5f5f5;
   border-radius: 30px;
-  padding: 30px 20px 30px 80px;
-  margin-bottom: 24px;
-  gap: 80px;
-  align-items: flex-start;
+  padding: 30px 40px 60px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 1280px; /* ✅ 固定寬度 */
 }
 
+.loan-status-card h2 {
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  color: #333;
+}
+
+.loan-status-card .status-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.loan-status-card .divider {
+  height: 1px;
+  background-color: #d0d0d0;
+  margin: 8px 0;
+}
+
+/* donut 圖表 */
 .chart-box {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-sizing: border-box;
   height: 152px;
   width: 100%;
-  padding: 0;
 }
 
 .chart-box canvas {
@@ -404,7 +766,6 @@ watch([() => form.value.loanAmount, () => form.value.loanTypeId, () => form.valu
   font-size: 14px;
   color: #555;
   margin-top: 12px;
-  /* 圖例距離 canvas */
 }
 
 .legend-item {
@@ -419,23 +780,67 @@ watch([() => form.value.loanAmount, () => form.value.loanTypeId, () => form.valu
   border-radius: 4px;
 }
 
+/* 資訊區塊 */
 .info-box {
   flex: 2;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 32px;
 }
 
 .row {
   display: flex;
-  align-items: center;
+  align-items: center; /* 垂直置中 */
+  justify-content: flex-start;
   gap: 8px;
   flex-wrap: wrap;
   font-size: 18px;
+  position: relative;
 }
 
-.row span {
-  margin-left: -16px;
+.loan-action-buttons {
+  margin-left: auto; /* 自動推到右側 */
+  display: flex;
+  gap: 12px;
+}
+
+.review-status {
+  display: flex;
+  align-items: center; /* 垂直置中 */
+  justify-content: flex-start;
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 4px 12px 4px 8px;
+  font-size: 16px;
+  font-weight: 400;
+  margin-left: auto;
+  border: 1px solid #0acf3f;
+  color: #0acf3f;
+}
+.loan-action-buttons {
+  margin-left: 8px; /* 按鈕距離文字 */
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  margin-top: 4px;
+}
+
+.upload-btn {
+  color: #0acf3f;
+}
+
+.download-btn {
+  color: #ebb211;
 }
 
 .label {
@@ -449,14 +854,25 @@ watch([() => form.value.loanAmount, () => form.value.loanTypeId, () => form.valu
   font-weight: 400;
 }
 
-.review-status {
-  border: 1px solid #0acf3f;
-  color: #0acf3f;
-  padding: 2px 16px;
-  border-radius: 20px;
-  font-weight: 400;
-  margin-left: auto;
-  font-size: 16px;
+/* 各狀態顏色 */
+.status-approved {
+  border: 1px solid #ebb211;
+  color: #ebb211;
+}
+
+.status-rejected {
+  border: 1px solid #222626;
+  color: #222626;
+}
+
+.status-pending {
+  border: 1px solid #ce1465;
+  color: #ce1465;
+}
+
+.status-reviewing {
+  border: 1px solid #444b4b;
+  color: #444b4b;
 }
 
 .progress-info {
@@ -472,6 +888,20 @@ watch([() => form.value.loanAmount, () => form.value.loanTypeId, () => form.valu
 
 .progress-info strong {
   font-weight: 500;
+}
+
+/* Vuetify箭頭按鈕 */
+.arrow-btn {
+  color: #555;
+  transition: 0.2s;
+}
+
+.arrow-btn:hover {
+  color: #ebb211 !important;
+}
+
+.arrow-btn:disabled {
+  color: #ccc !important;
 }
 
 /* 第二區 */
