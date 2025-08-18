@@ -58,7 +58,7 @@
                   <div class="warningtet">你有錯誤</div>
                 </div>
                 <button type="submit" class="btn">登入</button>
-                <button class="forgetbtn">忘記帳號或密碼</button>
+                <button class="forgetbtn" @click="forgetbtn">忘記帳號或密碼</button>
               </div>
             </form>
           </div>
@@ -131,6 +131,14 @@ const moveslide = () => {
   slide.value = !slide.value;
   blackout.value = !blackout.value;
 };
+
+
+//忘記密碼
+const forgetbtn = ()=>{
+  router.push("/yuzubank/memberforget");
+}
+
+
 </script>
 
 <style scoped>

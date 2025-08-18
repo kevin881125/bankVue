@@ -9,5 +9,13 @@ export default [
      path: "memberProfile",
       component: () => import("@/views/front/member/memberProfile.vue")
 
+  },
+  {
+     path: "memberforget",
+      component: () => import("@/views/front/member/forgetPassword.vue")
+  },
+    {
+     path: "memberResetPassword",
+      component: () => import("@/views/front/member/resetPassword.vue")
   }
 ]
