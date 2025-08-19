@@ -166,7 +166,7 @@
                 <td class="num">{{ formatCurrency(item.balance) }}</td>
                 <td class="num">{{ formatCurrency(item.balance) }}</td>
                 <td class="end">
-                  <button class="txbutton" @click="goTransfer(item)">
+                  <button class="txbutton" @click="openTranserDialog(item)">
                     轉帳
                   </button>
                 </td>
@@ -206,10 +206,18 @@
 
   <AccountDetailDialog
     v-model="detailDialog"
-    :account-id="seletedAccountId"
+    :account-id="selectedAccountId"
     @close="detailDialog = false"
   >
   </AccountDetailDialog>
+
+  <TradeDialog
+    v-model="tradeDialog"
+    :account-id="selectedAccountId"
+    :m-id="selectedmId"
+    @close="tradeDialog = false"
+  >
+  </TradeDialog>
 </template>
 
 <script setup>
@@ -217,22 +225,20 @@ import { ref, computed, onMounted } from "vue";
 import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 import AccountDetailDialog from "./AccountDetailDialog.vue";
+import TradeDialog from "./TradeDialog.vue";
 
 const memberStore = useMemberStore();
 const mId = memberStore.mId;
 const noteOpen = ref(true);
 const detailDialog = ref(false);
-const seletedAccountId = ref("");
+const tradeDialog = ref(false);
+const selectedAccountId = ref("");
+const selectedmId = ref("");
+
 // 顯示/隱藏金額
 const showAmount = ref(true);
 
 const hasTwdAccount = computed(() => twdAccounts.value.length > 0);
-
-function onOpenAccount() {
-  // 換成你的實際路由
-  // router.push({ name: 'OpenAccount' })
-  // 先用提示佔位
-}
 
 const memberAccounts = ref([]);
 
@@ -264,21 +270,7 @@ function formatCurrency(n) {
   }).format(n || 0);
 }
 
-// 動作（之後可換 router.push）
-
-function toast(t) {}
-function goDetail(item) {
-  toast(`查看明細：${item.accountId}`);
-}
-function goTransfer(item) {
-  toast(`轉帳：${item.accountId}`);
-}
-function accountDetail(accountId) {
-  navigator.clipboard?.writeText(text);
-  toast("帳號已複製");
-}
-
-// 掛載時取資料（示範）
+// 掛載時取資料
 onMounted(async () => {
   try {
     memberAccounts.value = await request({
@@ -289,14 +281,20 @@ onMounted(async () => {
     console.log(memberAccounts.value);
   } catch (error) {
     console.error("載入帳戶失敗", error);
-    toast("載入帳戶失敗");
   }
 });
 
 const openDetailDialog = (accountId) => {
-  seletedAccountId.value = accountId;
+  selectedAccountId.value = accountId;
   console.log("開啟帳戶明細對話框，帳戶ID:", accountId);
   detailDialog.value = true;
+};
+
+const openTranserDialog = (item) => {
+  console.log("開啟轉帳對話框，帳戶:", item);
+  selectedAccountId.value = item.accountId;
+  selectedmId.value = item.mId;
+  tradeDialog.value = true;
 };
 </script>
 
@@ -550,13 +548,23 @@ const openDetailDialog = (accountId) => {
 }
 
 .txbutton {
-  background-color: #ebb211;
+  background: transparent; /* 預設透明 */
+  color: #ebb211; /* 文字黑色 */
+  border: 2px solid #ebb211; /* 外框用品牌色 */
   font-size: 16px;
-  color: #ffffff;
   padding: 12px 24px;
-  text-decoration: none;
-  margin: 10px;
   border-radius: 32px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 滑過 / 聚焦：填滿顏色、文字白色 */
+.txbutton:hover,
+.txbutton:focus-visible {
+  background-color: #ebb211;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(235, 178, 17, 0.35);
+  outline: none;
 }
 
 .bank-icon {
