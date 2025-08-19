@@ -2,8 +2,6 @@
   <div class="loan-container">
     <!-- 個人貸款資訊 -->
     <section class="loan-status-carousel">
-      <h1 class="loan-status-title">個人貸款</h1>
-
       <div class="loan-status-wrapper">
         <!-- 左箭頭 -->
         <v-btn
@@ -25,6 +23,29 @@
                 <span class="mdi mdi-eye"></span>
               </button>
             </h2>
+            <div class="review-status" :class="statusClass(currentLoan.status)">
+              <!-- 按鈕在右側 -->
+              <div class="loan-action-buttons">
+                <button
+                  v-if="currentLoan.status === 'supplement'"
+                  class="action-btn upload-btn"
+                  @click="onUploadSupplement"
+                >
+                  <v-icon size="20">mdi-upload</v-icon>
+                </button>
+
+                <button
+                  v-else-if="currentLoan.status === 'approved'"
+                  class="action-btn download-btn"
+                  @click="onDownloadContract"
+                >
+                  <v-icon size="20">mdi-download</v-icon>
+                </button>
+              </div>
+              <span class="status-text">{{
+                translateStatus(currentLoan.status)
+              }}</span>
+            </div>
           </div>
           <div class="divider"></div>
           <div class="status-content">
@@ -48,37 +69,17 @@
               </div>
             </div>
 
+            <pay-modal
+              v-model="showPayModal"
+              :loan-id="selectedLoanId"
+              @success="fetchMemberPayments"
+            />
+
             <div class="info-box">
               <div class="row">
                 <div class="label">貸款金額 :</div>
                 <div class="value">
                   NT$ {{ currentLoan.amount.toLocaleString() }}
-                </div>
-                <div
-                  class="review-status"
-                  :class="statusClass(currentLoan.status)"
-                >
-                  <!-- 按鈕在右側 -->
-                  <div class="loan-action-buttons">
-                    <button
-                      v-if="currentLoan.status === 'supplement'"
-                      class="action-btn upload-btn"
-                      @click="onUploadSupplement"
-                    >
-                      <v-icon size="20">mdi-upload</v-icon>
-                    </button>
-
-                    <button
-                      v-else-if="currentLoan.status === 'approved'"
-                      class="action-btn download-btn"
-                      @click="onDownloadContract"
-                    >
-                      <v-icon size="20">mdi-download</v-icon>
-                    </button>
-                  </div>
-                  <span class="status-text">{{
-                    translateStatus(currentLoan.status)
-                  }}</span>
                 </div>
               </div>
 
@@ -98,6 +99,14 @@
                   >/ NT$ {{ currentLoan.amount.toLocaleString() }} (已還
                   {{ currentLoan.progress }}%)</span
                 >
+                <button
+                  class="pay"
+                  color="primary"
+                  size="small"
+                  @click="openPayModal(currentLoan.loanId)"
+                >
+                  立即繳費
+                </button>
               </div>
             </div>
           </div>
@@ -132,7 +141,6 @@
     <section class="loan-records">
       <div class="records-header">
         <h2>還款紀錄</h2>
-        <button class="pay">立即繳費</button>
       </div>
 
       <div class="table">
@@ -264,10 +272,17 @@ import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 import { translateStatus } from "@/components/loan/utils/statusHelper";
 import loanMemberDetail from "@/components/loan/front/loanMemberDetail.vue";
+import payModal from "@/components/loan/front/payModal.vue";
 
 const memberStore = useMemberStore();
 const memberId = memberStore.mId;
-console.log(memberId);
+const showPayModal = ref(false);
+const selectedLoanId = ref(null);
+
+const openPayModal = (loanId) => {
+  selectedLoanId.value = loanId;
+  showPayModal.value = true;
+};
 
 const loans = ref([]);
 const currentIndex = ref(0);
@@ -731,16 +746,6 @@ watch(
   text-align: center;
 }
 
-button .look {
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
-  font-size: 18px;
-}
-
 .loan-status-wrapper {
   display: flex;
   justify-content: center;
@@ -779,6 +784,20 @@ button .look {
   width: 1280px; /* ✅ 固定寬度 */
 }
 
+.review-status {
+  display: flex;
+  align-items: center; /* 垂直置中 */
+  justify-content: flex-start;
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 4px 12px 4px 8px;
+  font-size: 16px;
+  font-weight: 400;
+  margin-left: auto;
+  border: 1px solid #0acf3f;
+  color: #0acf3f;
+}
+
 .loan-status-card h2 {
   font-size: 22px;
   font-weight: 600;
@@ -790,6 +809,33 @@ button .look {
   display: flex;
   align-items: flex-start;
   gap: 40px;
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* h2 置中 */
+  position: relative; /* 讓按鈕可以絕對定位 */
+}
+
+.status-header h2 {
+  margin: 0;
+  text-align: center;
+  flex: 1; /* 撐開中間空間 */
+}
+
+/* 按鈕靠左 */
+.loan-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0; /* 防止被擠掉 */
+}
+
+/* 狀態文字靠右或自然排列 */
+.status-text {
+  flex: 1; /* 撐開剩餘空間 */
+  text-align: right;
 }
 
 .loan-status-card .divider {
@@ -850,32 +896,6 @@ button .look {
   flex-wrap: wrap;
   font-size: 18px;
   position: relative;
-}
-
-.loan-action-buttons {
-  margin-left: auto; /* 自動推到右側 */
-  display: flex;
-  gap: 12px;
-}
-
-.review-status {
-  display: flex;
-  align-items: center; /* 垂直置中 */
-  justify-content: flex-start;
-  border: 1px solid;
-  border-radius: 10px;
-  padding: 4px 12px 4px 8px;
-  font-size: 16px;
-  font-weight: 400;
-  margin-left: auto;
-  border: 1px solid #0acf3f;
-  color: #0acf3f;
-}
-.loan-action-buttons {
-  margin-left: 8px; /* 按鈕距離文字 */
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .action-btn {
@@ -958,6 +978,14 @@ button .look {
   color: #ccc !important;
 }
 
+.pay {
+  background-color: #ebb211;
+  border-radius: 50px;
+  padding: 8px 16px;
+  color: #fff;
+  margin-left: 310px;
+}
+
 /* 第二區 */
 .loan-records {
   background: rgba(245, 245, 245, 0.8);
@@ -971,13 +999,6 @@ button .look {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-}
-
-.records-header button {
-  background-color: #ebb211;
-  border-radius: 50px;
-  padding: 8px 16px;
-  color: #fff;
 }
 
 .table table {
