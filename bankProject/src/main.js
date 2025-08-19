@@ -29,3 +29,4 @@ const vuetify = createVuetify({
 app.use(vuetify);
 
 app.mount("#app");
+
