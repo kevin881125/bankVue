@@ -1,7 +1,9 @@
 export default [
   {
      path: "member",
-      component: () => import("@/views/back/member/member.vue")
+      component: () => import("@/views/back/member/member.vue"),
+      meta: { pageId: 1 }
+
   },
 
   // 前台
@@ -9,5 +11,13 @@ export default [
      path: "memberProfile",
       component: () => import("@/views/front/member/memberProfile.vue")
 
+  },
+  {
+     path: "memberforget",
+      component: () => import("@/views/front/member/forgetPassword.vue")
+  },
+    {
+     path: "memberResetPassword",
+      component: () => import("@/views/front/member/resetPassword.vue")
   }
 ]

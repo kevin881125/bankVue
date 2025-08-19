@@ -34,7 +34,9 @@ import { request } from "@/utils/BackAxiosUtil";
 import { useWorkerStore } from "@/stores/Worker";
 import { ref } from "vue";
 import router from "@/router/index";
+import { usePermissionStore } from "@/stores/usePermissionStore";
 
+const permissionStore = usePermissionStore();
 const workerStore = useWorkerStore();
 const wAccount = ref("");
 const wPassword = ref("");
@@ -50,17 +52,19 @@ const doLogin = async () => {
       },
     });
 
-
-
     workerStore.login(
       response.wid,
       response.wname,
       response.waccount,
-      response.token
+      response.token,
+      response.role
     );
-
-    console.log(workerStore.wId);
-    router.push("/yuzubank/backmain/member");
+    const response2 = await request({
+      url: "/api/roles/pages",
+      method: "GET",
+    });
+    permissionStore.setPageMap(response2);
+   router.push("/yuzubank/backmain/"+permissionStore.allowedPages[0].name);
   } catch (error) {
     alert("登入失敗，請確認帳號密碼");
     console.error(error);

@@ -3,11 +3,11 @@
     <div class="container">
       <div class="topbar">
         <div class="Headshot">
-          <img @src="'http://localhost:8080' + memberdetail.mImage" alt="" />
+          <img :src="topImage" alt="" />
           <button @click="toggleForm">
             <span class="mdi mdi-pencil"></span>
           </button>
-          <h1>你好,{{ memberdetail.mName }}</h1>
+          <h1>你好,{{originname}}</h1>
         </div>
         <div class="total">
           <div class="all">
@@ -45,17 +45,17 @@
         </div>
       </div>
 
-      <transition name="slide-down">
+      <transition name="slide-down"  @after-enter="scrollToForm">
         <div class="PersonalInf" ref="formRef" v-if="showForm">
           <form @submit.prevent="submitForm">
             <h1>個人資料修改</h1>
             <div class="top">
               <div class="left">
-                <img
-                  @src="'http://localhost:8080' + memberdetail.mImage"
-                  alt=""
-                />
-                <button><span class="mdi mdi-camera"></span></button>
+                <img :src="memberdetail.mImage" alt="" />
+                <button @click="$refs.fileInput.click()">
+                  <span class="mdi mdi-camera"></span>
+                </button>
+                <input  style="display: none" type="file" @change="onFileChange" ref="fileInput" accept="image/*" />
               </div>
               <div class="right">
                 <div class="inputbox">
@@ -193,7 +193,6 @@
                   v-model="showOK"
                   message="修改成功"
                   :duration="1400"
-                  @closed="onClosed"
                 />
               </div>
             </div>
@@ -211,6 +210,10 @@ import SuccessAnim from "@/components/member/successAnim.vue";
 import DoughnutChart from "@/components/member/DoughnutChart.vue";
 const memberStore = useMemberStore();
 const showOK = ref(false);
+const mImage =ref({});
+const topImage = ref();
+const formData = new FormData();
+const originname = ref("");
 const memberdetail = ref({
   mId: null,
   mName: "",
@@ -226,16 +229,39 @@ const memberdetail = ref({
   mState: null,
   mImage: "",
 });
-onMounted(async () => {
+const getdata = async()=>{
+  console.log("有近來去拿資料");
+  
   const data = await request({
     url: "/member/" + memberStore.mId,
     method: "GET",
   });
-  memberdetail.value = data;
-  console.log(memberdetail.value.mImage);
-});
+   memberdetail.value = data;
+  memberdetail.value.mImage ="http://localhost:8080" + memberdetail.value.mImage;
+  originname.value = structuredClone( memberdetail.value.mName)
+   topImage.value = memberdetail.value.mImage;
+}
+
+onMounted(
+  getdata
+ );
+
 
 const editok = async () => {
+
+  if(formData.has("file")){
+    const img = await request({
+    url: "/member/upload-mimage",
+    method: "POST",
+    data:formData
+  });
+  console.log(img);
+  
+  memberdetail.value.mImage =img["新增成功路徑為"];
+  
+  }else{
+    memberdetail.value.mImage = topImage.value.slice(21);
+  }
   const data = await request({
     url: "/member/" + memberdetail.value.mId,
     method: "PUT",
@@ -244,9 +270,36 @@ const editok = async () => {
   data.mBirthday = data.mBirthday.slice(0, 10);
   data.creation = data.creation.slice(0, 10);
   memberdetail.value = data;
+    memberdetail.value.mImage ="http://localhost:8080" + memberdetail.value.mImage;
+    memberStore.setmImage(memberdetail.value.mImage);
+    memberStore.setmName(memberdetail.value.mName);
+  originname.value = structuredClone( memberdetail.value.mName)
+   topImage.value = memberdetail.value.mImage;
   showOK.value = true;
 };
 
+/*圖片上傳*/
+const onFileChange = (e) => {
+  const file = e.target.files[0];
+  console.log("檔案在這裡" + file);
+
+  mImage.value = file;
+  memberdetail.value.mImage = URL.createObjectURL(file);
+  console.log("檔案"+mImage.value);
+  
+  formData.set("file", mImage.value);
+};
+
+const subm = async () => {
+  console.log(formData);
+  const data = await request({
+    url: "/member/upload-mimage",
+    method: "POST",
+    data: formData,
+  });
+  showpictrue.value = "http://localhost:8080" + data["新增成功路徑為"];
+  console.log(showpictrue.value);
+};
 /*切換動畫*/
 const showForm = ref(false);
 const formRef = ref(null);
@@ -255,10 +308,20 @@ const toggleForm = async () => {
   showForm.value = !showForm.value;
 
   if (showForm.value) {
+
     // 等表單渲染完成再滾動
     await nextTick();
-    formRef.value.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  }else {
+    // ❗這裡才是真正觸發還原的時機
+    await getdata();  // 重新撈取資料 → 蓋掉被更動的 memberdetail
   }
+
+};
+const scrollToForm = () => {
+  const offset = 100;
+  const top = formRef.value.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top, behavior: "smooth" });
 };
 </script>
 <style scoped>
