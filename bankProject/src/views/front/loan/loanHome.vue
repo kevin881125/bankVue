@@ -20,7 +20,7 @@
         <div v-if="loans.length > 0" class="loan-status-card">
           <div class="status-header">
             <h2>
-              申貸帳戶:{{ currentLoan.account }} - {{ currentLoan.typeName }}
+              申貸帳戶:{{ currentLoan.loanId }} - {{ currentLoan.typeName }}
               <button class="look" @click="onOpenDetail">
                 <span class="mdi mdi-eye"></span>
               </button>
@@ -120,6 +120,14 @@
       </div>
     </section>
 
+    <!-- 單筆貸款詳細資訊 -->
+    <loanMemberDetail
+      v-if="selectedLoan"
+      :visible="showModal"
+      :data="selectedLoan"
+      @close="showModal = false"
+    />
+
     <!-- 第二區：繳納明細 -->
     <section class="loan-records">
       <div class="records-header">
@@ -133,7 +141,6 @@
             <tr>
               <th>貸款帳戶</th>
               <th>日期</th>
-              <th>扣款狀態</th>
               <th>扣款金額</th>
               <th>扣款方式</th>
             </tr>
@@ -142,7 +149,6 @@
             <tr v-for="(record, index) in records" :key="index">
               <td>{{ record.loanAccount }}</td>
               <td>{{ record.date }}</td>
-              <td>{{ record.status }}</td>
               <td>NT$ {{ record.amount.toLocaleString() }}</td>
               <td>{{ record.paymentMethod }}</td>
             </tr>
@@ -257,6 +263,7 @@ import Chart from "chart.js/auto";
 import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 import { translateStatus } from "@/components/loan/utils/statusHelper";
+import loanMemberDetail from "@/components/loan/front/loanMemberDetail.vue";
 
 const memberStore = useMemberStore();
 const memberId = memberStore.mId;
@@ -289,18 +296,18 @@ const fetchMemberLoans = async () => {
       // 單筆物件
       data = [res];
     }
-
     loans.value = data.map((loan) => ({
       loanId: loan.loanId,
-      account: loan.account || loan.loanId,
+      account: loan.repayAccountId || "",
       typeName: loan.loanTypeName || "",
       amount: loan.loanAmount || 0,
       paid: loan.paidAmount || 0,
       progress: loan.progress || 0,
       rate: loan.interestRate || 0,
       months: loan.loanTerm || 0,
+      createdAt: loan.createdAt || "",
+      loanstartDate: loan.updatedAt || "",
       status: loan.approvalStatus || "未知",
-      contractPath: loan.getontractPath || "",
     }));
 
     currentIndex.value = 0;
@@ -310,6 +317,31 @@ const fetchMemberLoans = async () => {
     console.error("取得會員貸款資料失敗:", err);
     loans.value = [];
   }
+};
+
+// 單筆貸款詳細資訊
+const showModal = ref(false);
+const selectedLoan = ref(null);
+
+const onOpenDetail = () => {
+  if (!currentLoan.value) return;
+
+  selectedLoan.value = {
+    loanId: currentLoan.value.loanId || "",
+    loanTypeName: currentLoan.value.typeName || "",
+    loanAmount: currentLoan.value.amount || 0,
+    loanTerm: currentLoan.value.term || 0,
+    interestRate: currentLoan.value.rate || 0,
+    loanTerm: currentLoan.value.months || "",
+    createdAt: currentLoan.value.createdAt || "",
+    loanstartDate: currentLoan.value.loanstartDate || "",
+    repayAccountId: currentLoan.value.account || "",
+    ㄋtatus: currentLoan.value.status,
+    approvalStatusName: translateStatus(currentLoan.value.status),
+    progress: currentLoan.value.progress || 0,
+  };
+
+  showModal.value = true;
 };
 
 // 狀態顏色變換
@@ -459,28 +491,50 @@ watch(currentIndex, renderChart);
 
 const formatRate = (rate) =>
   rate != null ? Number(rate * 100).toFixed(1) + "%" : "載入中...";
-const onOpenDetail = () => {
-  console.log("查看貸款詳細:", currentLoan.value.loanId);
-};
 
 onMounted(fetchMemberLoans);
 
-const records = ref([
-  {
-    loanAccount: "7211000051",
-    date: "2025/08/10",
-    status: "扣款成功",
-    amount: 10000,
-    paymentMethod: "7153000051",
-  },
-  {
-    loanAccount: "7221000721",
-    date: "2025/07/10",
-    status: "扣款成功",
-    amount: 10000,
-    paymentMethod: "Line Pay",
-  },
-]);
+const records = ref([]);
+
+const fetchMemberPayments = async () => {
+  if (!memberStore.isLoggedIn) return;
+
+  try {
+    const res = await request({
+      url: `/loans/member/${memberId}/payments`,
+      method: "get",
+    });
+
+    // 判斷回傳資料格式
+    let data = [];
+    if (Array.isArray(res)) {
+      data = res;
+    } else if (res && Array.isArray(res.data)) {
+      data = res.data;
+    } else if (res && typeof res === "object") {
+      data = [res];
+    }
+
+    // 轉換成前端顯示格式
+    records.value = data.map((item) => ({
+      loanAccount: item.loanId || "",
+      date: item.paymentDate
+        ? new Date(item.paymentDate).toLocaleDateString()
+        : "",
+      amount: item.amountPaid ? Number(item.amountPaid) : 0,
+      paymentMethod: item.paymentMethod || "",
+    }));
+  } catch (err) {
+    console.error("取得還款紀錄失敗:", err);
+    records.value = [];
+  }
+};
+
+onMounted(() => {
+  fetchMemberLoans();
+  fetchLoanCalculation();
+  fetchMemberPayments(); // 新增這行
+});
 
 const form = ref({
   loanAmount: 100000,

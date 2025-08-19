@@ -95,7 +95,7 @@
             <p>
               <strong>利率：</strong>{{ (data.interestRate * 100).toFixed(2) }}%
             </p>
-            <p><strong>開始日期：</strong>{{ data.loanstartDate }}</p>
+            <p><strong>申請日期：</strong>{{ data.createdAt }}</p>
             <p><strong>還款帳戶：</strong>{{ data.repayAccountId }}</p>
           </div>
 
