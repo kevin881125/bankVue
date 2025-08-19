@@ -1,7 +1,9 @@
 export default [
   {
      path: "member",
-      component: () => import("@/views/back/member/member.vue")
+      component: () => import("@/views/back/member/member.vue"),
+      meta: { pageId: 1 }
+
   },
 
   // 前台

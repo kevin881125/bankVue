@@ -10,14 +10,16 @@ export const useWorkerStore = defineStore(
       wName: "",
       wAccount: "",
       token: "",
+      role:null
     });
 
     // actions
-    const login = (wId, wName, wAccount, token) => {
+    const login = (wId, wName, wAccount, token,role) => {
       workerInfo.value.isLoggedIn = true;
       workerInfo.value.wId = wId;
       workerInfo.value.wName = wName;
       workerInfo.value.wAccount = wAccount;
+      workerInfo.value.role = role;
       workerInfo.value.token = token;
     };
 
@@ -28,6 +30,7 @@ export const useWorkerStore = defineStore(
         wName: "",
         wAccount: "",
         token: "",
+        role:null
       };
     };
 
@@ -37,6 +40,7 @@ export const useWorkerStore = defineStore(
     const wName = computed(() => workerInfo.value.wName);
     const wAccount = computed(() => workerInfo.value.wAccount);
     const token = computed(() => workerInfo.value.token);
+    const role = computed(() => workerInfo.value.role);
 
     return {
       workerInfo,
@@ -47,6 +51,7 @@ export const useWorkerStore = defineStore(
       wName,
       wAccount,
       token,
+      role
     };
   },
   {

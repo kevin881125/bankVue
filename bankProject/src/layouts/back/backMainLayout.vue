@@ -9,34 +9,44 @@
         />
       </div>
       <ul class="featurelist">
-        <li>
+        <li v-if="hasAccess(1)">
           <router-link to="/yuzubank/backmain/member"
             ><span class="mdi mdi-account"></span>會員管理</router-link
           >
         </li>
-        <li>
+        <li v-if="hasAccess(2)">
           <router-link to="/yuzubank/backmain/account">
             <span class="mdi mdi-piggy-bank"></span>帳戶管理</router-link
           >
         </li>
-        <li>
+        <li v-if="hasAccess(2)">
           <router-link to="/yuzubank/backmain/accountapplication">
             <span class="mdi mdi-hand-coin"></span>帳戶申請管理</router-link
           >
         </li>
-        <li>
+        <li v-if="hasAccess(3)">
           <router-link to="/yuzubank/backmain/creditCard">
             <span class="mdi mdi-credit-card"></span>信用卡管理</router-link
           >
         </li>
-        <li>
+        <li v-if="hasAccess(4)">
           <router-link to="/yuzubank/backmain/loan">
             <span class="mdi mdi-cash"></span>貸款管理</router-link
           >
         </li>
-        <li>
+        <li v-if="hasAccess(5)">
           <router-link to="/yuzubank/backmain/fund">
             <span class="mdi mdi-bank"></span>基金管理</router-link
+          >
+        </li>
+        <li v-if="hasAccess(6)">
+          <router-link to="/yuzubank/backmain/fund">
+            <span class="mdi mdi-bank"></span>管理員權限</router-link
+          >
+        </li>
+        <li v-if="hasAccess(7)">
+          <router-link to="/yuzubank/backmain/fund">
+            <span class="mdi mdi-bank"></span>角色權限</router-link
           >
         </li>
       </ul>
@@ -63,18 +73,28 @@
 
 <script setup>
 import { useWorkerStore } from "@/stores/Worker";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import router from "@/router/index";
+import { request } from "@/utils/BackAxiosUtil";
+import { usePermissionStore } from "@/stores/usePermissionStore";
+
 
 const workerStore = useWorkerStore();
 
-const wName = ref(workerStore.wName);
-const wAccount = ref(workerStore.wAccount);
+const wName = ref();
+const wAccount = ref();
+const permissionStore = usePermissionStore();
+const hasAccess = (pageId) => {
+  return permissionStore.hasAccess(pageId);
+};
+onMounted(async () => {
+  wName.value = workerStore.wName;
+  wAccount.value = workerStore.wAccount;
+ 
+});
 
 const signOut = () => {
   workerStore.logout();
-  console.log(workerStore.wId);
-
   router.push("/yuzubank/backLogin");
 };
 </script>
