@@ -18,6 +18,10 @@ export default [
     path: "creditCard/transaction",
     component: () => import("@/views/back/creditCard/creditTransaction.vue"),
   },
+  {
+    path: "creditCard/cardPayment",
+    component: () => import("@/views/back/creditCard/cardPayment.vue"),
+  },
   // 前台
   {
     path: "cardApply",

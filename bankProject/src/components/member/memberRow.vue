@@ -1,5 +1,5 @@
 <template>
-  <tr >
+  <tr>
     <td>{{ member.mId }}</td>
     <td>{{ member.mName }}</td>
     <td>{{ member.mIdentity }}</td>
@@ -24,7 +24,7 @@
   </tr>
 </template>
 <script setup>
-import { defineProps, defineEmits, ref ,computed } from "vue";
+import { defineProps, ref, computed } from "vue";
 
 const props = defineProps({
   member: {
@@ -42,12 +42,12 @@ const viewEdit = () => {
 };
 
 const statusText = computed(() => {
-  return Number(props.member.mState) === 1 ? '正常' : '停用'
-})
+  return Number(props.member.mState) === 1 ? "正常" : "停用";
+});
 
 const statusClass = computed(() => {
-  return Number(props.member.mState) === 1 ? 'disabled-text2' : 'disabled-text'
-})
+  return Number(props.member.mState) === 1 ? "disabled-text2" : "disabled-text";
+});
 </script>
 <style scoped>
 * {
@@ -55,7 +55,6 @@ const statusClass = computed(() => {
   position: relative;
 }
 tr {
-
   width: 100%;
   &:hover {
     background-color: #e2e1e1;
@@ -99,6 +98,4 @@ td {
   color: rgb(156, 156, 156);
   font-weight: bold;
 }
-
-
 </style>
