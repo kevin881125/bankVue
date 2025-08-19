@@ -16,7 +16,7 @@
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
-        <v-btn rounded="xl" size="x-large" block>Button</v-btn>
+        <v-btn rounded="xl" size="x-large" block to="/yuzubank/backmain/creditCard/cardPayment" tag="router-link">繳費管理</v-btn>
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
