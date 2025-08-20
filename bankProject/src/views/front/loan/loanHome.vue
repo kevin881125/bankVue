@@ -73,6 +73,7 @@
               v-model="showPayModal"
               :loan-id="selectedLoanId"
               @success="fetchMemberPayments"
+              @update-schedule="fetchNextSchedule"
             />
 
             <div class="info-box">
@@ -93,13 +94,14 @@
               </div>
               <hr />
               <div class="progress-info">
-                <strong>還款進度 : </strong>
-                NT$ {{ currentLoan.paid.toLocaleString() }}
-                <span
-                  >/ NT$ {{ currentLoan.amount.toLocaleString() }} (已還
-                  {{ currentLoan.progress }}%)</span
-                >
+                <div class="info-text">
+                  <strong>還款進度 :</strong>
+                  NT$ {{ currentLoan.paid.toLocaleString() }} / NT$
+                  {{ currentLoan.amount.toLocaleString() }} (已還
+                  {{ currentLoan.progress }}%)
+                </div>
                 <button
+                  v-show="currentLoan.status === 'approved'"
                   class="pay"
                   color="primary"
                   size="small"
@@ -279,7 +281,7 @@ const memberId = memberStore.mId;
 const showPayModal = ref(false);
 const selectedLoanId = ref(null);
 
-const openPayModal = (loanId) => {
+const openPayModal = async (loanId) => {
   selectedLoanId.value = loanId;
   showPayModal.value = true;
 };
@@ -322,6 +324,7 @@ const fetchMemberLoans = async () => {
       months: loan.loanTerm || 0,
       createdAt: loan.createdAt || "",
       loanstartDate: loan.updatedAt || "",
+      contractPath: loan.getontractPath || "",
       status: loan.approvalStatus || "未知",
     }));
 
@@ -351,7 +354,7 @@ const onOpenDetail = () => {
     createdAt: currentLoan.value.createdAt || "",
     loanstartDate: currentLoan.value.loanstartDate || "",
     repayAccountId: currentLoan.value.account || "",
-    ㄋtatus: currentLoan.value.status,
+    status: currentLoan.value.status,
     approvalStatusName: translateStatus(currentLoan.value.status),
     progress: currentLoan.value.progress || 0,
   };
@@ -508,6 +511,24 @@ const formatRate = (rate) =>
   rate != null ? Number(rate * 100).toFixed(1) + "%" : "載入中...";
 
 onMounted(fetchMemberLoans);
+
+// 取得下一期未繳排程
+const nextSchedule = ref(null);
+
+const fetchNextSchedule = async () => {
+  if (!selectedLoanId.value) return;
+
+  try {
+    const res = await request({
+      url: `/loans/${selectedLoanId.value}/schedules/next`,
+      method: "get",
+    });
+    nextSchedule.value = res.data || null;
+  } catch (err) {
+    console.error("取得下一期排程失敗:", err);
+    nextSchedule.value = null;
+  }
+};
 
 const records = ref([]);
 
@@ -950,10 +971,24 @@ watch(
 }
 
 .progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 16px;
   color: #555;
   line-height: 1.5;
   font-weight: 400;
+  white-space: nowrap;
+  min-height: 48px;
+}
+
+
+.progress-info .info-text {
+  display: inline-block; /* 文字不換行 */
+}
+
+.progress-info button.pay {
+  margin-left: 0; /* Flex 已經靠右，不需要 margin */
 }
 
 .progress-info span {
