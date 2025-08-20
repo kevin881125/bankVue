@@ -113,7 +113,12 @@
 
         <!-- 橫跨整列並置中 -->
         <div class="cta-center">
-          <button class="apply-button" @click="onOpenAccount">我要開戶</button>
+          <button
+            class="apply-button"
+            @click="$router.push('/yuzubank/openAccount')"
+          >
+            我要開戶
+          </button>
         </div>
       </div>
     </section>
@@ -182,7 +187,7 @@
       <div class="note-header">
         <span class="note-title">說明</span>
         <button class="note-toggle" @click="noteOpen = !noteOpen">
-          {{ noteOpen ? "收起 —" : "展開 +" }}
+          {{ noteOpen ? "—" : "+" }}
         </button>
       </div>
 
@@ -216,6 +221,7 @@
     :account-id="selectedAccountId"
     :m-id="selectedmId"
     @close="tradeDialog = false"
+    @submit="refreshAccounts()"
   >
   </TradeDialog>
 </template>
@@ -270,8 +276,8 @@ function formatCurrency(n) {
   }).format(n || 0);
 }
 
-// 掛載時取資料
-onMounted(async () => {
+// 刷新資料
+const refreshAccounts = async () => {
   try {
     memberAccounts.value = await request({
       url: "/account/getmemberaccounts/" + mId,
@@ -282,7 +288,10 @@ onMounted(async () => {
   } catch (error) {
     console.error("載入帳戶失敗", error);
   }
-});
+};
+
+// 掛載時取資料
+onMounted(refreshAccounts);
 
 const openDetailDialog = (accountId) => {
   selectedAccountId.value = accountId;

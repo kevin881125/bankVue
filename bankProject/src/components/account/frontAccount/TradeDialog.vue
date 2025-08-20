@@ -279,7 +279,10 @@ watch(
       // 打開時載入帳戶清單（若尚未載入）
       if (!fromAccounts.value.length && props.mId) await loadAccounts();
       // 預選帶入 accountId
-      if (props.accountId) form.value.fromAccountId = String(props.accountId);
+      if (props.accountId) form.value.accountId = String(props.accountId);
+      form.value.toAccountId = ""; // 清空轉入帳號
+      form.value.amount = null; // 清空金額
+      form.value.memo = ""; // 清空備註
     } else {
       dlg.value?.close?.();
       document.body.style.overflow = "";
@@ -421,8 +424,15 @@ async function onSubmit() {
       method: "PUT",
       data: payload,
     });
+    if (!res || res.status == "交易失敗") {
+      alert(res.memo || "轉帳失敗，請稍後再試");
+    }
 
-    console.log("轉帳成功", res);
+    if (res.status === "轉帳成功") {
+      alert("轉帳成功！請查看您的交易紀錄。");
+      emit("submit", res); // 通知父組件
+    }
+
     emit("update:modelValue", false); // 關掉 dialog
     step.value = 1; // 重置流程
   } catch (e) {
