@@ -40,12 +40,12 @@
           >
         </li>
         <li v-if="hasAccess(6)">
-          <router-link to="/yuzubank/backmain/fund">
+          <router-link to="/yuzubank/backmain/workerManage">
             <span class="mdi mdi-bank"></span>管理員權限</router-link
           >
         </li>
         <li v-if="hasAccess(7)">
-          <router-link to="/yuzubank/backmain/fund">
+          <router-link to="/yuzubank/backmain/role">
             <span class="mdi mdi-bank"></span>角色權限</router-link
           >
         </li>
@@ -96,6 +96,7 @@ onMounted(async () => {
 const signOut = () => {
   workerStore.logout();
   router.push("/yuzubank/backLogin");
+  permissionStore.emtity();
 };
 </script>
 

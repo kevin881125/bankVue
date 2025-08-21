@@ -64,7 +64,16 @@ const doLogin = async () => {
       method: "GET",
     });
     permissionStore.setPageMap(response2);
-   router.push("/yuzubank/backmain/"+permissionStore.allowedPages[0].name);
+
+    
+       if (permissionStore.allowedPages.length > 0) {
+      // 跳轉到用戶的第一個可訪問頁面
+      router.push("/yuzubank/backmain/" + permissionStore.allowedPages[0].name);
+    } else {
+      // 如果沒有權限頁面，重定向到登錄頁
+      alert("您沒有可訪問的頁面，請聯繫管理員！");
+      router.push("/login");
+    }
   } catch (error) {
     alert("登入失敗，請確認帳號密碼");
     console.error(error);

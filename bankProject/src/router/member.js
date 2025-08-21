@@ -16,8 +16,16 @@ export default [
      path: "memberforget",
       component: () => import("@/views/front/member/forgetPassword.vue")
   },
-    {
+  {
      path: "memberResetPassword",
       component: () => import("@/views/front/member/resetPassword.vue")
+  },
+    {
+     path: "workerManage",
+      component: () => import("@/views/back/member/workerManage.vue")
+  },
+      {
+     path: "role",
+      component: () => import("@/views/back/member/workerManage.vue")
   }
 ]
