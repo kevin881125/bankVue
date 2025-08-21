@@ -29,11 +29,11 @@
 
       <!-- 各繳費方式 UI -->
       <div class="payment-slider">
+        <!-- 帳戶轉帳 -->
         <div
           class="payment-slide"
           :class="{ active: selectedMethod === 'account' }"
         >
-          <!-- 選擇還款帳戶 -->
           <div class="form-item">
             <label for="accountId">還款帳戶:</label>
             <div class="custom-select-wrapper">
@@ -57,12 +57,13 @@
             </div>
           </div>
         </div>
+
+        <!-- Line Pay -->
         <div
           class="payment-slide"
           :class="{ active: selectedMethod === 'linepay' }"
         >
-          <p>請使用 Line Pay 掃描 QR Code 付款：</p>
-          <div class="qr-placeholder">[Line Pay QR Code]</div>
+          <p>點擊「確認繳費」後，將跳轉到 Line Pay 網頁完成付款。</p>
         </div>
       </div>
 
@@ -117,6 +118,7 @@ const accountsLoading = ref(false);
 const showConfirm = ref(false);
 const confirmMessage = ref("你確定要繳費嗎？");
 
+// --- API 請求 ---
 const fetchNextSchedule = async () => {
   if (!props.loanId) return;
   try {
@@ -125,7 +127,9 @@ const fetchNextSchedule = async () => {
       method: "get",
     });
     const list = Array.isArray(res.data) ? res.data : res;
-    schedule.value = list.find((s) => s.paymentStatus === "pending") || null;
+    schedule.value = list.find((s) => s.paymentStatus === "pending") || {
+      qrUrl: null,
+    };
   } catch (err) {
     console.error("取得下一期繳費資訊失敗:", err);
     schedule.value = null;
@@ -149,10 +153,159 @@ const loadMemberAccounts = async () => {
   }
 };
 
-onMounted(() => {
+// --- 付款 ---
+function onPayClick() {
+  if (!schedule.value) return alert("尚無繳費資訊");
+  if (selectedMethod.value === "account" && !selectedAccountId.value)
+    return alert("請選擇還款帳戶");
+
+  confirmMessage.value = `您即將繳交 NT$ ${formatMoney(
+    schedule.value.amountDue
+  )}，確定嗎？`;
+  showConfirm.value = true;
+}
+
+async function submitPayment() {
+  if (selectedMethod.value === "account") {
+    if (!selectedAccountId.value) return alert("請選擇還款帳戶");
+
+    try {
+      // 內部帳戶轉帳流程
+      const txRequest = {
+        accountId: selectedAccountId.value,
+        transactionType: "繳納貸款",
+        toAccountId: "7999999987",
+        amount: schedule.value.amountDue,
+        operatorId: memberStore.mId,
+        memo: `貸款 ${props.loanId || ""} 繳款`,
+      };
+      const txRes = await request({
+        url: `/account/transaction/internaltransfer`,
+        method: "put",
+        data: txRequest,
+      });
+      if (txRes?.status !== "轉帳成功") return alert(txRes?.memo || "轉帳失敗");
+
+      // 記錄付款
+      const paymentRequest = {
+        amountPaid: schedule.value.amountDue,
+        scheduleId: schedule.value.scheduleId,
+        accountId: selectedAccountId.value,
+        paymentMethod: "account",
+        paymentReference: `貸款 ${props.loanId || ""} 繳款`,
+      };
+      const paymentRes = await request({
+        url: `/loans/${props.loanId}/payments/submit`,
+        method: "post",
+        data: paymentRequest,
+      });
+
+      emit("success", paymentRes);
+      innerVisible.value = false;
+      emit("updateSchedule"); // 讓父組件更新排程
+    } catch (err) {
+      console.error("繳費失敗:", err);
+      alert("繳費失敗，請稍後再試");
+    }
+  } else if (selectedMethod.value === "linepay") {
+    if (!props.loanId) return;
+
+    try {
+      console.log("開始 Line Pay 付款流程...");
+
+      // 取得付款 URL
+      const res = await request({
+        url: `/pay/order/${props.loanId}`,
+        method: "get",
+      });
+
+      console.log("Line Pay API Response:", res);
+
+      const paymentUrl = res.paymentUrl || res?.data?.paymentUrl;
+      const scheduleId = res.scheduleId || res?.data?.scheduleId;
+
+      if (!paymentUrl) {
+        alert("未取得 Line Pay 付款連結");
+        return;
+      }
+
+      console.log("跳轉到 Line Pay:", paymentUrl);
+
+      // 直接跳轉到 Line Pay 付款頁面（不開新視窗）
+      // Line Pay 完成後會自動跳轉回 /linepay-success/{loanId}
+      window.location.href = paymentUrl;
+    } catch (err) {
+      console.error("Line Pay 付款失敗:", err);
+      alert("Line Pay 付款失敗，請稍後再試: " + (err.message || "未知錯誤"));
+    }
+  }
+}
+
+const scheduleList = ref([]);
+const loanId = ref(null);
+
+// --- 取得 URL 參數，檢查是否需要刷新 ---
+onMounted(async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const refreshPayment = urlParams.get("refreshPayment");
+  const currentLoanId = urlParams.get("loanId");
+
+  if (refreshPayment === "1" && currentLoanId) {
+    console.log("檢測到付款完成，刷新數據...");
+
+    // 等待一下讓後端處理完成
+    setTimeout(async () => {
+      if (props.loanId === currentLoanId) {
+        await fetchNextSchedule();
+        emit("updateSchedule");
+        console.log("付款後數據刷新完成");
+      }
+    }, 1000);
+
+    // 清理 URL 參數
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  // 原有的初始化邏輯
   if (innerVisible.value) {
-    fetchNextSchedule();
-    loadMemberAccounts();
+    await fetchNextSchedule();
+    await loadMemberAccounts();
+  }
+});
+
+// --- API: 取得貸款排程與繳費紀錄 ---
+async function fetchLoanSchedules() {
+  try {
+    const res = await request({
+      url: `/loans/${loanId.value}/schedules`,
+      method: "get",
+    });
+    scheduleList.value = Array.isArray(res.data) ? res.data : res;
+  } catch (err) {
+    console.error("刷新貸款排程失敗:", err);
+  }
+}
+
+// --- 確認對話框 ---
+function handleConfirm() {
+  showConfirm.value = false;
+  submitPayment();
+}
+function handleCancel() {
+  showConfirm.value = false;
+}
+
+// --- 格式化 ---
+const formatMoney = (amount) =>
+  amount != null ? Math.round(amount).toLocaleString() : 0;
+const formatAccountBalance = (balance) =>
+  typeof balance === "number" ? balance.toLocaleString() : balance || "0";
+
+// --- Lifecycle ---
+onMounted(async () => {
+  if (innerVisible.value) {
+    await fetchNextSchedule();
+    await loadMemberAccounts();
   }
 });
 
@@ -163,95 +316,40 @@ watch(innerVisible, async (val) => {
   }
 });
 
+watch(selectedMethod, async (val) => {
+  if (val === "linepay") {
+    if (!schedule.value) await fetchNextSchedule();
+  }
+});
+
 const closeDialog = () => {
   innerVisible.value = false;
 };
 
-const formatMoney = (amount) =>
-  amount != null ? Math.round(amount).toLocaleString() : 0;
+// --- 輪詢檢查繳費狀態 (Line Pay) ---
+async function pollPaymentStatus(loanId, win) {
+  const maxAttempts = 15;
+  let attempt = 0;
 
-const formatAccountBalance = (balance) =>
-  typeof balance === "number" ? balance.toLocaleString() : balance || "0";
-
-// --- 繳費流程 ---
-function onPayClick() {
-  if (!schedule.value) {
-    alert("尚無繳費資訊");
-    return;
-  }
-  if (selectedMethod.value === "account" && !selectedAccountId.value) {
-    alert("請選擇還款帳戶");
-    return;
-  }
-
-  confirmMessage.value = `您即將繳交 NT$ ${formatMoney(
-    schedule.value.amountDue
-  )}，確定嗎？`;
-  showConfirm.value = true;
-}
-
-async function submitPayment() {
-  if (selectedMethod.value === "account") {
-    if (!selectedAccountId.value) {
-      alert("請選擇還款帳戶");
-      return;
-    }
-
+  const interval = setInterval(async () => {
+    attempt++;
     try {
-      // 1️⃣ 帳戶轉帳
-      const txRequest = {
-        accountId: selectedAccountId.value,
-        transactionType: "繳納貸款",
-        toAccountId: "7999999987",
-        amount: schedule.value.amountDue,
-        operatorId: memberStore.mId,
-        memo: `貸款 ${props.loanId || ""} 繳款`,
-      };
-
-      const txRes = await request({
-        url: `/account/transaction/internaltransfer`,
-        method: "put",
-        data: txRequest,
+      const res = await request({
+        url: `/loans/${loanId}/payments`,
+        method: "get",
       });
-
-      if (txRes?.status !== "轉帳成功") {
-        alert(txRes?.memo || "轉帳失敗");
-        return;
+      if (res.data && res.data.length > 0) {
+        // 繳費紀錄已更新
+        clearInterval(interval);
+        innerVisible.value = false; // 關閉彈窗
+        emit("updateSchedule"); // 讓父組件刷新排程
+        if (win) win.close(); // 關閉 Line Pay 視窗
       }
-
-      // 2️⃣ 呼叫貸款 API 新增繳費紀錄並更新排程
-      const paymentRequest = {
-        amountPaid: schedule.value.amountDue, // 注意這裡要對應後端 LoanPayment 的欄位
-        scheduleId: schedule.value.scheduleId,
-        accountId: selectedAccountId.value,
-        paymentMethod: "account", // 帳戶轉帳
-        memo: `貸款 ${props.loanId || ""} 繳款`,
-      };
-
-      const paymentRes = await request({
-        url: `/loans/${props.loanId}/payments/submit`,
-        method: "post",
-        data: paymentRequest,
-      });
-
-      emit("success", paymentRes);
-      innerVisible.value = false;
     } catch (err) {
-      console.error("繳費失敗:", err);
-      alert("繳費失敗，請稍後再試");
+      console.error("輪詢繳款狀態失敗:", err);
     }
-  } else if (selectedMethod.value === "linepay") {
-    alert("Line Pay 功能尚未串接實際付款 API");
-  }
-}
-
-function handleConfirm() {
-  showConfirm.value = false;
-  submitPayment();
-}
-
-function handleCancel() {
-  showConfirm.value = false;
+    if (attempt >= maxAttempts) clearInterval(interval);
+  }, 2000);
 }
 </script>
 
@@ -325,16 +423,7 @@ function handleCancel() {
   left: 0;
   opacity: 1;
 }
-.qr-placeholder {
-  width: 150px;
-  height: 150px;
-  background: #eee;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 10px auto;
-  border: 1px dashed #ccc;
-}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -367,12 +456,11 @@ function handleCancel() {
   margin-top: 4px;
   font-weight: bold;
 }
-
 .amount-due-display {
   text-align: right;
-  font-size: 20px; /* 大字級 */
+  font-size: 20px;
   font-weight: bold;
-  color: #27ae60; /* 綠色 */
-  margin-bottom: 10px; /* 與按鈕間距 */
+  color: #27ae60;
+  margin-bottom: 10px;
 }
 </style>
