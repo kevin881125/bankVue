@@ -302,6 +302,8 @@ const nextStep = async () => {
   submitting.value = true;
   try {
     const passed = await verifyCaptcha();
+    console.log(passed, "圖形驗證結果");
+
     if (!passed) {
       submitting.value = false;
       alert("驗證碼不正確或已失效，請重新輸入");
@@ -312,8 +314,6 @@ const nextStep = async () => {
   } finally {
     submitting.value = false;
   }
-
-  verifyCaptcha();
 };
 
 onUnmounted(() => {
