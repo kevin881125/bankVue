@@ -1,4 +1,3 @@
-// stores/usePermissionStore.js
 import { defineStore } from 'pinia'
 
 export const usePermissionStore = defineStore('permission', {
@@ -22,6 +21,14 @@ export const usePermissionStore = defineStore('permission', {
     },
     hasAccess(pageId) {
       return !!this.pageMap[pageId]
+    },
+    emtity() {
+      this.pageMap = {};
     }
-  }
+  },
+  persist: {
+    key: 'permission',  // 儲存的 key 名稱
+    storage: localStorage,  // 使用 localStorage 儲存
+    paths: ['pageMap'],  // 只持久化 pageMap 這個狀態
+  },
 })

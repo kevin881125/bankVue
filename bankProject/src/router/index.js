@@ -54,26 +54,29 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const permissionStore = usePermissionStore()
+
   const pageId = to.meta.pageId
+  console.log("我是那該死的物件"+permissionStore);
+  console.log(permissionStore);
+  
+  
+  console.log("我有近來")
+  console.log(permissionStore.allowedPageIds);
+  
+  
 
-  //   if (to.path === '/yuzubank/backmain') {
-  //   // 如果是進入主頁面，導向第一個有權限的頁面
-  //   const allowedPages = permissionStore.allowedPages
-  //   console.log(allowedPages);
-    
-  //   if (allowedPages.length > 0) {
-  //     next(`/yuzubank/backmain/${allowedPages[0].name}`)
-  //     return
-  //   } else {
-  //     next('/unauthorized')
-  //     return
-  //   }
-  // }
-
+  
   // ✅ 若沒有 pageId（代表不需權限控制），直接放行
   if (!pageId) {
     next()
     return
+  }
+    if (permissionStore.allowedPages.length === 0) {
+    // 如果沒有權限頁面，則跳轉到未授權頁面
+    console.log("沒有頁面給你顯示陣列是空的");
+    
+    next('/unauthorized');
+    return;
   }
 
   // ✅ 若權限資料已經載入，判斷是否有權限

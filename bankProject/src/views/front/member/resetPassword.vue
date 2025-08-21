@@ -36,7 +36,6 @@
           </div>
           <div class="warningtet">{{ message }}</div>
         </div>
-        <input type="text" />
         <button class="btn" @click="submit">確認送出</button>
 
         <div class="decorate2"></div>
