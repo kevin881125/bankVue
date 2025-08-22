@@ -17,7 +17,13 @@
               <a href="#">信用卡</a>
               <ul class="dropdown-menu">
                 <li>
-                  <router-link to="/yuzubank/cardApply">信用卡申請</router-link>
+                  <router-link to="/yuzubank/cardShowcase">信用卡申請</router-link>
+                </li>
+                <li>
+                  <router-link to="/yuzubank/record">我的申請紀錄</router-link>
+                </li>
+                <li>
+                  <router-link to="/yuzubank/myCard">我的卡片</router-link>
                 </li>
                 <li>
                   <router-link to="/yuzubank/creditTransaction"

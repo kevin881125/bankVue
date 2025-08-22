@@ -24,8 +24,8 @@ export default [
   },
   // 前台
   {
-    path: "cardApply",
-    component: () => import("@/views/front/creditCard/cardApply.vue"),
+    path: "cardShowcase",
+    component: () => import("@/views/front/creditCard/cardShowcase.vue"),
   },
 
   {
@@ -37,4 +37,13 @@ export default [
     path: "myBill",
     component: () => import("@/views/front/creditCard/myBill.vue"),
   },
+
+  {
+  path: 'record',
+  component: () => import('@/views/front/creditCard/cardApplicationRecords.vue')
+},
+{
+  path: 'myCard',
+  component: () => import('@/views/front/creditCard/myCard.vue')
+}
 ];
