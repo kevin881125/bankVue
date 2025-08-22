@@ -1,79 +1,123 @@
 <template>
-  <h1>管理員清單</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>員工編號</th>
-        <th>員工名子</th>
-        <th>帳號</th>
-        <th>密碼</th>
-        <th>角色</th>
-        <th>編輯</th>
-      </tr>
-    </thead>
-    <workerRow
-      v-for="w in workers"
-      :worker="w"
-      :roledata1="roledata"
-    ></workerRow>
-  </table>
-
-  <div class="newWorker">
-    <label for="">名稱</label>
-    <input type="text" v-model="worker.wName" />
-    <label for="">帳號</label>
-    <input type="text" v-model="worker.wAccount" />
-    <label for="">密碼</label>
-    <input type="text" v-model="worker.wPassword" /><label for="">角色</label>
-    <select v-model="worker.role.roleId">
-      <option v-for="role in roledata" :key="role.roleId" :value="role.roleId">
-        {{ role.roleName }}
-      </option>
-    </select>
-    <button @click="newWorker">新增</button>
-  </div>
-  <div class="rolePermission">
-    <table>
-      <thead>
-        <tr>
-          <th>角色</th>
-          <th v-for="(page, pageIndex) in pageAll">
-            {{ page.pageExp }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(role, index) in roleWithPageDatas" :key="index">
-          <td>{{ role.role.roleName }}</td>
-          <td v-for="(page, pageIndex) in pageAll" :key="pageIndex">
-            <input
+  <div class="container">
+    <div class="worker">
+      <h1>管理員清單</h1>
+      <div class="newWorker">
+        <label for="">名稱:</label>
+        <input type="text" v-model="worker.wName" />
+        <label for="">帳號:</label>
+        <input type="text" v-model="worker.wAccount" />
+        <label for="">密碼:</label>
+        <input type="text" v-model="worker.wPassword" /><label for=""
+          >角色:</label
+        >
+        <select v-model="worker.role.roleId">
+          <option
+            v-for="role in roledata"
+            :key="role.roleId"
+            :value="role.roleId"
+          >
+            {{ role.roleName }}
+          </option>
+        </select>
+        <button @click="newWorker">新增</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px">編號</th>
+            <th style="width: 100px">員工名子</th>
+            <th style="width: 100px">帳號</th>
+            <th style="width: 100px">密碼</th>
+            <th style="width: 100px">角色</th>
+            <th style="width: 80px">編輯</th>
+          </tr>
+        </thead>
+        <workerRow
+          v-for="w in workers"
+          :worker="w"
+          :roledata1="roledata"
+        ></workerRow>
+      </table>
+    </div>
+    <div class="rolePermission">
+      <h1>角色管理</h1>
+      <table class="roletable">
+        <thead class="roletitle">
+          <tr>
+            <th>角色</th>
+            <th v-for="page in pageAll">
+              {{ page.pageExp }}
+            </th>
+            <th>新增</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="text" v-model="role.role.roleName" /></td>
+            <td v-for="(page, pageIndex) in pageAll">
+              <input
+                :key="pageIndex"
+                type="checkbox"
+                :value="page"
+                v-model="role.pages"
+              />
+            </td>
+            <td>
+              <button @click="newRole">新增</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <table class="roleList" v-if="!roleEdit">
+        <thead>
+          <tr>
+            <th>角色</th>
+            <th v-for="page in pageAll">
+              {{ page.pageExp }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(role, index) in roleWithPageDatas" :key="index">
+            <td>{{ role.role.roleName }}</td>
+            <td v-for="(page, pageIndex) in pageAll" :key="pageIndex">
+              <input
               type="checkbox"
               :checked="role.pages.some((p) => p.pageId === page.pageId)"
-              @change="togglePermission(role.role.roleId, page.pageId, $event)"
-            />
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              @change="
+                  togglePermission(role.role.roleId, page.pageId, $event)
+                "
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="roleList" v-if="roleEdit">
+        <thead>
+          <tr>
+            <th>角色</th>
+            <th v-for="page in pageAll">
+              {{ page.pageExp }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(role, index) in roleWithPageDatas" :key="index">
+            <td>{{ role.role.roleName }}</td>
+            <td v-for="(page, pageIndex) in pageAll" :key="pageIndex">
+              <span v-if="role.pages.some((p) => p.pageId === page.pageId)" class="mdi mdi-check-bold color"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="btn">
+        <button v-if="roleEdit" @click="roleEdit=false">編輯</button>
+        <button v-if="!roleEdit" @click="editRolePermission">確定更改</button>
+      </div>
 
-    <button @click="editRolePermission">確定更改</button>
-    <table>
-      <tbody>
-        <tr>
-          <td><input type="text"  v-mode="role.role.roleName"/></td>
-
-          <td>
-            <input
-              v-for="(page, pageIndex) in pageAll"
-              :key="pageIndex"
-              type="checkbox"
-              @change="newPermission(page, $event)"
-            />
-          </td>
-        </tr>
-      </tbody>
-    </table>
-     <button @click="newRole">新增角色</button>
+    </div>
   </div>
 </template>
 <script setup>
@@ -85,6 +129,7 @@ const workers = ref({});
 const roledata = ref({});
 const roleWithPageDatas = ref({});
 const pageAll = ref({});
+const roleEdit = ref(true);
 
 const worker = ref({
   wName: "",
@@ -95,16 +140,26 @@ const worker = ref({
   },
 });
 
-const role = ref({
-      role: {
-            roleId: null,
-            roleName:""
-        },
-      pages: [
-            
-        ]
-})
+const cleanWorker = () => {
+  worker.value.wName = "";
+  worker.value.wAccount = "";
+  worker.value.wPassword = "";
+  worker.value.role.roleId = null;
+};
 
+const role = ref({
+  role: {
+    roleId: null,
+    roleName: "",
+  },
+  pages: [],
+});
+
+const clearRole = () => {
+  role.value.role.roleId = null;
+  role.value.role.roleName = "";
+  role.value.pages = [];
+};
 
 const newWorker = async () => {
   const data = await request({
@@ -113,6 +168,7 @@ const newWorker = async () => {
     data: worker.value,
   });
   getAllworker();
+  cleanWorker();
 };
 
 const getAllworker = async () => {
@@ -153,6 +209,7 @@ const editRolePermission = async () => {
     method: "POST",
     data: roleWithPageDatas.value,
   });
+  roleEdit.value = true;
 };
 
 const resetPage = () => {
@@ -185,26 +242,185 @@ const togglePermission = (roleId, pageId, event) => {
   }
 };
 
+// const newPermission = (page, event) => {
+//   if (event.target.checked) {
+//     role.value.pages.push(page);
+//   } else {
+//     role.value.pages = role.value.pages.filter((p) => p.pageId !== page.pageId);
+//   }
+// };
 
-const newPermission = (page, event)=>{
-  
-  if( event.target.checked){
-      role.value.pages.push(page);
-  }else{
-    role.value.pages =  role.pages.filter((p) => p.pageId !== page.pageId)
-  }
-}
-
-const newRole = async()=>{
+const newRole = async () => {
   const data = await request({
-    url: "api/roles/rolesWithPages",
+    url: "api/roles/role",
     method: "POST",
-    data:role.value
+    data: role.value,
   });
-}
+  clearRole();
+  getAllRolesWithPage();
+  getAllrole();
+};
 </script>
 <style scoped>
+*{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
 table {
   border-collapse: collapse;
 }
+thead {
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+th {
+  padding: 10px;
+}
+
+.worker {
+  width: 800px;
+  height: 100%;
+  margin-right: 20px;
+}
+.rolePermission {
+  width: 800px;
+  height: 100%;
+}
+
+.worker > table {
+  width: 100%;
+  height: 80%;
+  background-color: #fff;
+  border-radius: 10px;
+}
+/*工作者新增欄位*/
+.newWorker {
+  width: 100%;
+  padding: 20px 0px;
+  background-color: #fff;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.newWorker > input {
+  width: 100px;
+  border: 1px solid #c2bebe;
+  border-radius: 10px;
+  margin-right: 20px;
+  padding: 3px 10px;
+}
+.newWorker > select {
+  width: 100px;
+  border: 1px solid #c2bebe;
+  border-radius: 10px;
+  margin-right: 20px;
+  padding: 3px 10px;
+}
+
+.newWorker > input:active {
+  border: 1px solid #353434;
+}
+.newWorker > label {
+  margin-right: 5px;
+}
+.newWorker > button {
+  width: 80px;
+  height: 34px;
+  background-color: #ebb211;
+  color: #fff;
+  border-radius: 10px;
+}
+.newWorker > button:hover {
+  background-color: #e0a911;
+}
+
+/*角色的新增*/
+
+.roletable {
+  width: 100%;
+  height: 100px;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 10px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  
+}
+.roletable td {
+  text-align: center;
+}
+
+.roletable input[type="text"] {
+  width: 100px;
+  border: 1px solid #c2bebe;
+  border-radius: 10px;
+  padding: 3px 10px;
+}
+.roletable input[type="text"]:active {
+  border: 1px solid #353434;
+}
+.roletable button {
+  width: 80px;
+  height: 34px;
+  background-color: #ebb211;
+  color: #fff;
+  border-radius: 10px;
+}
+.roletable button:hover {
+  background-color: #e0a911;
+}
+.roletitle{
+  box-shadow: none;
+}
+/*角色清單*/
+.roleList{
+  width: 100%;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 10px;
+}
+.roleList>thead{
+  width: 100%;
+
+}
+
+.roleList td {
+  text-align: center;
+  padding: 10px;
+  border-bottom: 1px solid rgb(212, 211, 211);
+  height: 50px;
+}
+.color{
+  color: green;
+}
+
+
+/*編輯按鈕*/
+.btn{
+  float: right;
+  margin-bottom: 10px;
+}
+.btn>button{
+  margin-right: 10px;
+    width: 80px;
+  height: 34px;
+  background-color: #ebb211;
+  color: #fff;
+  border-radius: 10px;
+
+}
+
+
+
 </style>
