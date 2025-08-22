@@ -20,7 +20,11 @@
     <td><input type="text" v-model="localWorker.wPassword" /></td>
     <td>
       <select v-model="localWorker.role.roleId">
-        <option v-for="role in roledata1" :key="role.roleId" :value="role.roleId">
+        <option
+          v-for="role in roledata1"
+          :key="role.roleId"
+          :value="role.roleId"
+        >
           {{ role.roleName }}
         </option>
       </select>
@@ -33,7 +37,7 @@
   </tr>
 </template>
 <script setup>
-import { ref, computed, onMounted ,watch} from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { request } from "@/utils/BackAxiosUtil";
 
 const show = ref(true);
@@ -42,24 +46,21 @@ const viewEdit = () => {
   show.value = !show.value;
 };
 
-const localWorker = ref({})
-
-
+const localWorker = ref({});
 
 const conmit = async () => {
-  console.log("我有執行"+localWorker.value);
-  
-    const data = await request({
-    url: "/worker/"+localWorker.value.wId,
+  console.log("我有執行" + localWorker.value);
+
+  const data = await request({
+    url: "/worker/" + localWorker.value.wId,
     method: "PUT",
-    data:localWorker.value
+    data: localWorker.value,
   });
 
   console.log(data);
   localWorker.value = data;
-  
- show.value = !show.value;
 
+  show.value = !show.value;
 };
 
 const props = defineProps({
@@ -71,14 +72,13 @@ const props = defineProps({
   },
 });
 
-
 watch(
   () => props.worker,
   (newWorker) => {
-    localWorker.value = JSON.parse(JSON.stringify(newWorker))
+    localWorker.value = JSON.parse(JSON.stringify(newWorker));
   },
   { immediate: true }
-)
+);
 </script>
 <style scoped>
 * {
@@ -88,27 +88,17 @@ watch(
 tr {
   width: 100%;
   &:hover {
-    background-color: #e2e1e1;
+    background-color: #f3f2f2;
   }
 }
 td {
-  border-bottom: 1px solid rgb(100, 100, 100);
-  color: rgb(156, 156, 156);
+  border-bottom: 1px solid rgb(212, 211, 211);
+  color: rgb(59, 59, 59);
   font-weight: 350;
   height: 62px;
   text-align: center;
 }
-.look {
-  width: 80%;
-  height: 80%;
-  border-radius: 5px;
-  box-sizing: border-box;
 
-  &:hover {
-    color: #ebb211;
-    background-color: #fff;
-  }
-}
 .edit {
   width: 80%;
   height: 80%;
@@ -117,7 +107,6 @@ td {
 
   &:hover {
     color: rgb(1, 146, 33);
-    background-color: #fff;
   }
 }
 
@@ -128,5 +117,16 @@ td {
 .disabled-text2 {
   color: rgb(156, 156, 156);
   font-weight: bold;
+}
+input,
+select {
+  width: 100px;
+  border: 1px solid #c2bebe;
+  text-align: center;
+  border-radius: 10px;
+}
+.newWorker > input:active,
+input:active {
+  border: 1px solid #353434;
 }
 </style>

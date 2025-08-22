@@ -56,13 +56,6 @@ router.beforeEach((to, from, next) => {
   const permissionStore = usePermissionStore()
 
   const pageId = to.meta.pageId
-  console.log("我是那該死的物件"+permissionStore);
-  console.log(permissionStore);
-  
-  
-  console.log("我有近來")
-  console.log(permissionStore.allowedPageIds);
-  
   
 
   

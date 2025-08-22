@@ -218,7 +218,7 @@
     <div class="modal-content">
       <div class="form-container">
         <h2>新增會員</h2>
-        <form @submit.prevent="submitForm">
+        <form >
           <div class="form-group">
             <label class="newlabel" for="mName">姓名</label>
             <input type="text" id="mName" v-model="form.mName" />
@@ -269,7 +269,7 @@
           </div>
 
           <div class="btns">
-            <button class="newbutton" type="submit" @click="shownew = false">註冊</button>
+            <button class="newbutton" @click="submitForm">註冊</button>
             <button class="newbutton" @click="shownew = false">關閉</button>
           </div>
         </form>
@@ -432,7 +432,7 @@ async function submitForm() {
     method: "POST",
     data: form,
   });
-
+  shownew.value = false;
   console.log(data);
 }
 </script>
