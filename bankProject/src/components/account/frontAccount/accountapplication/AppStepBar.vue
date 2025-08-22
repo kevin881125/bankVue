@@ -85,7 +85,7 @@ const cur = computed(() => Math.min(Math.max(props.activeStep, 1), 3));
   left: 20px;
   top: 40px;
   width: 2px;
-  height: calc(100% - 12px);
+  height: calc(100% - 40px);
   background: var(--brand);
   transform-origin: top;
   transform: scaleY(var(--seg-progress));

@@ -418,7 +418,6 @@ const verifyCaptcha = async () => {
   font-weight: 700;
 }
 .btn:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
 }
 

@@ -104,7 +104,20 @@
           </div>
         </div>
       </div>
+      <!-- 已申請開戶 / 無帳戶 -->
+      <div v-else-if="hasAccApp" class="overview no-account">
+        <div class="balance-block">
+          <div class="title-row"><span class="title">臺幣帳戶總額</span></div>
+        </div>
 
+        <!-- 橫跨整列並置中 -->
+        <div class="cta-center">
+          <button class="apply-button" :disabled="isPending" @click="onApply">
+            {{ isPending ? "開戶審核中" : "我要開戶" }}
+          </button>
+          
+        </div>
+      </div>
       <!-- 沒帳戶：標題 + 置中 CTA -->
       <div v-else class="overview no-account">
         <div class="balance-block">
@@ -257,6 +270,9 @@ const totalTWD = computed(() =>
   twdAccounts.value.reduce((s, a) => s + (a.balance || 0), 0)
 );
 
+// 申請狀態（字串 or null）
+const appStatus = ref(null);
+
 // 回饋報告數值（先放靜態，之後可從 API 取）
 const perks = ref({
   freeTransfers: 5,
@@ -290,8 +306,39 @@ const refreshAccounts = async () => {
   }
 };
 
+const fetchAccAppStatus = async () => {
+  try {
+    const res = await request({
+      url: "/account/application/status",
+      method: "GET",
+      params: { mId: memberStore.mId },
+    });
+    // 支援兩種回傳：純字串 或 { status: '...' }
+    const status = typeof res === "string" ? res : res?.status;
+    const clean = status && String(status).trim();
+    appStatus.value = clean ? clean : null;
+    console.log("查詢申請狀態 =", appStatus.value);
+  } catch (e) {
+    console.error("查詢申請狀態失敗", e);
+    appStatus.value = null;
+  }
+};
+// 有申請紀錄？
+const hasAccApp = computed(() => appStatus.value !== null);
+
+// 待審核？
+const isPending = computed(() => (appStatus.value || "").trim() === "待審核");
+
+// 按鈕點擊
+function onApply() {
+  if (isPending.value) return; // 待審核時不動作
+  router.push("/yuzubank/openAccount"); // 可改具名路由
+}
+
 // 掛載時取資料
-onMounted(refreshAccounts);
+onMounted(async () => {
+  await Promise.all([refreshAccounts(), fetchAccAppStatus()]);
+});
 
 const openDetailDialog = (accountId) => {
   selectedAccountId.value = accountId;
@@ -352,7 +399,11 @@ const openTranserDialog = (item) => {
 .spacer {
   flex: 1;
 }
-
+.apply-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
 /* 卡片 */
 .card {
   background: #fff;

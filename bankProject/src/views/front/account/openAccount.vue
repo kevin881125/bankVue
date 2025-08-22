@@ -10,7 +10,17 @@
           <div class="padded">
             <!-- 用 v-if / v-else-if 切換子頁 -->
             <Step1 v-if="step === 1" @next="step = 2" />
-            <Step2 v-else-if="step === 2" @prev="step = 1" @next="step = 3" />
+            <Step2
+              v-else-if="step === 2"
+              @prev="step = 1"
+              @next="handleStep2Next"
+            />
+            <Step3
+              v-else-if="step === 3"
+              :app-id="serverAppId"
+              :email="serverEmail"
+              @prev="step = 2"
+            />
           </div>
         </div>
       </main>
@@ -19,40 +29,23 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { ref } from "vue";
 import AppStepBar from "@/components/account/frontAccount/accountapplication/AppStepBar.vue";
 import Step1 from "@/components/account/frontAccount/accountapplication/Step1.vue";
 import Step2 from "@/components/account/frontAccount/accountapplication/Step2.vue";
 import Step3 from "@/components/account/frontAccount/accountapplication/Step3.vue";
+import { useMemberStore } from "@/stores/MemberStore";
 
+const memberStore = useMemberStore();
 const step = ref(1);
+// 從 Step2 帶上來的資料
+const serverAppId = ref("");
+const serverEmail = memberStore.mEmail || ""; // 預設從會員資料中取 email
 
-// 全流程共用資料：父層集中管理，子層用 v-model:form 綁定
-const form = reactive({
-  // Step1
-  idNo: "",
-  phone: "",
-  captcha: "",
-  twTaxResident: false,
-  noUsPerson: false,
-  // Step2（先預留欄位）
-  name: "",
-  birthday: "",
-  address: "",
-  idFront: null,
-  idBack: null,
-  secondId: null,
-  // Step3（確認頁用）
-});
-
-// 流程控制
-function goStep(n) {
-  step.value = n;
-}
-async function submitAll() {
-  // TODO: 串接最後送出 API
-  // await request({ url:'/account/apply', method:'POST', data: form })
-  alert("已送出！");
+function handleStep2Next(payload) {
+  // payload 來自 Step2 emit：{ appId, mEmail }
+  serverAppId.value = payload?.appId || "";
+  step.value = 3; // 再切到 Step3
 }
 </script>
 
