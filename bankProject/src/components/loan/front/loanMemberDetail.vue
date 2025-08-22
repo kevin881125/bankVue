@@ -4,94 +4,138 @@
       <!-- Header -->
       <div class="modal-header">
         <h3>貸款詳細資訊</h3>
-        <button class="close-btn" @click="close">✖</button>
+        <button class="close-btn" @click="close">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path
+              d="M15 5L5 15M5 5L15 15"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
       </div>
 
       <!-- Body -->
       <div class="modal-body">
-        <!-- 上方區塊：貸款概況 -->
-        <div class="section-header">
-          <h4>貸款概況</h4>
-          <div class="loan-status-box" :class="statusClass">
-            {{ data.approvalStatusName }}
-          </div>
-        </div>
-        <div class="section-block">
-          <div class="section-content">
-            <!-- 左欄 -->
-            <div class="col">
-              <p><strong>貸款代號：</strong>{{ data.loanId }}</p>
-              <p><strong>貸款類型：</strong>{{ data.loanTypeName }}</p>
-              <p>
-                <strong>貸款金額：</strong>NT$
-                {{ Number(data.loanAmount).toLocaleString() }}
-              </p>
-              <p>
-                <strong>貸款期數：</strong>{{ currentPeriod }} /
-                {{ data.loanTerm }} 期
-              </p>
+        <!-- 貸款概況 -->
+        <div class="section">
+          <div class="section-header">
+            <h4>貸款概況</h4>
+            <div class="loan-status-badge" :class="statusClass">
+              {{ data.approvalStatusName }}
             </div>
-            <!-- 右欄 -->
-            <div class="col">
-              <p>
-                <strong>利率：</strong
-                >{{ (data.interestRate * 100).toFixed(2) }}%
-              </p>
-              <p><strong>申請日期：</strong>{{ data.createdAt }}</p>
-              <p>
-                <strong>開始日期：</strong
-                >{{ data.loanstartDate || "尚未開始" }}
-              </p>
-              <p><strong>到期日期：</strong>{{ loanEndDate }}</p>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <label>貸款代號</label>
+              <span class="value">{{ data.loanId }}</span>
+            </div>
+            <div class="info-item">
+              <label>貸款類型</label>
+              <span class="value">{{ data.loanTypeName }}</span>
+            </div>
+            <div class="info-item">
+              <label>貸款金額</label>
+              <span class="value amount"
+                >NT$ {{ Number(data.loanAmount).toLocaleString() }}</span
+              >
+            </div>
+            <div class="info-item">
+              <label>貸款期數</label>
+              <span class="value"
+                >{{ currentPeriod }} / {{ data.loanTerm }} 期</span
+              >
+            </div>
+            <div class="info-item">
+              <label>利率</label>
+              <span class="value rate"
+                >{{ (data.interestRate * 100).toFixed(2) }}%</span
+              >
+            </div>
+            <div class="info-item">
+              <label>申請日期</label>
+              <span class="value">{{ data.createdAt }}</span>
+            </div>
+            <div class="info-item">
+              <label>開始日期</label>
+              <span class="value">{{ data.loanstartDate || "尚未開始" }}</span>
+            </div>
+            <div class="info-item">
+              <label>到期日期</label>
+              <span class="value">{{ loanEndDate }}</span>
             </div>
           </div>
         </div>
 
-        <!-- 下方區塊：還款資訊 -->
-        <div class="section-header">
-          <h4>還款資訊</h4>
-        </div>
-        <div class="section-block">
-          <div class="section-content">
-            <!-- 左欄 -->
-            <div class="col">
-              <p>
-                <strong>每月應繳金額：</strong>NT$
-                {{ monthlyPayment.toLocaleString() }}
-              </p>
-              <p>
-                <strong>總利息：</strong>NT$
-                {{ totalInterest.toLocaleString() }}
-              </p>
-              <p><strong>還款帳戶：</strong>{{ data.repayAccountId }}</p>
-            </div>
-            <!-- 右欄 -->
-            <div class="col">
-              <p>
-                <strong>總還款金額：</strong>NT$
-                {{ totalPayment.toLocaleString() }}
-              </p>
+        <!-- 還款資訊 -->
+        <div class="section">
+          <div class="section-header">
+            <h4>還款資訊</h4>
+          </div>
 
-              <!-- 還款進度條 -->
+          <div class="repayment-summary">
+            <div class="summary-grid">
+              <div class="summary-item">
+                <label>每月應繳金額</label>
+                <span class="value amount primary"
+                  >NT$ {{ monthlyPayment.toLocaleString() }}</span
+                >
+              </div>
+              <div class="summary-item">
+                <label>總還款金額</label>
+                <span class="value amount"
+                  >NT$ {{ totalPayment.toLocaleString() }}</span
+                >
+              </div>
+              <div class="summary-item">
+                <label>總利息</label>
+                <span class="value amount"
+                  >NT$ {{ totalInterest.toLocaleString() }}</span
+                >
+              </div>
+            </div>
+            <div class="summary-secondary">
+              <div class="summary-item">
+                <label>下次繳費日期</label>
+                <span class="value next-payment">{{ nextPaymentDate }}</span>
+              </div>
+              <div class="summary-item">
+                <label>還款帳戶</label>
+                <span class="value">{{ data.repayAccountId }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 還款進度 -->
+          <div class="progress-section">
+            <div class="progress-header">
+              <span class="progress-title">還款進度</span>
+              <span class="progress-percentage"
+                >{{ (data.progress || 0).toFixed(1) }}%</span
+              >
+            </div>
+
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                :style="{ width: animatedProgress + '%' }"
+              ></div>
+            </div>
+
+            <div class="progress-details">
               <div class="progress-item">
-                <div class="progress-label">
-                  <strong>還款進度：</strong
-                  >{{ (data.progress || 0).toFixed(2) }}%
-                </div>
-                <div class="progress-bar-container">
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      :style="{ width: animatedProgress + '%' }"
-                    ></div>
-                  </div>
-                  <div class="progress-text">
-                    <strong>已還：NT$ {{ paidAmount.toLocaleString() }}</strong>
-                    <strong
-                      >剩餘：NT$ {{ remainingAmount.toLocaleString() }}</strong
-                    >
-                  </div>
-                </div>
+                <span class="label">已還款</span>
+                <span class="amount paid"
+                  >NT$ {{ paidAmount.toLocaleString() }}</span
+                >
+              </div>
+              <div class="progress-item">
+                <span class="label">剩餘金額</span>
+                <span class="amount remaining"
+                  >NT$ {{ remainingAmount.toLocaleString() }}</span
+                >
               </div>
             </div>
           </div>
@@ -126,19 +170,23 @@ const statusClass = computed(() => {
   return statusMap[status] || "";
 });
 
-// ✅ 進度條動畫用
+// 進度條動畫用 - 修復 bug
 const animatedProgress = ref(0);
 watch(
   () => props.visible,
   async (val) => {
-    if (val) {
-      animatedProgress.value = 0; // 先歸零
+    if (val && props.data?.progress) {
+      animatedProgress.value = 0;
       await nextTick();
-      setTimeout(() => {
-        animatedProgress.value = props.data?.progress || 0;
-      }, 50); // 小延遲讓 CSS transition 生效
+      // 增加延遲確保動畫正確觸發
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          animatedProgress.value = props.data.progress;
+        }, 100);
+      });
     }
-  }
+  },
+  { immediate: true }
 );
 
 const currentPeriod = computed(() => {
@@ -182,6 +230,23 @@ const loanEndDate = computed(() => {
   start.setMonth(start.getMonth() + props.data.loanTerm);
   return start.toISOString().split("T")[0];
 });
+
+const nextPaymentDate = computed(() => {
+  if (!props.data?.loanstartDate || !props.data?.progress) return "尚未開始";
+
+  const startDate = new Date(props.data.loanstartDate);
+  const periodsCompleted = Math.floor(
+    (props.data.progress / 100) * props.data.loanTerm
+  );
+  const nextPeriod = periodsCompleted + 1;
+
+  if (nextPeriod > props.data.loanTerm) return "已完成";
+
+  const nextDate = new Date(startDate);
+  nextDate.setMonth(nextDate.getMonth() + nextPeriod);
+
+  return nextDate.toISOString().split("T")[0];
+});
 </script>
 
 <style scoped>
@@ -191,199 +256,354 @@ const loanEndDate = computed(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(34, 38, 38, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 999;
+  padding: 20px;
 }
 
 .modal-container {
-  background: #fff;
-  border-radius: 12px;
-  width: 80%;
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
   max-width: 900px;
-  max-height: 90%;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  animation: fadeIn 0.3s ease-in-out;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(34, 38, 38, 0.15);
+  animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #ddd;
+  padding: 24px 32px;
+  border-bottom: 1px solid #f1f3f4;
+  background: #fafbfc;
+  border-radius: 16px 16px 0 0;
 }
 
 .modal-header h3 {
   margin: 0;
-  font-size: 30px;
-  font-weight: bold;
-  letter-spacing: 1px;
-  line-height: 32px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #222626;
+  letter-spacing: -0.5px;
 }
 
 .close-btn {
   border: none;
-  background: transparent;
-  font-size: 20px;
+  background: none;
+  padding: 8px;
+  border-radius: 8px;
   cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #222626;
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 32px;
+  flex: 1;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-left: 30px;
 }
 
 .section-header h4 {
   margin: 0;
-  color: #1a1a1a;
-  border-bottom: 2px solid #ebb211;
-  padding-bottom: 4px;
-  font-size: 20px;
-  line-height: 28px;
-  letter-spacing: 1px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #222626;
+  position: relative;
+  padding-left: 12px;
 }
 
-.loan-status-box {
-  border: 0.5px solid #949494;
-  color: #949494;
-  padding: 6px 14px;
-  border-radius: 10px;
-  font-size: 16px;
-  line-height: 20px;
-  letter-spacing: 0.5px;
-  font-weight: bold;
+.section-header h4::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 18px;
+  background: #ebb211;
+  border-radius: 2px;
 }
 
-.loan-status-box.status-approved {
-  border-color: #ebb211;
+.loan-status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.loan-status-badge.status-approved {
+  background: rgba(235, 178, 17, 0.1);
+  border-color: rgba(235, 178, 17, 0.3);
   color: #ebb211;
 }
-.loan-status-box.status-rejected {
-  border-color: #222626;
+
+.loan-status-badge.status-rejected {
+  background: rgba(34, 38, 38, 0.1);
+  border-color: rgba(34, 38, 38, 0.3);
   color: #222626;
 }
-.loan-status-box.status-pending {
-  border-color: #ce1465;
+
+.loan-status-badge.status-pending {
+  background: rgba(206, 20, 101, 0.1);
+  border-color: rgba(206, 20, 101, 0.3);
   color: #ce1465;
 }
-.loan-status-box.status-reviewing {
-  border-color: #444b4b;
-  color: #444b4b;
+
+.loan-status-badge.status-reviewing {
+  background: rgba(107, 114, 128, 0.1);
+  border-color: rgba(107, 114, 128, 0.3);
+  color: #6b7280;
 }
 
-.section-block {
-  background: #f8f8f8;
-  border-radius: 10px;
-  padding: 18px 30px;
-  margin-top: -12px;
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px 24px;
 }
 
-.section-content {
+.info-item {
   display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.col {
-  flex: 1;
-  min-width: 240px;
+.info-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  letter-spacing: 0.2px;
 }
-.col strong {
+
+.info-item .value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #222626;
+  letter-spacing: -0.2px;
+}
+
+.info-item .value.amount {
   font-weight: 600;
-  color: #333;
-}
-.col p {
-  margin: 8px 0;
   font-size: 18px;
-  line-height: 24px;
-  letter-spacing: 0.5px;
-  font-weight: 400;
-  color: gray;
+}
+
+.info-item .value.rate {
+  color: #ce1465;
+  font-weight: 600;
+}
+
+.repayment-summary {
+  background: linear-gradient(135deg, #fafbfc 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #f1f3f4;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.summary-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f3f4;
+}
+
+.summary-secondary .summary-item.align-center {
+  grid-column: 2;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.summary-item .value.amount.primary {
+  color: #ebb211;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.summary-item .value.amount {
+  font-size: 18px;
+  font-weight: 600;
+  color: #222626;
+}
+
+.summary-item .value.next-payment {
+  color: #ce1465;
+  font-weight: 600;
+}
+
+.progress-section {
+  background: #ffffff;
+  border: 1px solid #f1f3f4;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.progress-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222626;
+}
+
+.progress-percentage {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ebb211;
+}
+
+.progress-bar {
+  height: 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ebb211 0%, #fbbf24 100%);
+  border-radius: 6px;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-details {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
 }
 
 .progress-item {
-  margin: 8px 0;
-}
-.progress-label {
-  font-size: 18px;
-  line-height: 24px;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-  font-weight: 400;
-  color: gray;
-}
-.progress-label strong {
-  font-weight: 600;
-  color: #333;
-}
-
-.progress-bar-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-.progress-bar {
-  height: 16px;
-  background-color: #f0f0f0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background-color: #6dee6da4;
-  border-radius: 8px;
-  transition: width 1s ease; /* ✅ 平滑動畫 */
+  gap: 4px;
 }
 
-.progress-text {
-  display: flex;
-  justify-content: space-between;
-  font-size: 16px;
-  line-height: 22px;
+.progress-item .label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9ca3af;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: gray;
-}
-.progress-text strong {
-  font-weight: 400;
-  color: #818181;
-  font-size: 14px;
 }
 
-@keyframes fadeIn {
+.progress-item .amount.paid {
+  font-size: 16px;
+  font-weight: 600;
+  color: #059669;
+}
+
+.progress-item .amount.remaining {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ce1465;
+}
+
+@keyframes modalFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: scale(0.95) translateY(-10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
   }
 }
 
 @media (max-width: 768px) {
-  .section-content {
-    flex-direction: column;
+  .modal-overlay {
+    padding: 10px;
   }
-  .col {
-    min-width: auto;
+
+  .modal-header {
+    padding: 20px 24px;
   }
-  .progress-text {
+
+  .modal-body {
+    padding: 24px;
+    gap: 24px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .summary-secondary {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-top: 16px;
+  }
+
+  .summary-secondary .summary-item.align-center {
+    grid-column: 1;
+  }
+
+  .progress-details {
     flex-direction: column;
-    gap: 4px;
-    text-align: left;
+    gap: 12px;
   }
 }
 </style>

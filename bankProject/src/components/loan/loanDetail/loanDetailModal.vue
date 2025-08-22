@@ -103,15 +103,14 @@
             <h4>信用分數評估</h4>
             <hr />
             <p>
-              <strong>審核人員 ID：</strong
-              >{{ data.reviewerId || "（尚未審核）" }}
+              <strong>審核人員 ID：</strong>{{ data.mid || "（尚未審核）" }}
             </p>
             <p>
               <strong>審核時間：</strong>{{ data.reviewTime || "（尚未審核）" }}
             </p>
             <p>
               <strong>審核信用評分：</strong
-              >{{ data.reviewedCreditScore ?? "（尚未評分）" }}
+              >{{ data.baseCreditScore ?? "（尚未評分）" }}
             </p>
             <p>
               <strong>審核狀態：</strong>{{ translateStatus(data.decision) }}
@@ -139,8 +138,8 @@
 </template>
 
 <script setup>
-import PieChart from "@/components/loan/Chart/pieChart.vue";
-import DtiChart from "@/components/loan/Chart/dtiChart.vue";
+import PieChart from "@/components/loan/chart/pieChart.vue";
+import DtiChart from "@/components/loan/chart/dtiChart.vue";
 import { translateStatus } from "@/components/loan/utils/statusHelper";
 import { defineProps, defineEmits, computed } from "vue";
 
@@ -172,8 +171,8 @@ const getStatusClass = (status) => {
 };
 
 const previewUrl = computed(() => {
-  if (!props.data?.proofDocumentUrl) return "";
-  return `http://localhost:8080/bank${props.data.proofDocumentUrl}`;
+  if (!fileName.value) return "";
+  return `http://localhost:8080/bank/uploadImg/loanImg/${fileName.value}`;
 });
 
 const fileName = computed(() => {

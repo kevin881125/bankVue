@@ -1,13 +1,21 @@
 <template>
   <div>
     <!-- 貸款水門 -->
-    <LoanSummaryDoughnuts :totalAmount="totalAmount" :totalThreshold="totalThreshold" :loans="categorizedLoans" />
+    <LoanSummaryDoughnuts
+      :totalAmount="totalAmount"
+      :totalThreshold="totalThreshold"
+      :loans="categorizedLoans"
+    />
 
     <!-- 搜尋與狀態篩選 -->
     <div class="search-wrapper">
       <div class="left-buttons">
         <div class="status-filter">
-          <select v-model="selectedStatus" @change="onSearchOrFilterChange" class="status-select">
+          <select
+            v-model="selectedStatus"
+            @change="onSearchOrFilterChange"
+            class="status-select"
+          >
             <option value="">全部狀態</option>
             <option value="pending">待審核</option>
             <option value="supplement">補件中</option>
@@ -22,7 +30,12 @@
       </div>
 
       <form @submit.prevent="onSearchOrFilterChange" class="search-container">
-        <input v-model="searchKeyword" type="text" class="search-input" placeholder="請輸入用戶名稱" />
+        <input
+          v-model="searchKeyword"
+          type="text"
+          class="search-input"
+          placeholder="請輸入用戶名稱"
+        />
         <button type="submit" class="search-button">搜尋</button>
       </form>
     </div>
@@ -44,18 +57,40 @@
           </tr>
         </thead>
         <tbody>
-          <loanRow v-for="l in filteredLoans" :key="l.loanId" :loan="l" @open-detail="handleOpenDetail"
-            @edit-review="openReviewModal" />
+          <loanRow
+            v-for="l in filteredLoans"
+            :key="l.loanId"
+            :loan="l"
+            @open-detail="handleOpenDetail"
+            @edit-review="openReviewModal"
+          />
         </tbody>
       </table>
     </div>
 
     <!-- 各種 Modal -->
-    <LoanDetailModal :show="showDetailModal" :data="loanDetail" @close="showDetailModal = false" />
-    <LoanReviewModal :visible="isReviewModalVisible" :review="currentReview" @close="closeReviewModal"
-      @save="handleSaveReview" />
-    <LoanReviewLogsModal :show="isAuditModalVisible" :records="auditRecords" @close="isAuditModalVisible = false" />
-    <ConfirmModal :visible="isConfirmVisible" message="確定要儲存審核結果嗎？" @confirm="onConfirmSave" @cancel="onCancelSave" />
+    <LoanDetailModal
+      :show="showDetailModal"
+      :data="loanDetail"
+      @close="showDetailModal = false"
+    />
+    <LoanReviewModal
+      :visible="isReviewModalVisible"
+      :review="currentReview"
+      @close="closeReviewModal"
+      @save="handleSaveReview"
+    />
+    <LoanReviewLogsModal
+      :show="isAuditModalVisible"
+      :records="auditRecords"
+      @close="isAuditModalVisible = false"
+    />
+    <ConfirmModal
+      :visible="isConfirmVisible"
+      message="確定要儲存審核結果嗎？"
+      @confirm="onConfirmSave"
+      @cancel="onCancelSave"
+    />
   </div>
 </template>
 
@@ -105,7 +140,10 @@ const totalThreshold = ref(10000000);
 
 // 總貸款金額計算（所有貸款金額加總）
 const totalAmount = computed(() => {
-  return allLoans.value.reduce((acc, cur) => acc + Number(cur.loanAmount || 0), 0);
+  return allLoans.value.reduce(
+    (acc, cur) => acc + Number(cur.loanAmount || 0),
+    0
+  );
 });
 
 // 分類貸款資料與門檻設定（示範車貸、房貸、學貸）
@@ -203,7 +241,7 @@ async function openReviewModal(loanId) {
     const document = await request({
       url: `/loans/${loanId}/latest-review`,
       method: "GET",
-    });
+    });    
 
     currentReview.value = {
       loanId: loan.loanId,
@@ -212,7 +250,7 @@ async function openReviewModal(loanId) {
       reviewTime: document?.reviewTime || new Date().toISOString(),
       decision: document?.decision || "",
       notes: document?.notes || "",
-      proofDocumentUrl: document?.proofDocumentUrl || null,
+      proofDocumentUrl: loan.proofDocumentUrl || null,
     };
 
     isReviewModalVisible.value = true;
@@ -226,11 +264,18 @@ async function openReviewModal(loanId) {
 async function saveReviewSimple({ loanId, reviewerId, decision, notes }) {
   try {
     await request({
-      url: `/loans/${loanId}/review`,
+      url: `/loans/${loanId}/status`,
       method: "POST",
-      data: { reviewerId, decision, notes },
+      data: {
+        newStatus: decision, // 使用 newStatus 參數名
+        reviewerId: reviewerId,
+        notes: notes || "",
+      },
     });
+
+    console.log(`貸款 ${loanId} 狀態更新成功：${decision}`);
   } catch (error) {
+    console.error("狀態更新失敗:", error);
     alert("送出審核失敗");
     throw error;
   }
@@ -265,22 +310,32 @@ async function onConfirmSave() {
   if (!reviewToSave) return;
 
   try {
+    // 1. 更新貸款狀態（會自動發送郵件通知）
     await saveReviewSimple(reviewToSave);
 
+    // 2. 如果是審核通過且有合約檔案，則上傳合約
     if (
       reviewToSave.decision === "approved" &&
       reviewToSave.contractFile instanceof File
     ) {
-      await saveReviewWithContract(reviewToSave.contractFile, reviewToSave.loanId);
+      await saveReviewWithContract(
+        reviewToSave.contractFile,
+        reviewToSave.loanId
+      );
     }
 
+    // 3. 關閉 Modal 並清理資料
     isReviewModalVisible.value = false;
     reviewToSave = null;
 
-    // 更新清單
+    // 4. 重新載入清單以顯示最新狀態
     await loadLoans();
-  } catch {
-    // 錯誤已提示
+
+    // 5. 顯示成功訊息（包含郵件通知）
+    alert("審核結果已儲存，系統已自動發送通知郵件給客戶");
+  } catch (error) {
+    console.error("儲存審核結果失敗:", error);
+    // 錯誤已在 saveReviewSimple 中提示
   }
 }
 

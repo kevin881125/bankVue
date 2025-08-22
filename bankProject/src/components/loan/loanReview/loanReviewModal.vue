@@ -17,7 +17,7 @@
 
           <div class="info-group" v-if="localReview.proofDocumentUrl">
             <div class="title-with-icon">
-              <h4>證明文件</h4>
+              <h4>財力證明</h4>
               <button
                 class="icon-button"
                 @click="downloadFile"
@@ -39,7 +39,7 @@
             <img
               v-else
               :src="previewUrl"
-              alt="證明文件預覽"
+              alt="預覽圖片"
               style="max-width: 100%; max-height: 400px; object-fit: contain"
             />
           </div>

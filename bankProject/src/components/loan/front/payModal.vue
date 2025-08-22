@@ -1,79 +1,125 @@
 <template>
   <div v-if="innerVisible" class="dialog-overlay">
     <div class="dialog-container">
-      <h3 class="dialog-title">立即繳費</h3>
-      <hr />
-
-      <!-- 下一期繳費資訊 -->
-      <div class="schedule-info">
-        <p>
-          <strong>繳款截止日：</strong> {{ schedule?.dueDate || "尚未生成" }}
-        </p>
-      </div>
-
-      <!-- 繳費方式切換 -->
-      <div class="payment-tabs">
-        <div
-          :class="['tab', selectedMethod === 'account' ? 'active' : '']"
-          @click="selectedMethod = 'account'"
-        >
-          帳戶轉帳
-        </div>
-        <div
-          :class="['tab', selectedMethod === 'linepay' ? 'active' : '']"
-          @click="selectedMethod = 'linepay'"
-        >
-          Line Pay
+      <!-- 標題區域 -->
+      <div class="dialog-header">
+        <h3 class="dialog-title">立即繳費</h3>
+        <div class="due-date">
+          繳款截止日：{{ schedule?.dueDate || "尚未生成" }}
         </div>
       </div>
 
-      <!-- 各繳費方式 UI -->
-      <div class="payment-slider">
-        <!-- 帳戶轉帳 -->
-        <div
-          class="payment-slide"
-          :class="{ active: selectedMethod === 'account' }"
-        >
-          <div class="form-item">
-            <label for="accountId">還款帳戶:</label>
-            <div class="custom-select-wrapper">
-              <select v-model="selectedAccountId" id="accountId" required>
-                <option value="">請選擇還款帳戶</option>
-                <option
-                  v-for="acc in accounts"
-                  :key="acc.accountId"
-                  :value="acc.accountId"
-                >
-                  {{ acc.accountName }} ({{ acc.currency }}
-                  {{ formatAccountBalance(acc.balance) }})
-                </option>
-              </select>
+      <!-- 應繳金額區域 -->
+      <div class="amount-section">
+        <div class="amount-label">本期應繳金額</div>
+        <div class="amount-value">
+          NT$ {{ formatMoney(schedule?.amountDue) }}
+        </div>
+      </div>
+
+      <!-- 繳費方式選擇 -->
+      <div class="payment-section">
+        <div class="section-title">選擇繳費方式</div>
+
+        <div class="payment-methods">
+          <div
+            :class="[
+              'payment-method',
+              selectedMethod === 'account' ? 'active' : '',
+            ]"
+            @click="selectedMethod = 'account'"
+          >
+            <div class="method-icon">
+              <v-icon size="24">mdi-bank</v-icon>
             </div>
-            <div v-if="accountsLoading" class="loading-text">
-              載入帳戶資料中...
+            <div class="method-info">
+              <div class="method-name">帳戶轉帳</div>
+              <div class="method-desc">從您的帳戶直接扣款</div>
             </div>
-            <div v-else-if="accounts.length === 0" class="no-accounts-text">
-              尚未找到可用帳戶
+            <div class="method-radio">
+              <div
+                :class="[
+                  'radio',
+                  selectedMethod === 'account' ? 'checked' : '',
+                ]"
+              ></div>
+            </div>
+          </div>
+
+          <div
+            :class="[
+              'payment-method',
+              selectedMethod === 'linepay' ? 'active' : '',
+            ]"
+            @click="selectedMethod = 'linepay'"
+          >
+            <div class="method-icon">
+              <img
+                src="../../../image/loan/LINE-Pay(v)_W61_n.png"
+                alt="Line Pay"
+                class="linepay-icon"
+              />
+            </div>
+            <div class="method-info">
+              <div class="method-name">Line Pay</div>
+              <div class="method-desc">透過 Line Pay 線上付款</div>
+            </div>
+            <div class="method-radio">
+              <div
+                :class="[
+                  'radio',
+                  selectedMethod === 'linepay' ? 'checked' : '',
+                ]"
+              ></div>
             </div>
           </div>
         </div>
 
-        <!-- Line Pay -->
-        <div
-          class="payment-slide"
-          :class="{ active: selectedMethod === 'linepay' }"
-        >
-          <p>點擊「確認繳費」後，將跳轉到 Line Pay 網頁完成付款。</p>
+        <!-- 選擇的繳費方式詳細內容 -->
+        <div class="payment-details">
+          <!-- 帳戶轉帳詳細設定 -->
+          <div v-if="selectedMethod === 'account'" class="payment-content">
+            <div class="form-group">
+              <label class="form-label">選擇扣款帳戶</label>
+              <div class="select-wrapper">
+                <select
+                  v-model="selectedAccountId"
+                  class="form-select"
+                  required
+                >
+                  <option value="">請選擇還款帳戶</option>
+                  <option
+                    v-for="acc in accounts"
+                    :key="acc.accountId"
+                    :value="acc.accountId"
+                  >
+                    {{ acc.accountName }} ({{ acc.currency }}
+                    {{ formatAccountBalance(acc.balance) }})
+                  </option>
+                </select>
+              </div>
+              <div v-if="accountsLoading" class="status-text loading">
+                <span class="loading-dot"></span>載入帳戶資料中...
+              </div>
+              <div v-else-if="accounts.length === 0" class="status-text error">
+                尚未找到可用帳戶
+              </div>
+            </div>
+          </div>
+
+          <!-- Line Pay 詳細說明 -->
+          <div v-if="selectedMethod === 'linepay'" class="payment-content">
+            <div class="linepay-notice">
+              ⇩ 點擊下方「確認繳費」後，至 Line Pay 付款頁面完成交易 ⇩
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="amount-due-display">
-        應繳金額：NT$ {{ formatMoney(schedule?.amountDue) }}
-      </div>
-      <hr />
+      <!-- 操作按鈕 -->
       <div class="dialog-actions">
-        <button class="btn btn-cancel" @click="closeDialog">取消</button>
-        <button class="btn btn-confirm" @click="onPayClick">確認繳費</button>
+        <button class="btn btn-secondary" @click="closeDialog">取消</button>
+        <button class="btn btn-primary" @click="onPayClick">確認繳費</button>
       </div>
     </div>
   </div>
@@ -357,110 +403,309 @@ async function pollPaymentStatus(loanId, win) {
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(34, 38, 38, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-}
-.dialog-container {
-  background: #fff;
-  padding: 20px;
-  width: 640px;
-  border-radius: 8px;
-}
-.dialog-title {
-  margin: 0 0 10px 0;
-  text-align: center;
-}
-.schedule-info p {
-  margin: 5px 0;
-}
-.form-item {
-  margin: 10px 0;
-}
-.custom-select-wrapper {
-  width: 100%;
-}
-.custom-select-wrapper select {
-  width: 100%;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-.payment-tabs {
-  display: flex;
-  margin: 15px 0;
-}
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 10px 0;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  font-weight: bold;
-  color: rgb(128, 128, 128);
-}
-.tab.active {
-  border-color: #ebb211;
-  color: #000;
-}
-.payment-slider {
-  position: relative;
-  height: 200px;
-  overflow: hidden;
-}
-.payment-slide {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: all 0.3s ease;
-}
-.payment-slide.active {
-  left: 0;
-  opacity: 1;
+  backdrop-filter: blur(2px);
 }
 
-.dialog-actions {
+.dialog-container {
+  background: #ffffff;
+  width: 520px;
+  height: 736px;
+  max-width: 90vw;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(34, 38, 38, 0.15);
+  overflow: hidden;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
+  flex-direction: column;
 }
-.btn {
-  padding: 6px 16px;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
+
+/* 標題區域 */
+.dialog-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #f5f5f7;
 }
-.btn-cancel {
-  background: #ccc;
-  color: #333;
+
+.dialog-title {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #222626;
+  text-align: center;
 }
-.btn-confirm {
-  background: #ebb211;
-  color: #fff;
+
+.due-date {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
 }
-.loading-text {
+
+/* 應繳金額區域 */
+.amount-section {
+  margin: 20px 24px;
+  padding: 20px;
+  text-align: center;
+}
+
+.amount-label {
   font-size: 14px;
   color: #666;
-  margin-top: 4px;
-  font-style: italic;
+  margin-bottom: 8px;
 }
-.no-accounts-text {
-  font-size: 14px;
-  color: #e74c3c;
-  margin-top: 4px;
-  font-weight: bold;
-}
-.amount-due-display {
-  text-align: right;
-  font-size: 20px;
-  font-weight: bold;
+
+.amount-value {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
   color: #27ae60;
-  margin-bottom: 10px;
+}
+
+/* 繳費方式區域 */
+.payment-section {
+  padding: 0 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222626;
+  margin-bottom: 16px;
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border: 2px solid #e5e5e7;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+.payment-method:hover {
+  border-color: #ebb211;
+  transform: translateY(-1px);
+}
+
+.payment-method.active {
+  border-color: #ebb211;
+  background: #fefdf8;
+}
+
+.method-icon {
+  font-size: 24px;
+  margin-right: 12px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.linepay-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.method-info {
+  flex: 1;
+}
+
+.method-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222626;
+  margin-bottom: 2px;
+}
+
+.method-desc {
+  font-size: 13px;
+  color: #666;
+}
+
+.method-radio {
+  margin-left: 12px;
+}
+
+.radio {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.radio.checked {
+  border-color: #ebb211;
+}
+
+.radio.checked::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: #ebb211;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 繳費詳細內容 */
+.payment-details {
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.payment-content {
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222626;
+  margin-bottom: 8px;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.form-select {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid #e5e5e7;
+  border-radius: 12px;
+  font-size: 14px;
+  background: white;
+  transition: border-color 0.2s ease;
+  appearance: none;
+}
+
+.select-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #ebb211;
+  box-shadow: 0 0 0 3px rgba(235, 178, 17, 0.1);
+}
+
+.status-text {
+  margin-top: 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-text.loading {
+  color: #666;
+}
+
+.status-text.error {
+  color: #ce1465;
+}
+
+.loading-dot {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #e5e5e7;
+  border-top: 2px solid #666;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Line Pay 通知 */
+.linepay-notice {
+  padding: 16px;
+  border: 0.5px solid #08bf5b;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #08bf5b;
+  margin-top: 20px;
+}
+
+/* 操作按鈕 */
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #f5f5f7;
+  background: #fafafa;
+}
+
+.btn {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background: #f5f5f7;
+  color: #666;
+}
+
+.btn-secondary:hover {
+  background: #e5e5e7;
+}
+
+.btn-primary {
+  background: #ebb211;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #d49c0f;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 </style>
