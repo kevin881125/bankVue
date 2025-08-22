@@ -13,6 +13,7 @@
           <thead>
             <tr>
               <th>審核時間</th>
+              <th>貸款帳號</th>
               <th>審核人員ID</th>
               <th>決策</th>
               <th>備註</th>
@@ -21,7 +22,8 @@
           <tbody>
             <tr v-for="record in records" :key="record.reviewId">
               <td>{{ record.reviewTime || "無資料" }}</td>
-              <td>{{ record.reviewerId || "無資料" }}</td>
+              <td>{{ record.loanId || "無資料" }}</td>
+              <td>{{ record.reviewerId || "申貸人申請" }}</td>
               <td :class="getDecisionClass(record.decision)">
                 {{ translateDecision(record.decision) }}
               </td>
