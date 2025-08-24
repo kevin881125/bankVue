@@ -1,11 +1,15 @@
 <template>
-  <div :class="['background',{blackout:blackout}]">
+  <div :class="['background', { blackout: blackout }]">
     <div :class="['outlay', { active: slide }]">
       <div :class="['container']">
         <div class="left">
-          <h1>登入你的YuzuBank</h1>
-          <h3>簡單存錢 簡單轉帳</h3>
-          <img class="logo-img" src="../../image/member/log.png" alt="" />
+          <h1 class="fade-up">登入你的YuzuBank</h1>
+          <h3 class="fade-up">簡單存錢 簡單轉帳</h3>
+          <img
+            class="logo-img fade-up"
+            src="../../image/member/log.png"
+            alt=""
+          />
         </div>
         <div class="right">
           <div class="form">
@@ -18,49 +22,76 @@
                 <div class="inputbox">
                   <span class="must">*</span>
                   <label for="mIdentityLogin">身分證字號</label>
-                  <div class="input">
+                  <div
+                    :class="[
+                      'input',
+                      { active: mIdentityEmpty, shake: mIdentityEmpty },
+                    ]"
+                  >
                     <input
                       type="text"
                       id="mIdentityLogin"
                       v-model="mIdentity"
                       placeholder="輸入身分證"
-                      required
-                    /><span class="icon mdi mdi-eye-closed"></span>
+                      maxlength="10"
+                      @input="mIdentity = mIdentity.toUpperCase()"
+                    />
                   </div>
-                  <div class="warningtet">你有錯誤</div>
+                  <div class="warningtet">{{ mIdentityErrorMessage }}</div>
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
                   <label for="mAccountLogin">使用者帳號</label>
-                  <div class="input">
+                  <div
+                    :class="[
+                      'input',
+                      { active: mAccountEmpty, shake: mAccountEmpty },
+                    ]"
+                  >
                     <input
                       type="text"
                       id="mAccountLogin"
                       v-model="mAccount"
                       placeholder="帳號英文+數字"
-                      required
-                    /><span class="icon mdi mdi-eye-closed"></span>
+                    />
                   </div>
-                  <div class="warningtet">你有錯誤</div>
+                  <div class="warningtet">{{ mAccountErrorMessage }}</div>
                 </div>
                 <div class="inputbox">
                   <span class="must">*</span>
                   <label for="mPasswordLogin">使用者密碼</label>
-                  <div class="input">
+                  <div
+                    :class="[
+                      'input',
+                      { active: mPasswordEmpty, shake: mPasswordEmpty },
+                    ]"
+                  >
                     <input
-                      type="text"
+                      :type="showpassword ? 'password' : 'text'"
                       id="mPasswordLogin"
                       v-model="mPassword"
                       placeholder="密碼英文+數字"
-                      required
-                    /><span class="icon mdi mdi-keyboard"></span>
+                    /><button
+                      type="button"
+                      @click="showpassword = !showpassword"
+                    >
+                      <span
+                        :class="[
+                          'icon mdi',
+                          {
+                            'mdi-eye-off-outline': showpassword,
+                            'mdi-eye-outline': !showpassword,
+                          },
+                        ]"
+                      ></span>
+                    </button>
                   </div>
-                  <div class="warningtet">你有錯誤</div>
+                  <div class="warningtet">{{ errorMessage }}</div>
                 </div>
                 <button type="submit" class="btn">登入</button>
-                <button class="forgetbtn" @click="forgetbtn">忘記帳號或密碼</button>
               </div>
             </form>
+            <button class="forgetbtn" @click="forgetbtn">忘記帳號或密碼</button>
           </div>
           <div class="decorate"></div>
         </div>
@@ -70,7 +101,7 @@
       </div>
     </div>
     <div :class="['outlay', { active: slide }]">
-      <memberRegister @moveslideClick="moveslide"></memberRegister>
+      <memberRegisterNew @moveslideClick="moveslide"></memberRegisterNew>
     </div>
   </div>
 </template>
@@ -79,7 +110,7 @@ import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 import { ref } from "vue";
 import router from "@/router/index";
-import memberRegister from "@/views/front/member/memberRegister.vue"
+import memberRegisterNew from "@/views/front/member/memberRegisterNew.vue";
 
 /*登入邏輯*/
 const memberStore = useMemberStore();
@@ -87,39 +118,84 @@ const mAccount = ref("");
 const mPassword = ref("");
 const mIdentity = ref("");
 const blackout = ref(false);
+const showpassword = ref(true);
+const errorMessage = ref("");
+const mIdentityErrorMessage = ref("");
+const mAccountErrorMessage = ref("");
+
+const mIdentityEmpty = ref(false);
+const mPasswordEmpty = ref(false);
+const mAccountEmpty = ref(false);
+
+const checkEmpty = () => {
+  let check = true;
+  if (mIdentity.value.trim() === "") {
+    mIdentityEmpty.value = true;
+    mIdentityErrorMessage.value = "身分證沒有填寫";
+    check = false;
+  }
+  if (mAccount.value.trim() === "") {
+    mAccountEmpty.value = true;
+    mAccountErrorMessage.value = "帳號沒有填寫";
+    check = false;
+  }
+  if (mPassword.value.trim() === "") {
+    mPasswordEmpty.value = true;
+    errorMessage.value = "密碼沒有填寫";
+    check = false;
+  }
+  return check;
+};
+const checkclean = () => {
+  mIdentityEmpty.value = false;
+  mIdentityErrorMessage.value = "";
+  mAccountEmpty.value = false;
+  mAccountErrorMessage.value = "";
+  mPasswordEmpty.value = false;
+  errorMessage.value = "";
+};
+
+const openError = () => {
+  mIdentityEmpty.value = true;
+  mAccountEmpty.value = true;
+  mPasswordEmpty.value = true;
+};
 
 const doLogin = async () => {
-  try {
-    const response = await request({
-      url: "/auth/login",
-      method: "POST",
-      data: {
-        mIdentity: mIdentity.value,
-        mAccount: mAccount.value,
-        mPassword: mPassword.value,
-      },
-    });
-    console.log(response);
+  checkclean();
+  if (checkEmpty()) {
+    try {
+      const response = await request({
+        url: "/auth/login",
+        method: "POST",
+        data: {
+          mIdentity: mIdentity.value,
+          mAccount: mAccount.value,
+          mPassword: mPassword.value,
+        },
+      });
+      console.log(response);
 
-    console.log(memberStore);
+      console.log(memberStore);
 
-    memberStore.login(
-      response.mid,
-      response.mname,
-      response.midentity,
-      response.mgender,
-      response.maddress,
-      response.mphone,
-      response.memail,
-      response.token,
-      "http://localhost:8080"+response.mimage
-    );
+      await memberStore.login(
+        response.mid,
+        response.mname,
+        response.midentity,
+        response.mgender,
+        response.maddress,
+        response.mphone,
+        response.memail,
+        response.token,
+        "http://localhost:8080" + response.mimage
+      );
 
-    console.log(memberStore.mId);
-    router.push("/yuzubank/index");
-  } catch (error) {
-    alert("登入失敗，請確認帳號密碼");
-    console.error(error);
+      console.log(memberStore.mId);
+      router.push("/yuzubank/index");
+    } catch (error) {
+      errorMessage.value = "登入失敗，請確認帳號密碼";
+      console.error(error);
+    }
   }
 };
 
@@ -132,13 +208,10 @@ const moveslide = () => {
   blackout.value = !blackout.value;
 };
 
-
 //忘記密碼
-const forgetbtn = ()=>{
+const forgetbtn = () => {
   router.push("/yuzubank/memberforget");
-}
-
-
+};
 </script>
 
 <style scoped>
@@ -161,7 +234,7 @@ const forgetbtn = ()=>{
 }
 .background.blackout {
   background-image: none;
-  background-color: #1B2028;
+  background-color: #1b2028;
 }
 .outlay {
   top: 0;
@@ -210,7 +283,7 @@ input {
   border: none;
   background: none;
   outline: none;
-  width: 90%;
+  width: 100%;
   height: 100%;
   padding: 10px 20px;
 }
@@ -225,14 +298,14 @@ input {
   margin-right: auto;
   overflow: hidden;
 }
+.input.active {
+  border-color: #de5858;
+}
 .inputbox {
   margin-top: 20px;
   margin-left: auto;
   margin-right: auto;
   width: 80%;
-}
-.warningtet {
-  text-align: right;
 }
 button {
   margin-left: auto;
@@ -258,7 +331,7 @@ button {
 .forgetbtn {
   margin-top: 20px;
   color: #02a9b9;
-  &:hover{
+  &:hover {
     color: #18dbec;
   }
 }
@@ -283,10 +356,12 @@ label {
   color: #aeaeae;
 }
 .warningtet {
+  text-align: right;
   margin-right: auto;
   margin-left: auto;
   width: 70%;
   font-size: 12px;
+  height: 15px;
   color: #de5858;
 }
 .form {
@@ -320,7 +395,62 @@ label {
   margin-left: 5px;
   color: #13aebd;
 }
-.register > button:hover{
+.register > button:hover {
   color: #18dbec;
+}
+
+/*浮上動畫*/
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px); /* 從底下移動上來 */
+  animation: fadeUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*搖晃動畫*/
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(-5px);
+  }
+  20% {
+    transform: translateX(5px);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+  90% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.shake {
+  animation: shake 0.6s ease-in-out;
 }
 </style>
