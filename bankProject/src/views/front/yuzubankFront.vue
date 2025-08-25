@@ -16,7 +16,7 @@
                         <div class="member-info">
                             <div class="avatar">
                                 <router-link to="/yuzubank/memberProfile">
-                                    <img src="../../image/avatar.jpg" alt="會員頭像" />
+                                    <img :src="memberStore.mImage" alt="會員頭像" />
                                 </router-link>
                             </div>
                             <span class="welcome-text">歡迎，{{ memberStore.mName }}</span>
@@ -55,7 +55,7 @@
                 </div>
 
                 <!-- 右側主視覺圖片 -->
-                <div class="hero-image" :class="{ 'image-animate-scale': isAnimating }">
+                <div class="hero-image" :class="{ 'image-animate-scale': isAnimating  }">
                     <img src="../../image/indexImage.png" alt="柚子銀行主視覺" />
                 </div>
             </div>
@@ -331,7 +331,7 @@ const handleMainAction = () => {
     flex: 1;
     display: flex;
     align-items: center;
-    padding: 0 80px 0 256px;
+    padding: 0 80px 0 280px;
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     z-index: 1;
@@ -449,7 +449,7 @@ const handleMainAction = () => {
     justify-content: center;
     align-items: center;
     padding-bottom: 48px;
-    margin-left: 80px;
+    margin-left: 160px;
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     z-index: 1;
@@ -462,21 +462,22 @@ const handleMainAction = () => {
 }
 
 .hero-image img {
-    max-width: 80%;
+    max-width: 70%;
     height: auto;
     max-height: calc(100vh - 200px);
     object-fit: contain;
 }
 
+
 /* 功能卡片區域 */
 .services-section {
     flex-shrink: 0;
-    height: 200px;
+    height: 192px;
     background: linear-gradient(180deg, #0D111F 0%, #1a1f35 100%);
     display: flex;
     align-items: center;
-    padding: 40px 40px 160px 40px;
-    margin-top: -24px;
+    padding: 40px 40px 80px 40px;
+    margin-top: -80px;
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     z-index: 2;
