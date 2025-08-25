@@ -115,7 +115,6 @@
           <button class="apply-button" :disabled="isPending" @click="onApply">
             {{ isPending ? "開戶審核中" : "我要開戶" }}
           </button>
-          
         </div>
       </div>
       <!-- 沒帳戶：標題 + 置中 CTA -->
@@ -141,6 +140,40 @@
       <header class="card-title row center">
         <div class="subtitle">活期存款</div>
         <span class="chip dark ml-8">幣別：TWD</span>
+
+        <div class="spacer"></div>
+
+        <!-- 更多選單 -->
+        <div
+          class="menu"
+          @mouseenter="menuOpen = true"
+          @mouseleave="menuOpen = false"
+        >
+          <button
+            class="icon-btn more-btn"
+            :aria-expanded="menuOpen"
+            aria-haspopup="menu"
+            @click.stop="menuOpen = !menuOpen"
+            title="更多"
+          >
+            <span
+              class="mdi mdi-dots-horizontal"
+              style="font-size: 22px"
+            ></span>
+          </button>
+
+          <ul class="dropdown" v-show="menuOpen" role="menu">
+            <li>
+              <button
+                class="menu-item"
+                role="menuitem"
+                @click="openAddAccountDialog"
+              >
+                新增帳戶
+              </button>
+            </li>
+          </ul>
+        </div>
       </header>
 
       <div class="divider"></div>
@@ -237,6 +270,13 @@
     @submit="refreshAccounts()"
   >
   </TradeDialog>
+
+  <InsertAccountDialog
+    v-model="insertDialog"
+    :m-id="mId"
+    @close="insertDialog = false"
+    @submit="refreshAccounts()"
+  ></InsertAccountDialog>
 </template>
 
 <script setup>
@@ -245,6 +285,7 @@ import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 import AccountDetailDialog from "./AccountDetailDialog.vue";
 import TradeDialog from "./TradeDialog.vue";
+import InsertAccountDialog from "./InsertAccountDialog.vue";
 
 const memberStore = useMemberStore();
 const mId = memberStore.mId;
@@ -253,6 +294,7 @@ const detailDialog = ref(false);
 const tradeDialog = ref(false);
 const selectedAccountId = ref("");
 const selectedmId = ref("");
+const insertDialog = ref(false);
 
 // 顯示/隱藏金額
 const showAmount = ref(true);
@@ -351,6 +393,13 @@ const openTranserDialog = (item) => {
   selectedAccountId.value = item.accountId;
   selectedmId.value = item.mId;
   tradeDialog.value = true;
+};
+
+const menuOpen = ref(false);
+
+const openAddAccountDialog = () => {
+  menuOpen.value = false;
+  insertDialog.value = true;
 };
 </script>
 
@@ -679,7 +728,37 @@ const openTranserDialog = (item) => {
 .note-list li {
   margin: 4px 0;
 }
-
+/* 更多選單 */
+.menu {
+  position: relative;
+}
+.more-btn {
+  padding: 4px;
+}
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  min-width: 140px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  padding: 6px;
+  z-index: 20;
+}
+.dropdown .menu-item {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dropdown .menu-item:hover {
+  background: #f3f4f6;
+}
 @media (max-width: 960px) {
   .overview {
     grid-template-columns: 1fr;
