@@ -13,19 +13,31 @@
     </td>
     <td>{{ loan.createdAt }}</td>
     <td>
+      <!-- 查看詳細資料 -->
       <button class="look" @click="onOpenDetail">
         <span class="mdi mdi-eye"></span>
       </button>
-      <button class="edit" @click="onEditReview">
+
+      <!-- 如果已通過 → 顯示「查看繳款」，否則顯示「審核貸款」 -->
+      <button
+        v-if="loan.approvalStatus === 'approved'"
+        class="payment"
+        @click="onOpenRepayment"
+      >
+        <span class="mdi mdi-cash"></span>
+      </button>
+      <button v-else class="edit" @click="onEditReview">
         <span class="mdi mdi-lead-pencil"></span>
       </button>
+
+      <!-- 合約下載按鈕（審核通過才會有） -->
       <button
-    v-if="loan.approvalStatus === 'approved' && loan.contractPath"
-    class="download"
-    @click="onDownloadContract"
-  >
-    <span class="mdi mdi-download"></span>
-  </button>
+        v-if="loan.approvalStatus === 'approved' && loan.contractPath"
+        class="download"
+        @click="onDownloadContract"
+      >
+        <span class="mdi mdi-download"></span>
+      </button>
     </td>
   </tr>
 </template>
@@ -61,20 +73,24 @@ function onDownloadContract() {
   // contractPath 是類似 "/uploadImg/contract/loanId_timestamp.ext"
   // 可根據實際的路徑組合完整下載 URL
 
-  const baseUrl = "http://localhost:8080";  // 你的後端網址或環境變數
+  const baseUrl = "http://localhost:8080"; // 你的後端網址或環境變數
   const url = baseUrl + loan.contractPath;
 
   // 新分頁開啟下載連結
   window.open(url, "_blank");
 }
 
-
 // 定義可觸發的事件
-const emit = defineEmits(["open-detail", "edit-review"]);
+const emit = defineEmits(["open-detail", "edit-review", "open-repayment"]);
 
 // 查看詳情
 function onOpenDetail() {
   emit("open-detail", props.loan.loanId);
+}
+
+// 開啟繳款明細
+function onOpenRepayment() {
+  emit("open-repayment", props.loan.loanId);
 }
 
 // loanRow.vue - 按下編輯按鈕時 emit loanId（不是整筆 loan）：
@@ -106,7 +122,8 @@ tr:hover td {
 /* 操作按鈕樣式統一 */
 button.look,
 button.edit,
-button.download{
+button.payment,
+button.download {
   border: none;
   background-color: transparent;
   cursor: pointer;
@@ -127,6 +144,10 @@ button.edit:hover {
 
 button.download:hover {
   background-color: #cce5ff; /* 淡藍色 */
+}
+
+button.payment:hover {
+  background-color: #ccffdd; /* 淡藍綠色 */
 }
 
 .status-cell {
@@ -164,5 +185,4 @@ button.download:hover {
 .status-reviewing::before {
   background-color: #444b4b;
 }
-
 </style>
