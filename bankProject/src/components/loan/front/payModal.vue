@@ -191,6 +191,8 @@ const loadMemberAccounts = async () => {
       method: "get",
     });
     accounts.value = Array.isArray(res.data) ? res.data : res;
+    console.log(res);
+    
   } catch (err) {
     console.error("取得會員帳戶失敗", err);
     accounts.value = [];

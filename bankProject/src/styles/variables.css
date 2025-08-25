@@ -1,15 +1,61 @@
 :root {
   --black-color: #1e1e1e;
-  --grey-color: 	#fdfeff;
-  --white-color: 	#F3F5F6;
-  --lightwhite-color:#FDFDFD;
+  --grey-color: #fdfeff;
+  --white-color: #F3F5F6;
+  --lightwhite-color: #FDFDFD;
   --main-color: #5bb8f7;
-  --secondary-color: 	#2c3e50;
-  --contrast-color:	#cf6100;
+  --secondary-color: #2c3e50;
+  --contrast-color: #cf6100;
 }
-*{
-  font-family: "Noto Sans TC", sans-serif;
-  font-optical-sizing: auto;
+
+/* Bold */
+@font-face {
+  font-family: 'GenSenRounded2TW';
+  src: url('../assets/fonts/GenSenRounded2TW-B.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* Extra Light */
+@font-face {
+  font-family: 'GenSenRounded2TW';
+  src: url('../assets/fonts/GenSenRounded2TW-EL.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+/* Heavy */
+@font-face {
+  font-family: 'GenSenRounded2TW';
+  src: url('../assets/fonts/GenSenRounded2TW-H.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+/* Light */
+@font-face {
+  font-family: 'GenSenRounded2TW';
+  src: url('../assets/fonts/GenSenRounded2TW-L.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+/* Medium */
+@font-face {
+  font-family: 'GenSenRounded2TW';
+  src: url('../assets/fonts/GenSenRounded2TW-M.otf') format('opentype');
   font-weight: 500;
   font-style: normal;
+}
+
+/* Regular */
+@font-face {
+  font-family: 'GenSenRounded2TW';
+  src: url('../assets/fonts/GenSenRounded2TW-R.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  font-family: 'GenSenRounded2TW', sans-serif;
 }

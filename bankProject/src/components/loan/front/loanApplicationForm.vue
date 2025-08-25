@@ -150,7 +150,7 @@ const loadMemberAccounts = async () => {
     accountsLoading.value = true;
     try {
         console.log(`載入會員帳戶，會員ID: ${form.value.mId}`);
-        
+
         const res = await request({
             url: `/account/getmemberaccounts/${form.value.mId}`,
             method: "get",
@@ -161,7 +161,7 @@ const loadMemberAccounts = async () => {
         if (res && res.data && Array.isArray(res.data)) {
             accounts.value = res.data;
             console.log(`成功載入 ${accounts.value.length} 個帳戶`);
-            
+
             // 如果有帳戶，自動選擇第一個
             if (accounts.value.length > 0) {
                 form.value.accountId = accounts.value[0].accountId;
@@ -171,7 +171,7 @@ const loadMemberAccounts = async () => {
             // 處理直接返回陣列的情況
             accounts.value = res;
             console.log(`成功載入 ${accounts.value.length} 個帳戶 (直接陣列)`);
-            
+
             if (accounts.value.length > 0) {
                 form.value.accountId = accounts.value[0].accountId;
                 console.log(`自動選擇帳戶: ${accounts.value[0].accountName} (${accounts.value[0].accountId})`);
@@ -183,7 +183,7 @@ const loadMemberAccounts = async () => {
     } catch (err) {
         console.error("取得會員帳戶失敗", err);
         accounts.value = [];
-        
+
         // 提供更詳細的錯誤訊息
         if (err.response) {
             console.error('API錯誤回應:', err.response.data);
@@ -213,7 +213,7 @@ onMounted(async () => {
 const updateLoanTerm = () => {
     const selectEl = document.getElementById("loanTermId");
     if (!selectEl || selectEl.selectedIndex < 0) return;
-    
+
     const selectedOption = selectEl.options[selectEl.selectedIndex];
     const monthValue = selectedOption.getAttribute("data-month");
     if (monthValue) {
@@ -248,9 +248,9 @@ const fetchInterestRate = async () => {
         const rateRes = await request({
             url: "/loans/calc/rate",
             method: "get",
-            params: { 
-                loanTypeId: form.value.loanTypeId, 
-                loanTermId: form.value.loanTermId 
+            params: {
+                loanTypeId: form.value.loanTypeId,
+                loanTermId: form.value.loanTermId
             },
         });
 
@@ -266,7 +266,7 @@ const fetchInterestRate = async () => {
             } else if (!isNaN(parseFloat(rateRes))) {
                 rateValue = parseFloat(rateRes);
             }
-            
+
             if (rateValue > 0) {
                 interestRateDisplay.value = (rateValue * 100).toFixed(1) + "%";
                 console.log("設定利率顯示:", interestRateDisplay.value);
@@ -366,7 +366,7 @@ const handleSubmit = async () => {
     }
 
     const formData = new FormData();
-    
+
     // 準備送出的資料，對應後端 LoanCreateDto 的欄位
     const submitData = {
         mId: form.value.mId,
@@ -377,9 +377,9 @@ const handleSubmit = async () => {
         repayAccountId: form.value.accountId, // 注意：對應後端的 repayAccountId
         // 不需要傳 incomeProofPath，後端會自動處理
     };
-    
+
     console.log('準備送出的貸款資料:', submitData);
-    
+
     // 使用 @RequestPart 格式
     formData.append("loan", new Blob([JSON.stringify(submitData)], { type: "application/json" }));
     formData.append("file", file.value);
@@ -391,9 +391,11 @@ const handleSubmit = async () => {
             data: formData,
             headers: { "Content-Type": "multipart/form-data" },
         });
-        
+        console.log("送出的 payload:", submitData);
+
+
         console.log('API 回應:', res); // 調試用，查看完整回應結構
-        
+
         // 安全地取得 loanId
         let loanId = '未知';
         if (res) {
@@ -406,9 +408,9 @@ const handleSubmit = async () => {
                 loanId = res.loanId || '申請成功';
             }
         }
-        
+
         alert("申請成功！案件編號：" + loanId);
-        
+
         // 清空表單
         form.value = {
             memberName: memberStore.mName,
@@ -424,19 +426,19 @@ const handleSubmit = async () => {
         fileName.value = "";
         interestRateDisplay.value = "--.-%";
         monthlyPayment.value = 0;
-        
+
     } catch (err) {
         console.error('貸款申請失敗:', err);
         console.error('錯誤詳情:', err.response);
-        
+
         // 提供更詳細的錯誤訊息
         let errorMessage = "申請失敗，請稍後再試";
-        
+
         if (err.response) {
             // 請求已發出且伺服器已回應狀態碼
             console.log('錯誤狀態碼:', err.response.status);
             console.log('錯誤回應資料:', err.response.data);
-            
+
             if (err.response.data) {
                 if (typeof err.response.data === 'string') {
                     errorMessage = err.response.data;
@@ -452,7 +454,7 @@ const handleSubmit = async () => {
         } else if (err.message) {
             errorMessage = err.message;
         }
-        
+
         alert(errorMessage);
     }
 };

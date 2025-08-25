@@ -43,32 +43,47 @@ function confirm() {
   justify-content: center;
   z-index: 1100;
 }
+
 .modal-content {
+  color: #000000;
   background: white;
   padding: 20px;
   border-radius: 8px;
   width: 320px;
   text-align: center;
 }
+
+p {
+  color: #000000;
+}
+
+h3 {
+  color: #000000;
+}
+
 .buttons {
   margin-top: 20px;
   display: flex;
   justify-content: center;
   gap: 20px;
 }
+
 button {
   padding: 8px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
+
 button:hover {
   opacity: 0.8;
 }
+
 button:first-child {
   background-color: #ebb211;
   color: white;
 }
+
 button:last-child {
   background-color: #ccc;
   color: #333;
