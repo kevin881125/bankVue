@@ -17,7 +17,7 @@
               <img src="../../image/member/logicon.png" alt="" />
               <h2>我要登入</h2>
             </div>
-            <form @submit.prevent="doLogin">
+            <div class="form1"  >
               <div>
                 <div class="inputbox">
                   <span class="must">*</span>
@@ -88,9 +88,10 @@
                   </div>
                   <div class="warningtet">{{ errorMessage }}</div>
                 </div>
-                <button type="submit" class="btn">登入</button>
+                <button @click="doLogin" class="btn">登入</button>
+                <button @click="OneClickInput" class="btn">一鍵輸入</button>
               </div>
-            </form>
+            </div>
             <button class="forgetbtn" @click="forgetbtn">忘記帳號或密碼</button>
           </div>
           <div class="decorate"></div>
@@ -161,6 +162,12 @@ const openError = () => {
   mPasswordEmpty.value = true;
 };
 
+const OneClickInput=()=>{
+   mAccount.value = "kevin"
+ mPassword.value ="123456"
+mIdentity.value ="A123456789"
+}
+
 const doLogin = async () => {
   checkclean();
   if (checkEmpty()) {
@@ -191,10 +198,11 @@ const doLogin = async () => {
       );
 
       console.log(memberStore.mId);
-      router.push("/yuzubank/index");
+      router.push("/yuzubank/front");
     } catch (error) {
       errorMessage.value = "登入失敗，請確認帳號密碼";
       console.error(error);
+      openError();
     }
   }
 };
