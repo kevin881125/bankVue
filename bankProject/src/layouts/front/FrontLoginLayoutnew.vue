@@ -14,10 +14,10 @@
         <div class="right">
           <div class="form">
             <div class="topbar">
-              <img src="../../image/member/logicon.png" alt="" />
+              <span class="mdi mdi-account-multiple"></span>
               <h2>我要登入</h2>
             </div>
-            <div class="form1"  >
+            <div class="form1">
               <div>
                 <div class="inputbox">
                   <span class="must">*</span>
@@ -25,7 +25,7 @@
                   <div
                     :class="[
                       'input',
-                      { active: mIdentityEmpty, shake: mIdentityEmpty },
+                      { activecolor: mIdentityEmpty, shake: mIdentityEmpty },
                     ]"
                   >
                     <input
@@ -46,7 +46,7 @@
                   <div
                     :class="[
                       'input',
-                      { active: mAccountEmpty, shake: mAccountEmpty },
+                      { activecolor: mAccountEmpty, shake: mAccountEmpty },
                     ]"
                   >
                     <input
@@ -65,7 +65,7 @@
                   <div
                     :class="[
                       'input',
-                      { active: mPasswordEmpty, shake: mPasswordEmpty },
+                      { activecolor: mPasswordEmpty, shake: mPasswordEmpty },
                     ]"
                   >
                     <input
@@ -90,8 +90,10 @@
                   </div>
                   <div class="warningtet">{{ errorMessage }}</div>
                 </div>
-                <button @click="doLogin" class="btn">登入</button>
-                <button @click="OneClickInput" class="btn">一鍵輸入</button>
+                <div class="btns">
+                  <button @click="doLogin" class="btn">登入</button>
+                  <button @click="OneClickInput" class="btn">一鍵輸入</button>
+                </div>
               </div>
             </div>
             <button class="forgetbtn" @click="forgetbtn">忘記帳號或密碼</button>
@@ -101,10 +103,11 @@
         <div class="register">
           你還沒有加入會員嗎?<button @click="moveslide">立即註冊</button>
         </div>
+        <button class="backindex" @click="backindex">返回首頁</button>
       </div>
     </div>
     <div :class="['outlay', { active: slide }]">
-      <memberRegisterNew @moveslideClick="moveslide"></memberRegisterNew>
+      <memberRegister @moveslideClick="moveslide"></memberRegister>
     </div>
   </div>
 </template>
@@ -113,7 +116,7 @@ import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 import { ref } from "vue";
 import router from "@/router/index";
-import memberRegisterNew from "@/views/front/member/memberRegisterNew.vue";
+import memberRegister from "@/views/front/member/memberRegister.vue";
 
 /*登入邏輯*/
 const memberStore = useMemberStore();
@@ -164,10 +167,14 @@ const openError = () => {
   mPasswordEmpty.value = true;
 };
 
-const OneClickInput=()=>{
-   mAccount.value = "kevin"
- mPassword.value ="123456"
-mIdentity.value ="A123456789"
+const OneClickInput = () => {
+  mAccount.value = "kevin";
+  mPassword.value = "123456";
+  mIdentity.value = "A123456789";
+};
+
+const backindex = ()=>{
+  router.push("/yuzubank/front");
 }
 
 const doLogin = async () => {
@@ -294,7 +301,11 @@ const forgetbtn = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 5px solid #00a8b8;
+  border-bottom: 5px solid #ebb211;
+}
+.topbar span{
+  font-size: 80px;
+  color: #ebb211;
 }
 
 input {
@@ -324,36 +335,46 @@ input {
   margin-right: auto;
   width: 80%;
 }
-
+.activecolor{
+  border-color: #de5858;
+}
 button {
   margin-left: auto;
   margin-right: auto;
   display: block;
 }
+.btns{
+   margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+}
 
 .btn {
   margin-top: 80px;
   height: 60px;
-  width: 200px;
-  border: 1px solid #02a9b9;
+  width: 150px;
+  border: 1px solid #ebb211;
   border-radius: 50px;
-  color: #02a9b9;
+  color: #ebb211;
   background-color: #fff;
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
   font-weight: 700;
 }
 
 .btn:hover {
-  background-color: #02a9b9;
+  background-color: #ebb211;
   color: #fff;
   transition: 0.5s;
 }
 
 .forgetbtn {
   margin-top: 20px;
-  color: #02a9b9;
+  color: #ebb211;
   &:hover {
-    color: #18dbec;
+    color: #ebb211;
   }
 }
 
@@ -371,7 +392,7 @@ h3 {
 }
 
 h2 {
-  color: #13aebd;
+  color: #ebb211;
 }
 
 label {
@@ -400,7 +421,7 @@ label {
   top: 850px;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #f4fbfc;
+  background-color: #faf1d8;
   border-radius: 50%;
   width: 1000px;
   height: 500px;
@@ -408,7 +429,7 @@ label {
 
 .icon {
   margin-right: 8px;
-  color: #13aebd;
+  color: #ebb211;
 }
 
 .must {
@@ -422,13 +443,19 @@ label {
   display: flex;
 }
 
-.register>button {
+.register > button {
   margin-left: 5px;
-  color: #13aebd;
+  color: #ebb211;
 }
 
 .register > button:hover {
-  color: #18dbec;
+  color: #c4920a;
+}
+
+.backindex{
+  position: absolute;
+  right: -300px;
+  top:-80px;
 }
 
 /*浮上動畫*/
@@ -437,6 +464,7 @@ label {
   transform: translateY(20px); /* 從底下移動上來 */
   animation: fadeUp 0.6s ease-out forwards;
 }
+
 
 @keyframes fadeUp {
   to {

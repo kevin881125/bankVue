@@ -1,165 +1,97 @@
 <template>
   <div :class="['container1']">
     <div class="main">
-      <div class="form">
-        <div class="topbar">
-          <img src="../../../image/member/rigster.png" alt="" />
-          <h2>註冊</h2>
-        </div>
-        <form @submit.prevent="submitForm">
-          <div>
-            <div class="inputbox">
-              <span class="must">*</span>
-              <label for="mName">姓名</label>
-              <div class="input">
-                <input
-                  type="text"
-                  id="mName"
-                  v-model="form.mName"
-                  placeholder="輸入姓名"
-                  required
-                />
-              </div>
-              <div class="warningtet">身分證字號</div>
-            </div>
-            <div class="inputArea">
-              <div class="left">
-                <div class="inputbox">
-                  <span class="must">*</span>
-                  <label for="mIdentity">身分證字號</label>
-                  <div class="input">
-                    <input
-                      type="text"
-                      id="mIdentity"
-                      v-model="form.mIdentity"
-                      placeholder="輸入身分證"
-                      required
-                    />
-                  </div>
-                  <div class="warningtet">你有錯誤</div>
-                </div>
-                <div class="inputbox">
-                  <span class="must">*</span>
-                  <label for="mAccount">帳號</label>
-                  <div class="input">
-                    <input
-                      type="text"
-                      id="mAccount"
-                      v-model="form.mAccount"
-                      placeholder="帳號英文+數字"
-                      required
-                    />
-                  </div>
-                  <div class="warningtet">你有錯誤</div>
-                </div>
-                <div class="inputbox">
-                  <span class="must">*</span>
-                  <label for="mAddress">居住地址</label>
-                  <div class="input">
-                    <input
-                      type="text"
-                      id="mAddress"
-                      v-model="form.mAddress"
-                      placeholder="密碼英文+數字"
-                      required
-                    /><span class="icon mdi mdi-keyboard"></span>
-                  </div>
-                  <div class="warningtet">你有錯誤</div>
-                </div>
-                <div class="inputbox">
-                  <span class="must">*</span>
-                  <label for="mBirthday">出生日</label>
-                  <div class="input">
-                    <input
-                      type="date"
-                      id="mBirthday"
-                      v-model="form.mBirthday"
-                      placeholder="密碼英文+數字"
-                      required
-                    /><span class="icon mdi mdi-keyboard"></span>
-                  </div>
-                  <div class="warningtet">你有錯誤</div>
-                </div>
-              </div>
-              <div class="right">
-                <div class="inputbox">
-                  <span class="must">*</span>
-                  <label for="mGender">性別</label>
-                  <div class="input">
-                    <select id="mGender" name="gender" v-model="form.mGender">
-                      <option value="">請選擇</option>
-                      <option value="男">男</option>
-                      <option value="女">女</option>
-                      <option value="其他">其他</option>
-                    </select>
-                    <span class="icon mdi mdi-triangle-down"></span>
-                  </div>
-                  <div class="warningtet">你有錯誤</div>
-                </div>
-                <div class="inputbox">
-                  <span class="must">*</span>
-                  <label for="mPassword">密碼</label>
-                  <div class="input">
-                    <input
-                      type="text"
-                      id="mPassword"
-                     v-model="form.mPassword"
-                      placeholder="帳號英文+數字"
-                      required
-                    /><span class="icon mdi mdi-eye-closed"></span>
-                  </div>
-                  <div class="warningtet">你有錯誤</div>
-                </div>
-                <div class="inputbox">
-                  <span class="must">*</span>
-                  <label for="mPhone">電話</label>
-                  <div class="input">
-                    <input
-                      type="text"
-                      id="mPhone"
-                      v-model="form.mPhone"
-                      placeholder="密碼英文+數字"
-                      required
-                    /><span class="icon mdi mdi-keyboard"></span>
-                  </div>
-                  <div class="warningtet">你有錯誤</div>
-                </div>
-                <div class="inputbox">
-                  <span class="must">*</span>
-                  <label for="mEmail">信箱</label>
-                  <div class="input">
-                    <input
-                      type="text"
-                      id="mEmail"
-                      v-model="form.mEmail"
-                      placeholder="密碼英文+數字"
-                      required
-                    /><span class="icon mdi mdi-keyboard"></span>
-                  </div>
-                  <div class="warningtet">你有錯誤</div>
-                </div>
-              </div>
-            </div>
-            <button type="submit" class="btn">註冊</button>
-          </div>
-        </form>
+      <div class="topbar">
+        
+        <!-- <img src="../../../image/member/rigster.png" alt="" /> -->
+         
+        <span class="mdi mdi-account-plus"></span><h2>註冊</h2>
       </div>
-      <div class="decorate"></div>
-    </div>
-    <div class="register">
-      我有加入了<button @click="moveslide">返回登入</button>
+      <div class="form">
+        <div class="inputBox" v-for="(item, index) in fields">
+          <span>*</span><label :for="item.name">{{ item.ch }}</label>
+          <div :class="['input', { error: item.error }]">
+            <input
+              v-if="item.type === 'text' || item.type === 'date'"
+              :type="item.type"
+              :id="item.name"
+              v-model="form[item.name]"
+              :placeholder="`輸入${item.ch}`"
+              :maxlength="item.maxlength"
+              @input="filterInput(item.name)"
+            />
+            <select
+              v-else-if="item.type === 'select'"
+              :id="item.name"
+              v-model="form[item.name]"
+            >
+              <option disabled value="">請選擇{{ item.ch }}</option>
+              <option v-for="(opt, i) in item.data" :key="i" :value="opt">
+                {{ opt }}
+              </option>
+            </select>
+          </div>
+          <div :class="['error1',{error2:item.error}]">{{ errorMessage[item.name] }}</div>
+        </div>
+        <div class="btnArea">
+          <button  @click="submitForm" class="btn">註冊</button>
+          <button  @click="OneClickInput" class="btn">一鍵輸入</button>
+        </div>
+      </div>
     </div>
   </div>
+  <div class="register">
+    我有加入了<button @click="moveslide">返回登入</button>
+  </div>
+  <SuccessToast v-model="showToast" message="註冊已成功！" :duration="2000" />
 </template>
 <script setup>
 import { request } from "@/utils/FontAxiosUtil";
 import { ref, onMounted, reactive } from "vue";
-
+import { validateMember } from "@/utils/CheckMemberInformation";
+import SuccessToast from "@/components/member/successAnim.vue";
 
 const emit = defineEmits(["moveslideClick"]);
+const showToast = ref(false);
 
 const moveslide = () => {
   emit("moveslideClick");
+  form.mName="";
+  form.mIdentity="";
+  form.mGender= "";
+  form.mAccount= "";
+  form.mPassword= "";
+  form.mAddress= "";
+  form.mPhone= "";
+  form.mBirthday= null;
+  form.mEmail= "";
+};
+
+const filterInput = (field) => {
+  let value = form[field];
+
+  switch (field) {
+    case "mAccount":
+    case "mPassword":
+      // 英文數字
+      form[field] = value.replace(/[^a-zA-Z0-9]/g, "");
+      break;
+    case "mPhone":
+      // 數字
+      form[field] = value.replace(/\D/g, "");
+      break;
+    case "mIdentity":
+      // 身分證英文數字
+      form[field] = value.replace(/[^A-Z0-9]/g, "");
+      break;
+    case "mEmail":
+      // 信箱：可以先過濾空白
+      form[field] = value.replace(/\s/g, "");
+      break;
+    default:
+      // 其他不過濾
+      break;
+  }
 };
 
 const form = reactive({
@@ -171,16 +103,110 @@ const form = reactive({
   mAddress: "",
   mPhone: "",
   mBirthday: null,
-  mEmail: ""
+  mEmail: "",
 });
 
+const OneClickInput = ()=>{
+  form.mName="陳晏慈";
+  form.mIdentity="H287196898";
+   form.mGender="女",
+  form.mAccount="alice9898";
+  form.mPassword="alice9898";
+  form.mAddress="330桃園市桃園區中正路123號";
+  form.mPhone="0901234567";
+  form.mBirthday="2005-08-25";
+  form.mEmail="yuzubank202@gmail.com";
+}
+
+const errorMessage = reactive({
+  mName: "",
+  mIdentity: "",
+  mGender: "",
+  mAccount: "",
+  mPassword: "",
+  mAddress: "",
+  mPhone: "",
+  mBirthday: null,
+  mEmail: "",
+});
+
+const fields = ref([
+  { name: "mName", ch: "姓名", type: "text", maxlength: 5, error: false },
+  {
+    name: "mIdentity",
+    ch: "身分證",
+    type: "text",
+    maxlength: 10,
+    error: false,
+  },
+  {
+    name: "mGender",
+    ch: "性別",
+    type: "select",
+    data: ["男", "女"],
+    error: false,
+  },
+  {
+    name: "mAccount",
+    ch: "帳號",
+    type: "text",
+    maxlength: 20,
+    error: false,
+  },
+  {
+    name: "mPassword",
+    ch: "密碼",
+    type: "text",
+    maxlength: 20,
+    error: false,
+  },
+  { name: "mAddress", ch: "地址", type: "text", maxlength: 25, error: false },
+  {
+    name: "mPhone",
+    ch: "手機",
+    type: "text",
+    maxlength: 10,
+    error: false,
+  },
+  { name: "mBirthday", ch: "生日", type: "date" },
+  {
+    name: "mEmail",
+    ch: "信箱",
+    type: "text",
+    maxlength: 30,
+    error: false,
+  },
+]);
+
+const clearError = ()=>{
+  for(let i = 0; i<fields.value.length;i++){
+    fields.value[i].error = false;
+    fields.value[i].error = false;
+    errorMessage[fields.value[i].name] = "";
+  }
+}
+
 async function submitForm() {
-  const data = await request({
-    url: "/member/member",
-    method: "POST",
-    data: form,
-  });
-moveslide();
+  clearError();
+  if(validateMember(form, fields,errorMessage)){
+
+    try {
+      const data = await request({
+        url: "/member/member",
+        method: "POST",
+        data: form,
+      });
+      if(data){
+        showToast.value = true;
+      moveslide();
+    
+      }
+    }catch (error){
+    
+    }
+  }
+  
+
 }
 </script>
 <style scoped>
@@ -190,157 +216,180 @@ moveslide();
   margin: 0;
   box-sizing: border-box;
 }
-.active {
-  top: -100%;
-}
-
 .container1 {
-  top: 50px;
   width: 100%;
-  height: 75%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.logo-img {
-  width: 500px;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-}
-.main {
-  width: 100%;
-  height: 100%;
-  border-radius: 30px;
   background-color: #fff;
+  border-radius: 10px;
+  top: 50px;
   padding: 10px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-}
-.left {
-  width: 50%;
-}
-.right {
-  width: 50%;
 }
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 5px solid #00a8b8;
+  border-bottom: 5px solid #ebb211;
 }
-.inputArea {
+.topbar>span{
+  font-size: 80px;
+  color: #ebb211;
+}
+.topbar>h2{
+font-size: 50px;
+color: #ebb211;
+}
+.form {
   display: flex;
+  flex-wrap: wrap;
 }
-input,select{
-  border: none;
-  background: none;
-  outline: none;
-  width: 90%;
-  height: 100%;
+.inputBox {
+  width: 50%;
   padding: 10px 20px;
 }
-.input {
-  display: flex;
-  align-items: center;
-  height: 50px;
-  width: 80%;
-  border: 1px solid gray;
-  border-radius: 10px;
-  margin-left: auto;
-  margin-right: auto;
-  overflow: hidden;
-}
-.inputbox {
-  margin-top: 20px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 80%;
-}
-.warningtet {
-  text-align: right;
-}
-button {
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
-}
-.btn {
-  margin-top: 10px;
-  height: 60px;
-  width: 200px;
-  border: 1px solid #02a9b9;
-  border-radius: 50px;
-  color: #02a9b9;
-  background-color: #fff;
-  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
-  font-weight: 700;
-}
-.btn:hover {
-  background-color: #02a9b9;
-  color: #fff;
-  transition: 0.5s;
+.inputBox>span {
+  position: absolute;
+  left: 8px;
 }
 
-h1 {
-  font-size: 40px;
-  font-weight: 500;
-  color: white;
-}
-h3 {
-  margin-top: 10px;
+input[type="text"] {
+  all: unset;
+  width: 100%;
+  height: 100%;
+  padding: 5px 20px;
   font-size: 20px;
-  font-weight: 300;
-  color: white;
 }
-h2 {
-  color: #13aebd;
+select {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  text-align-last: center; /* Chrome / Edge / IE */
+  -moz-text-align-last: center; /* Firefox */
+}
+
+/* select 的下拉選單 */
+select option {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+}
+
+/* date */
+input[type="date"] {
+  width: 100%;
+  height: 100%;
+  text-align: center; /* 讓輸入框內的文字置中 */
+}
+
+.input {
+  border-radius: 50px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin-top: 5px;
+  border: 1px solid gray;
 }
 label {
-  display: inline-block;
-  margin-bottom: 8px;
+  font-size: 20px;
   color: #aeaeae;
 }
+.error1{
+  height: 20px;
+}
+.error2 {
+  text-align: right;
+  height: 20px;
+  color: #de5858;
+}
+span {
+  color: #de5858;
+}
+
 .warningtet {
   margin-right: auto;
   margin-left: auto;
   width: 70%;
   font-size: 12px;
-  color: #de5858;
+  color: hsl(0, 67%, 61%);
 }
-.form {
-  z-index: 1;
-  overflow: hidden;
+.btn {
+  margin-top: 10px;
+  height: 60px;
+  width: 40%;
+  border: 1px solid #ebb211;
+  border-radius: 50px;
+  color: #ebb211;
+  background-color: #fff;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
+  font-weight: 700;
 }
-.decorate {
-  position: absolute;
-  top: 950px;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #f4fbfc;
-  border-radius: 50%;
-  width: 1500px;
-  height: 500px;
+.btn:hover {
+  background-color: #ebb211;
+  color: #fff;
+  transition: 0.5s;
 }
-.icon {
-  margin-right: 8px;
-  color: #13aebd;
-}
-.must {
-  color: #de5858;
+.btnArea {
+  width: 50%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 .register {
   position: absolute;
-  top: 820px;
+  top: 880px;
   left: 900px;
   display: flex;
+  color: white;
 }
 .register > button {
   margin-left: 5px;
-  color: #13aebd;
+  color: #ebb211;
 }
 .register > button:hover {
-  color: #18dbec;
+  color: #f7cc58;
+}
+
+
+/*錯誤動畫*/
+.input.error {
+  border-color: #de5858;
+  animation: shake 0.6s ease-in-out;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(-5px);
+  }
+  20% {
+    transform: translateX(5px);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+  90% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 </style>

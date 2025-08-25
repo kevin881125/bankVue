@@ -13,26 +13,46 @@
         <div class="inputbox">
           <span class="must">*</span>
           <label for="mIdentityLogin">重新設定密碼</label>
-          <div class="input">
+          <div :class="['input', { error: error }]">
             <input
-              type="text"
+              :type="showpassword ? 'password' : 'text'"
               id="mIdentityLogin"
-             v-model="password.password"
+              v-model="password.password"
               required
             />
+            <button type="button" @click="showpassword = !showpassword">
+              <span
+                :class="[
+                  'icon mdi',
+                  {
+                    'mdi-eye-off-outline': showpassword,
+                    'mdi-eye-outline': !showpassword,
+                  },
+                ]"
+              ></span>
+            </button>
           </div>
-          <div class="warningtet">你有錯誤</div>
         </div>
         <div class="inputbox">
           <span class="must">*</span>
           <label for="mIdentityLogin">再輸入一次密碼</label>
-          <div class="input">
+          <div :class="['input', { error: error }]">
             <input
-              type="text"
+              :type="showpassword ? 'password' : 'text'"
               id="mIdentityLogin"
-             v-model="password.checkpassword"
+              v-model="password.checkpassword"
               required
-            />
+            /><button type="button" @click="showpassword = !showpassword">
+              <span
+                :class="[
+                  'icon mdi',
+                  {
+                    'mdi-eye-off-outline': showpassword,
+                    'mdi-eye-outline': !showpassword,
+                  },
+                ]"
+              ></span>
+            </button>
           </div>
           <div class="warningtet">{{ message }}</div>
         </div>
@@ -42,13 +62,17 @@
       </div>
     </div>
   </div>
+  <SuccessAnim v-model="showOK" message="重設成功" :duration="1400" />
 </template>
 <script setup>
 import { useRoute } from "vue-router";
 import { request } from "@/utils/FontAxiosUtil";
 import { ref } from "vue";
 import router from "@/router/index";
+import SuccessAnim from "@/components/member/successAnim.vue";
 
+const showpassword = ref(true);
+const showOK = ref(false);
 const password = ref({
   password: "",
   checkpassword: "",
@@ -58,12 +82,15 @@ const data = ref({
   token: "",
 });
 
+const error = ref(false);
+
 const message = ref("");
 const route = useRoute();
 const token = route.query.token;
 console.log(token);
 
 const submit = async () => {
+  error.value = false;
   if (!token) {
     message.value = "Token 不存在或連結無效";
     return;
@@ -71,6 +98,7 @@ const submit = async () => {
 
   if (password.value.password !== password.value.checkpassword) {
     message.value = "兩次輸入的密碼不一致";
+    error.value = true;
     return;
   }
   data.value.password = password.value.password;
@@ -81,6 +109,7 @@ const submit = async () => {
       method: "POST",
       data: data.value,
     });
+    showOK = true;
 
     message.value = "密碼重設成功！即將跳轉登入頁";
     setTimeout(() => {
@@ -88,6 +117,7 @@ const submit = async () => {
     }, 2000);
   } catch (err) {
     message.value = "重設失敗，請確認連結是否有效或已過期";
+    error.value = true;
   }
 };
 </script>
@@ -136,7 +166,7 @@ h3 {
 
 /*表單*/
 .form {
-    margin-bottom: 100px;
+  margin-bottom: 100px;
   width: 600px;
   z-index: 1;
   overflow: hidden;
@@ -158,18 +188,18 @@ input {
   outline: none;
   width: 90%;
   height: 100%;
-  padding: 10px 20px;
 }
 .input {
   display: flex;
   align-items: center;
-  height: 50px;
+  height: 60px;
   width: 100%;
   border: 1px solid gray;
   border-radius: 50px;
   margin-left: auto;
   margin-right: auto;
   overflow: hidden;
+  padding: 10px 20px;
 }
 .inputbox {
   margin-top: 50px;
@@ -190,7 +220,7 @@ label {
 }
 
 .btn {
-
+  margin-top: 50px;
   height: 60px;
   width: 200px;
   border: 1px solid #02a9b9;
@@ -227,5 +257,50 @@ label {
   position: absolute;
   top: 120px;
   left: 1000px;
+}
+button> span{
+  font-size: 20px;
+  color: #ebb211;
+}
+
+.input.error {
+  border-color: #de5858;
+  animation: shake 0.6s ease-in-out;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(-5px);
+  }
+  20% {
+    transform: translateX(5px);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+  90% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 </style>

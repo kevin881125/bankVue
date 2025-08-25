@@ -52,7 +52,7 @@
             <div class="top">
               <div class="left">
                 <img :src="memberdetail.mImage" alt="" />
-                <button @click="$refs.fileInput.click()">
+                <button @click="$refs.fileInput.click()" v-if="!isReadonly">
                   <span class="mdi mdi-camera"></span>
                 </button>
                 <input  style="display: none" type="file" @change="onFileChange" ref="fileInput" accept="image/*" />
@@ -65,129 +65,141 @@
                 </div>
               </div>
             </div>
-            <div class="inputbox">
+            <div  class="inputbox"  >
               <span class="must">*</span>
               <label for="mName">姓名</label>
-              <div class="input">
+              <div :class="['input',{error:errors.mName}]">
                 <input
                   type="text"
                   id="mName"
                   v-model="memberdetail.mName"
                   placeholder="輸入姓名"
-                  required
+                  maxlength = "5"
+                  :readonly="isReadonly"
+                  
                 />
               </div>
-              <div class="warningtet">身分證字號</div>
+              <div :class="[{ warningtet: errors.mName }]">{{errorMessage.mName}}</div>
             </div>
 
             <div class="inputbox">
               <span class="must">*</span>
               <label for="mAccount">帳號</label>
-              <div class="input">
+              <div :class="['input',{error:errors.mAccount}]">
                 <input
                   type="text"
                   id="mAccount"
                   v-model="memberdetail.mAccount"
                   placeholder="帳號英文+數字"
-                  required
+                  :readonly="isReadonly"
+                  
                 />
               </div>
-              <div class="warningtet">你有錯誤</div>
+                <div :class="[{warningtet:errors.mAccount}]">{{errorMessage.mAccount}}</div>
             </div>
             <div class="inputbox">
               <span class="must">*</span>
               <label for="mPassword">密碼</label>
-              <div class="input">
+              <div :class="['input',{error:errors.mPassword}]" >
                 <input
                   type="text"
                   id="mPassword"
                   v-model="memberdetail.mPassword"
                   placeholder="帳號英文+數字"
-                  required
-                /><span class="icon mdi mdi-eye-closed"></span>
+                  :readonly="isReadonly"
+                
+                />
               </div>
-              <div class="warningtet">你有錯誤</div>
+               <div :class="[{warningtet:errors.mPassword}]">{{errorMessage.mPassword}}</div>
             </div>
-            <div class="inputbox">
+            <div class="inputbox" >
               <span class="must">*</span>
               <label for="mPhone">電話</label>
-              <div class="input">
+              <div :class="['input',{error:errors.mPhone}]">
                 <input
                   type="text"
                   id="mPhone"
                   v-model="memberdetail.mPhone"
                   placeholder="密碼英文+數字"
-                  required
-                /><span class="icon mdi mdi-keyboard"></span>
+                  :readonly="isReadonly"
+          
+                />
               </div>
-              <div class="warningtet">你有錯誤</div>
+             <div :class="[{warningtet:errors.mPhone}]">{{errorMessage.mPhone}}</div>
             </div>
             <div class="inputbox">
               <span class="must">*</span>
               <label for="mEmail">信箱</label>
-              <div class="input">
+              <div :class="['input',{error:errors.mEmail}]">
                 <input
                   type="text"
                   id="mEmail"
                   v-model="memberdetail.mEmail"
                   placeholder="密碼英文+數字"
-                  required
-                /><span class="icon mdi mdi-keyboard"></span>
+                  :readonly="isReadonly"
+             
+                />
               </div>
-              <div class="warningtet">你有錯誤</div>
+               <div :class="[{warningtet:errors.mEmail}]">{{errorMessage.mEmail}}</div>
             </div>
             <div class="inputbox">
               <span class="must">*</span>
               <label for="mAddress">居住地址</label>
-              <div class="input">
+              <div :class="['input',{error:errors.mAddress}]">
                 <input
                   type="text"
                   id="mAddress"
                   v-model="memberdetail.mAddress"
                   placeholder="密碼英文+數字"
-                  required
-                /><span class="icon mdi mdi-keyboard"></span>
+                  :readonly="isReadonly"
+                
+                />
               </div>
-              <div class="warningtet">你有錯誤</div>
+              <div :class="[{warningtet:errors.mAddress}]">{{errorMessage.mAddress}}</div>
             </div>
             <div class="inputbox">
               <span class="must">*</span>
               <label for="mBirthday">出生日</label>
-              <div class="input">
+              <div :class="['input',{error:errors.mBirthday}]">
                 <input
                   type="date"
                   id="mBirthday"
                   v-model="memberdetail.mBirthday"
                   placeholder="密碼英文+數字"
-                  required
-                /><span class="icon mdi mdi-keyboard"></span>
+                  :readonly="isReadonly"
+                  
+                />
               </div>
-              <div class="warningtet">你有錯誤</div>
+                 <div :class="[{warningtet:errors.mBirthday}]">{{errorMessage.mBirthday}}</div>
             </div>
 
             <div class="inputbox">
               <span class="must">*</span>
               <label for="mGender">性別</label>
-              <div class="input">
+              <div :class="['input',{error:errors.mGender}]" >
                 <select
                   id="mGender"
                   name="gender"
                   v-model="memberdetail.mGender"
+                  :readonly="isReadonly"
                 >
                   <option value="">請選擇</option>
                   <option value="男">男</option>
                   <option value="女">女</option>
                   <option value="其他">其他</option>
                 </select>
-                <span class="icon mdi mdi-triangle-down"></span>
+                
               </div>
-              <div class="warningtet">你有錯誤</div>
+                 <div :class="[{warningtet:errors.mGender}]">{{errorMessage.mGender}}</div>
               <div class="btns">
                 <button type="submit" class="btn" @click="toggleForm">
                   取消
                 </button>
-                <button type="submit" class="btn" @click="editok">
+                <button type="submit" v-if="!isReadonly" class="btn" @click="editok">
                   確定修改
+                </button>
+                  <button type="submit"  v-if="isReadonly" class="btn" @click="isReadonly=false">
+                  編輯
                 </button>
                 <SuccessAnim
                   v-model="showOK"
@@ -208,12 +220,38 @@ import { useMemberStore } from "@/stores/MemberStore";
 import { request } from "@/utils/FontAxiosUtil";
 import SuccessAnim from "@/components/member/successAnim.vue";
 import DoughnutChart from "@/components/member/DoughnutChart.vue";
+import { validateMember2 } from "@/utils/CheckMemberInformation";
 const memberStore = useMemberStore();
 const showOK = ref(false);
 const mImage =ref({});
 const topImage = ref();
 const formData = new FormData();
 const originname = ref("");
+
+const isReadonly = ref(true);
+
+const errorMessage = reactive({
+  mName: "",
+  mIdentity: "",
+  mGender: "",
+  mAccount: "",
+  mPassword: "",
+  mAddress: "",
+  mPhone: "",
+  mBirthday: null,
+  mEmail: "",
+});
+const errors = ref({
+  mName: false,
+  mIdentity: false,
+  mGender: false,
+  mAccount: false,
+  mPassword:false,
+  mAddress: false,
+  mPhone: false,
+  mBirthday: false,
+  mEmail: false,
+})
 const memberdetail = ref({
   mId: null,
   mName: "",
@@ -248,7 +286,8 @@ onMounted(
 
 
 const editok = async () => {
-
+if(validateMember2(memberdetail,errors,errorMessage)){
+  isReadonly.value = true;
   if(formData.has("file")){
     const img = await request({
     url: "/member/upload-mimage",
@@ -276,6 +315,9 @@ const editok = async () => {
   originname.value = structuredClone( memberdetail.value.mName)
    topImage.value = memberdetail.value.mImage;
   showOK.value = true;
+
+}
+
 };
 
 /*圖片上傳*/
@@ -306,7 +348,7 @@ const formRef = ref(null);
 
 const toggleForm = async () => {
   showForm.value = !showForm.value;
-
+isReadonly.value = true;
   if (showForm.value) {
 
     // 等表單渲染完成再滾動
@@ -410,7 +452,7 @@ const scrollToForm = () => {
 }
 .title {
   font-size: 20px;
-  border-left: 5px solid #0ed0d6;
+  border-left: 5px solid #EBB211;
   padding-left: 10px;
 }
 .number {
@@ -483,7 +525,7 @@ select {
   border: none;
   background: none;
   outline: none;
-  width: 90%;
+  width: 100%;
   height: 100%;
   padding: 10px 20px;
 }
@@ -502,15 +544,13 @@ select {
   margin-left: auto;
   margin-right: auto;
 }
-.warningtet {
-  text-align: right;
-}
 label {
   display: inline-block;
   margin-bottom: 8px;
   color: #aeaeae;
 }
 .warningtet {
+  text-align: right;
   margin-right: auto;
   margin-left: auto;
   font-size: 12px;
@@ -526,10 +566,7 @@ form {
   justify-content: center;
   width: 70%;
 }
-.icon {
-  margin-right: 8px;
-  color: #13aebd;
-}
+
 .must {
   color: #de5858;
 }
@@ -566,12 +603,12 @@ form {
 }
 .right label {
   font-size: 24px;
-  border-left: 5px solid #13aebd;
+  border-left: 5px solid #EBB211;
   padding-left: 10px;
 }
 .text {
   font-size: 32px;
-  border-left: 5px solid #13aebd;
+  border-left: 5px solid #EBB211;
   padding-left: 10px;
 }
 .text:first-child {
@@ -588,12 +625,12 @@ form {
   height: 80px;
   font-size: 20px;
   font-weight: 700;
-  border: 1px solid #13aebd;
+  border: 1px solid #EBB211;
   border-radius: 50px;
-  color: #13aebd;
+  color: #EBB211;
   transition: 0.1s;
   &:hover {
-    background-color: #13aebd;
+    background-color: #EBB211;
     color: #fff;
   }
   &:active {
@@ -624,4 +661,45 @@ form {
 h1 {
   text-align: center;
 }
+.input.error {
+  border-color: #de5858;
+  animation: shake 0.6s ease-in-out;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(-5px);
+  }
+  20% {
+    transform: translateX(5px);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+  90% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
 </style>

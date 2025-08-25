@@ -2,7 +2,7 @@
   <div class="container">
     <div class="decorate"></div>
     <div class="dog">
-        <img src="../../../image/member/img-kv-idpw.png" alt="">
+        <img src="../../../image/logo_white.svg" alt="">
     </div>
     <div class="title">
       <h1>忘記密碼</h1>
@@ -13,7 +13,7 @@
         <div class="inputbox">
           <span class="must">*</span>
           <label for="mIdentityLogin">輸入email</label>
-          <div class="input">
+          <div  :class="['input',{error:error}]" >
             <input
               type="text"
               id="mIdentityLogin"
@@ -21,7 +21,7 @@
               required
             />
           </div>
-          <div class="warningtet">你有錯誤</div>
+          <div class="warningtet" >{{errotMessage}}</div>
         </div>
 
         <input type="text"  />
@@ -39,14 +39,27 @@ import { request } from "@/utils/FontAxiosUtil";
 const forgetPassword = ref({
   email: "",
 });
+
+const errotMessage = ref(""
+)
+const error = ref(false);
+
+
 const submit = async () => {
   console.log("我進來了");
+  error.value = false;
+ 
+    const data = await request({
+      url: "/member/forgot-password",
+      method: "POST",
+      data: forgetPassword.value,
+    });
+    if(data==undefined){
+      error.value = true
+      errotMessage.value ="沒有找到email";
+    }
 
-  const data = await request({
-    url: "/member/forgot-password",
-    method: "POST",
-    data: forgetPassword.value,
-  });
+
 };
 </script>
 <style scoped>
@@ -59,16 +72,17 @@ const submit = async () => {
 }
 .container {
   width: 100%;
-  background-image: url("../../../image/member/bg-productpage-upper-03.png");
+  /* background-image: url("../../../image/member/bg-productpage-upper-03.png");
   background-size: 200%;
-  background-position: -1000px -500px;
+  background-position: -1100px -500px; */
+  height: 850px;
 }
 .decorate {
   width: 1200px;
   height: 800px;
   position: absolute;
   border-radius: 50%;
-  background-color: #13aebd;
+  background-color: #ebb521;
   top: -500px;
   left: -100px;
   background-image: url("../../../image/member/img-banner-star@2x.png");
@@ -153,9 +167,9 @@ label {
 
   height: 60px;
   width: 200px;
-  border: 1px solid #02a9b9;
+  border: 1px solid #EBB211;
   border-radius: 50px;
-  color: #02a9b9;
+  color: #EBB211;
   background-color: #fff;
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
   font-weight: 700;
@@ -163,7 +177,7 @@ label {
   
 }
 .btn:hover {
-  background-color: #02a9b9;
+  background-color: #EBB211;
   color: #fff;
   transition: 0.5s;
 }
@@ -176,7 +190,7 @@ label {
   top: 500px;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #f4fbfc;
+  background-color: #fff7dc;
   border-radius: 50%;
   width: 1200px;
   height: 500px;
@@ -186,7 +200,52 @@ label {
 }
 .dog{
     position: absolute;
-    top: 120px;
+    top: 80px;
    left: 1000px;   
+}
+.dog img{
+  width: 500px;
+  
+}
+
+.input.error {
+  border-color: #de5858;
+  animation: shake 0.6s ease-in-out;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(-5px);
+  }
+  20% {
+    transform: translateX(5px);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+  90% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 </style>
