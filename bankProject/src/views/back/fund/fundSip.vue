@@ -1,5 +1,5 @@
 <template>
-    <div>持有基金</div>
+  <div>定期定額</div>
 </template>
 <script setup>
 

@@ -3,9 +3,7 @@
     <header>
       <div class="header">
         <div class="logo">
-          <router-link to="/yuzubank/index"
-            ><img src="../../image/logo_white.svg" alt="logo"
-          /></router-link>
+          <router-link to="/yuzubank/index"><img src="../../image/logo_white.svg" alt="logo" /></router-link>
         </div>
         <nav class="main-nav">
           <ul class="nav-list">
@@ -20,25 +18,31 @@
                   <router-link to="/yuzubank/cardApply">信用卡申請</router-link>
                 </li>
                 <li>
-                  <router-link to="/yuzubank/creditTransaction"
-                    >交易</router-link
-                  >
+                  <router-link to="/yuzubank/creditTransaction">交易</router-link>
                 </li>
                 <li>
                   <router-link to="/yuzubank/myBill">我的帳單</router-link>
                 </li>
               </ul>
             </li>
+
             <li><router-link to="/yuzubank/loanHome">貸款</router-link></li>
-            <li><router-link to="/yuzubank/fundHome">基金</router-link></li>
+
+            <li class="dropdown">
+              <a href="#">基金</a>
+              <ul class="dropdown-menu">
+                <li>
+                  <router-link to="/yuzubank/myFund">我的基金</router-link>
+                </li>
+                <li>
+                  <router-link to="/yuzubank/buyFund">申購基金</router-link>
+                </li>
+              </ul>
+            </li>
           </ul>
 
           <!-- 未登入 -->
-          <router-link
-            v-if="!memberStore.isLoggedIn"
-            to="/yuzubank/frontLogin"
-            class="login-button"
-          >
+          <router-link v-if="!memberStore.isLoggedIn" to="/yuzubank/frontLogin" class="login-button">
             登入
           </router-link>
 
@@ -79,12 +83,8 @@
     </footer>
 
     <!-- 登出確認視窗 -->
-    <LogoutModal
-      :visible="showLogoutModal"
-      message="你確定要登出嗎？"
-      @confirm="handleLogout"
-      @cancel="showLogoutModal = false"
-    />
+    <LogoutModal :visible="showLogoutModal" message="你確定要登出嗎？" @confirm="handleLogout"
+      @cancel="showLogoutModal = false" />
   </div>
 </template>
 
