@@ -49,6 +49,23 @@ const router = createRouter({
       ],
     },
 
+    {
+      path: "/yuzubank/front",
+      component: () => import("@/views/front/yuzubankFront.vue"),
+      children: [
+        ...memeber,
+        ...account,
+        ...accountapplication,
+        ...loan,
+        ...creditCard,
+        ...fund,
+        {
+          path: "index",
+          component: () => import("@/views/front/index.vue"),
+        },
+      ],
+    },
+
   ],
 });
 
@@ -56,18 +73,18 @@ router.beforeEach((to, from, next) => {
   const permissionStore = usePermissionStore()
 
   const pageId = to.meta.pageId
-  
 
-  
+
+
   // ✅ 若沒有 pageId（代表不需權限控制），直接放行
   if (!pageId) {
     next()
     return
   }
-    if (permissionStore.allowedPages.length === 0) {
+  if (permissionStore.allowedPages.length === 0) {
     // 如果沒有權限頁面，則跳轉到未授權頁面
     console.log("沒有頁面給你顯示陣列是空的");
-    
+
     next('/unauthorized');
     return;
   }

@@ -1,5 +1,5 @@
 <template>
-  <div :class="['background',{blackout:blackout}]">
+  <div :class="['background', { blackout: blackout }]">
     <div :class="['outlay', { active: slide }]">
       <div :class="['container']">
         <div class="left">
@@ -19,13 +19,8 @@
                   <span class="must">*</span>
                   <label for="mIdentityLogin">身分證字號</label>
                   <div class="input">
-                    <input
-                      type="text"
-                      id="mIdentityLogin"
-                      v-model="mIdentity"
-                      placeholder="輸入身分證"
-                      required
-                    /><span class="icon mdi mdi-eye-closed"></span>
+                    <input type="text" id="mIdentityLogin" v-model="mIdentity" placeholder="輸入身分證" required /><span
+                      class="icon mdi mdi-eye-closed"></span>
                   </div>
                   <div class="warningtet">你有錯誤</div>
                 </div>
@@ -33,13 +28,8 @@
                   <span class="must">*</span>
                   <label for="mAccountLogin">使用者帳號</label>
                   <div class="input">
-                    <input
-                      type="text"
-                      id="mAccountLogin"
-                      v-model="mAccount"
-                      placeholder="帳號英文+數字"
-                      required
-                    /><span class="icon mdi mdi-eye-closed"></span>
+                    <input type="text" id="mAccountLogin" v-model="mAccount" placeholder="帳號英文+數字" required /><span
+                      class="icon mdi mdi-eye-closed"></span>
                   </div>
                   <div class="warningtet">你有錯誤</div>
                 </div>
@@ -47,13 +37,8 @@
                   <span class="must">*</span>
                   <label for="mPasswordLogin">使用者密碼</label>
                   <div class="input">
-                    <input
-                      type="text"
-                      id="mPasswordLogin"
-                      v-model="mPassword"
-                      placeholder="密碼英文+數字"
-                      required
-                    /><span class="icon mdi mdi-keyboard"></span>
+                    <input type="text" id="mPasswordLogin" v-model="mPassword" placeholder="密碼英文+數字" required /><span
+                      class="icon mdi mdi-keyboard"></span>
                   </div>
                   <div class="warningtet">你有錯誤</div>
                 </div>
@@ -112,11 +97,11 @@ const doLogin = async () => {
       response.mphone,
       response.memail,
       response.token,
-      "http://localhost:8080"+response.mimage
+      "http://localhost:8080" + response.mimage
     );
 
     console.log(memberStore.mId);
-    router.push("/yuzubank/index");
+    router.push("/yuzubank/front");
   } catch (error) {
     alert("登入失敗，請確認帳號密碼");
     console.error(error);
@@ -134,7 +119,7 @@ const moveslide = () => {
 
 
 //忘記密碼
-const forgetbtn = ()=>{
+const forgetbtn = () => {
   router.push("/yuzubank/memberforget");
 }
 
@@ -159,10 +144,12 @@ const forgetbtn = ()=>{
   overflow: hidden;
   transition: 0.8s;
 }
+
 .background.blackout {
   background-image: none;
   background-color: #1B2028;
 }
+
 .outlay {
   top: 0;
   width: 60%;
@@ -171,12 +158,15 @@ const forgetbtn = ()=>{
   margin-left: auto;
   transition: 0.5s;
 }
+
 .active {
   top: -100%;
 }
+
 .cc {
   background-color: #991212;
 }
+
 .container {
   top: 120px;
   width: 100%;
@@ -185,12 +175,14 @@ const forgetbtn = ()=>{
   justify-content: space-between;
   align-items: center;
 }
+
 .logo-img {
   width: 500px;
   height: auto;
   display: block;
   margin: 0 auto;
 }
+
 .right {
   width: 50%;
   height: 100%;
@@ -200,12 +192,14 @@ const forgetbtn = ()=>{
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
+
 .topbar {
   display: flex;
   align-items: center;
   justify-content: center;
   border-bottom: 5px solid #00a8b8;
 }
+
 input {
   border: none;
   background: none;
@@ -214,6 +208,7 @@ input {
   height: 100%;
   padding: 10px 20px;
 }
+
 .input {
   display: flex;
   align-items: center;
@@ -225,20 +220,24 @@ input {
   margin-right: auto;
   overflow: hidden;
 }
+
 .inputbox {
   margin-top: 20px;
   margin-left: auto;
   margin-right: auto;
   width: 80%;
 }
+
 .warningtet {
   text-align: right;
 }
+
 button {
   margin-left: auto;
   margin-right: auto;
   display: block;
 }
+
 .btn {
   margin-top: 80px;
   height: 60px;
@@ -250,15 +249,18 @@ button {
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
   font-weight: 700;
 }
+
 .btn:hover {
   background-color: #02a9b9;
   color: #fff;
   transition: 0.5s;
 }
+
 .forgetbtn {
   margin-top: 20px;
   color: #02a9b9;
-  &:hover{
+
+  &:hover {
     color: #18dbec;
   }
 }
@@ -268,20 +270,24 @@ h1 {
   font-weight: 500;
   color: white;
 }
+
 h3 {
   margin-top: 10px;
   font-size: 20px;
   font-weight: 300;
   color: white;
 }
+
 h2 {
   color: #13aebd;
 }
+
 label {
   display: inline-block;
   margin-bottom: 8px;
   color: #aeaeae;
 }
+
 .warningtet {
   margin-right: auto;
   margin-left: auto;
@@ -289,10 +295,12 @@ label {
   font-size: 12px;
   color: #de5858;
 }
+
 .form {
   z-index: 1;
   overflow: hidden;
 }
+
 .decorate {
   position: absolute;
   top: 850px;
@@ -303,24 +311,29 @@ label {
   width: 1000px;
   height: 500px;
 }
+
 .icon {
   margin-right: 8px;
   color: #13aebd;
 }
+
 .must {
   color: #de5858;
 }
+
 .register {
   position: absolute;
   top: 700px;
   left: 750px;
   display: flex;
 }
-.register > button {
+
+.register>button {
   margin-left: 5px;
   color: #13aebd;
 }
-.register > button:hover{
+
+.register>button:hover {
   color: #18dbec;
 }
 </style>
