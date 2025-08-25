@@ -3,11 +3,8 @@
     <header>
       <div class="header">
         <div class="logo">
-<<<<<<< HEAD
           <router-link to="/yuzubank/front"><img src="../../image/logo_horizontal.png" alt="logo" /></router-link>
-=======
-          <router-link to="/yuzubank/index"><img src="../../image/logo_white.svg" alt="logo" /></router-link>
->>>>>>> home3r6
+
         </div>
         <nav class="main-nav">
           <ul class="nav-list">
@@ -22,15 +19,13 @@
                   <router-link to="/yuzubank/cardShowcase">信用卡申請</router-link>
                 </li>
                 <li>
-<<<<<<< HEAD
                   <router-link to="/yuzubank/record">我的申請紀錄</router-link>
                 </li>
                 <li>
                   <router-link to="/yuzubank/myCard">我的卡片</router-link>
                 </li>
                 <li>
-=======
->>>>>>> home3r6
+
                   <router-link to="/yuzubank/creditTransaction">交易</router-link>
                 </li>
                 <li>
