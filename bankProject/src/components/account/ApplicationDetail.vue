@@ -199,6 +199,7 @@ const submitUpdate = async () => {
     reviewerId: workerId,
     rejectionReason: note.value,
     applicationId: props.selectedItem.applicationId,
+    mId: props.selectedItem.mId,
   };
 
   console.log(updateBean);
