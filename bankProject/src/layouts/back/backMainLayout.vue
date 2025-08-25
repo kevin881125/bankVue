@@ -2,42 +2,31 @@
   <div class="container">
     <div class="leftbar">
       <div class="icon">
-        <img
-          style="width: 150px; height: 150px"
-          src="../../image/logo_black.svg"
-          alt=""
-        />
+        <img style="width: 150px; height: 150px" src="../../image/logo_black.svg" alt="" />
       </div>
       <ul class="featurelist">
         <li v-if="hasAccess(1)">
-          <router-link to="/yuzubank/backmain/member"
-            ><span class="mdi mdi-account"></span>會員管理</router-link
-          >
+          <router-link to="/yuzubank/backmain/member"><span class="mdi mdi-account"></span>會員管理</router-link>
         </li>
         <li v-if="hasAccess(2)">
           <router-link to="/yuzubank/backmain/account">
-            <span class="mdi mdi-piggy-bank"></span>帳戶管理</router-link
-          >
+            <span class="mdi mdi-piggy-bank"></span>帳戶管理</router-link>
         </li>
         <li v-if="hasAccess(2)">
           <router-link to="/yuzubank/backmain/accountapplication">
-            <span class="mdi mdi-hand-coin"></span>帳戶申請管理</router-link
-          >
+            <span class="mdi mdi-hand-coin"></span>帳戶申請管理</router-link>
         </li>
         <li v-if="hasAccess(3)">
           <router-link to="/yuzubank/backmain/creditCard">
-            <span class="mdi mdi-credit-card"></span>信用卡管理</router-link
-          >
+            <span class="mdi mdi-credit-card"></span>信用卡管理</router-link>
         </li>
         <li v-if="hasAccess(4)">
           <router-link to="/yuzubank/backmain/loan">
-            <span class="mdi mdi-cash"></span>貸款管理</router-link
-          >
+            <span class="mdi mdi-cash"></span>貸款管理</router-link>
         </li>
         <li v-if="hasAccess(5)">
-          <router-link to="/yuzubank/backmain/fund">
-            <span class="mdi mdi-bank"></span>基金管理</router-link
-          >
+          <router-link to="/yuzubank/backmain/fundBack">
+            <span class="mdi mdi-bank"></span>基金管理</router-link>
         </li>
         <li v-if="hasAccess(6)">
           <router-link to="/yuzubank/backmain/workerManage">
@@ -48,6 +37,7 @@
           <router-link to="/yuzubank/backmain/role">
             <span class="mdi mdi-bank"></span>角色權限</router-link
           >
+
         </li>
       </ul>
     </div>
@@ -90,7 +80,7 @@ const hasAccess = (pageId) => {
 onMounted(async () => {
   wName.value = workerStore.wName;
   wAccount.value = workerStore.wAccount;
- 
+
 });
 
 const signOut = () => {
@@ -117,6 +107,7 @@ const signOut = () => {
   padding: 10px;
   background-color: var(--white-color);
 }
+
 .leftbar {
   width: 250px;
   height: 100%;
@@ -125,12 +116,14 @@ const signOut = () => {
   border-radius: 20px 0 0 20px;
   box-shadow: -5px 0 3px rgba(0, 0, 0, 0.1);
 }
+
 .rightArea {
   width: calc(100% - 80px);
   height: 100%;
   display: flex;
   flex-direction: column;
 }
+
 .rightTop {
   height: 8%;
   width: 100%;
@@ -138,6 +131,7 @@ const signOut = () => {
   justify-content: space-between;
   align-items: center;
 }
+
 .rightTop-right {
   width: 50%;
   height: 100%;
@@ -150,12 +144,14 @@ const signOut = () => {
 .mdi-logout {
   font-size: 50px;
 }
+
 .name {
   display: flex;
   align-items: center;
   font-size: 30px;
   padding: 0 20px;
 }
+
 .photo {
   width: 50px;
   height: 65%;
@@ -163,6 +159,7 @@ const signOut = () => {
   background-color: #616161;
   margin-right: 10px;
 }
+
 .title {
   color: var(--contrast-color);
   letter-spacing: 2px;
@@ -175,24 +172,29 @@ const signOut = () => {
   padding: 10px;
   overflow: auto;
 }
+
 .icon {
   width: 100%;
   height: 20%;
   padding: 10px;
 }
+
 ul {
   margin-top: 20px;
 }
+
 li {
   width: 100%;
   height: 80px;
 
   list-style: none;
+
   &:hover {
     background-color: #f5f5f5;
     border-right: 10px solid orange;
   }
 }
+
 a {
   list-style: none;
   text-decoration: none;
@@ -205,14 +207,17 @@ a {
   font-weight: 300;
   color: rgb(0, 0, 0);
 }
-a > span {
+
+a>span {
   margin-right: 12px;
 }
+
 .icon {
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .outbtn:hover {
   color: orange;
 }

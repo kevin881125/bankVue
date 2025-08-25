@@ -1,5 +1,5 @@
 <template>
-    <div>持有基金</div>
+  <div>基金淨值</div>
 </template>
 <script setup>
 

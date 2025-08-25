@@ -3,7 +3,11 @@
     <header>
       <div class="header">
         <div class="logo">
+<<<<<<< HEAD
           <router-link to="/yuzubank/front"><img src="../../image/logo_horizontal.png" alt="logo" /></router-link>
+=======
+          <router-link to="/yuzubank/index"><img src="../../image/logo_white.svg" alt="logo" /></router-link>
+>>>>>>> home3r6
         </div>
         <nav class="main-nav">
           <ul class="nav-list">
@@ -18,12 +22,15 @@
                   <router-link to="/yuzubank/cardShowcase">信用卡申請</router-link>
                 </li>
                 <li>
+<<<<<<< HEAD
                   <router-link to="/yuzubank/record">我的申請紀錄</router-link>
                 </li>
                 <li>
                   <router-link to="/yuzubank/myCard">我的卡片</router-link>
                 </li>
                 <li>
+=======
+>>>>>>> home3r6
                   <router-link to="/yuzubank/creditTransaction">交易</router-link>
                 </li>
                 <li>
@@ -31,8 +38,20 @@
                 </li>
               </ul>
             </li>
+
             <li><router-link to="/yuzubank/loanHome">貸款</router-link></li>
-            <li><router-link to="/yuzubank/fundHome">基金</router-link></li>
+
+            <li class="dropdown">
+              <a href="#">基金</a>
+              <ul class="dropdown-menu">
+                <li>
+                  <router-link to="/yuzubank/myFund">我的基金</router-link>
+                </li>
+                <li>
+                  <router-link to="/yuzubank/buyFund">申購基金</router-link>
+                </li>
+              </ul>
+            </li>
           </ul>
 
           <!-- 未登入 -->
