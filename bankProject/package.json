@@ -12,6 +12,7 @@
     "@fortawesome/fontawesome-free": "^7.0.0",
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
+    "dayjs": "^1.11.13",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.4.1",
     "vue": "^3.5.17",

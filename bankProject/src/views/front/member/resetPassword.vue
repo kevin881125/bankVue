@@ -39,7 +39,7 @@
           <div :class="['input', { error: error }]">
             <input
               :type="showpassword ? 'password' : 'text'"
-              id="mIdentityLogin"
+              id="mIdentityLogin2"
               v-model="password.checkpassword"
               required
             /><button type="button" @click="showpassword = !showpassword">
@@ -56,7 +56,10 @@
           </div>
           <div class="warningtet">{{ message }}</div>
         </div>
-        <button class="btn" @click="submit">確認送出</button>
+                <div class="btns">
+          <button class="btn" @click="submit">確認送出</button>
+          <button class="btn" @click="inputdate">一鍵輸入</button>
+        </div>
 
         <div class="decorate2"></div>
       </div>
@@ -82,12 +85,16 @@ const data = ref({
   token: "",
 });
 
+const inputdate = ()=>{
+  password.value.password="ggggggg1111111";
+  password.value.checkpassword="ggggggg1111111";
+}
+
 const error = ref(false);
 
 const message = ref("");
 const route = useRoute();
 const token = route.query.token;
-console.log(token);
 
 const submit = async () => {
   error.value = false;
@@ -109,8 +116,6 @@ const submit = async () => {
       method: "POST",
       data: data.value,
     });
-    showOK = true;
-
     message.value = "密碼重設成功！即將跳轉登入頁";
     setTimeout(() => {
       router.push("/yuzubank/frontLogin");
@@ -186,8 +191,10 @@ input {
   border: none;
   background: none;
   outline: none;
+    padding: 0;      
   width: 90%;
   height: 100%;
+
 }
 .input {
   display: flex;
@@ -199,7 +206,7 @@ input {
   margin-left: auto;
   margin-right: auto;
   overflow: hidden;
-  padding: 10px 20px;
+  padding: 0px 20px;
 }
 .inputbox {
   margin-top: 50px;
@@ -219,6 +226,11 @@ label {
   color: #de5858;
 }
 
+.btns{
+  width: 88%;
+  display: flex;
+  justify-content: space-around;
+}
 .btn {
   margin-top: 50px;
   height: 60px;

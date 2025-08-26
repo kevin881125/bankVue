@@ -25,7 +25,7 @@ export default [
       component: () => import("@/views/back/member/workerManage.vue")
   },
       {
-     path: "role",
-      component: () => import("@/views/back/member/workerManage.vue")
+     path: "workLoge",
+      component: () => import("@/views/back/member/workLoge.vue")
   }
 ]

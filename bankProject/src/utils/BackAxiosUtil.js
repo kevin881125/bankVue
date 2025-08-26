@@ -29,6 +29,10 @@ apiService.interceptors.request.use((config) => {
 // === 回應攔截器 ===
 apiService.interceptors.response.use(
   (response) => {
+    if (response.config.isDownload) {
+
+      return response; // 直接回傳完整 response 物件
+    }
     return response.data;
   },
   (error) => {

@@ -25,16 +25,23 @@
         </div>
 
         <input type="text"  />
-        <button class="btn" @click="submit">送出</button>
+        <div class="btns">
+          <button class="btn" @click="submit">送出</button>
+          <button class="btn" @click="inputdate">一鍵輸入</button>
+        </div>
 
         <div class="decorate2"></div>
       </div>
     </div>
   </div>
+  <SuccessToast v-model="showToast" message="已發送信箱！" :duration="2000" />
 </template>
 <script setup>
 import { ref } from "vue";
 import { request } from "@/utils/FontAxiosUtil";
+import SuccessToast from "@/components/member/successAnim.vue";
+
+const showToast = ref(false);
 
 const forgetPassword = ref({
   email: "",
@@ -44,7 +51,9 @@ const errotMessage = ref(""
 )
 const error = ref(false);
 
-
+const inputdate = ()=>{
+  forgetPassword.value.email="yuzubank202@gmail.com";
+}
 const submit = async () => {
   console.log("我進來了");
   error.value = false;
@@ -57,6 +66,9 @@ const submit = async () => {
     if(data==undefined){
       error.value = true
       errotMessage.value ="沒有找到email";
+    }else{
+        showToast.value = true;
+        errotMessage.value ="已發送到email";
     }
 
 
@@ -206,6 +218,11 @@ label {
 .dog img{
   width: 500px;
   
+}
+.btns{
+  width: 88%;
+  display: flex;
+  justify-content: space-around;
 }
 
 .input.error {

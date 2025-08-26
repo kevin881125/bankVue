@@ -30,12 +30,12 @@
         </li>
         <li v-if="hasAccess(6)">
           <router-link to="/yuzubank/backmain/workerManage">
-            <span class="mdi mdi-bank"></span>管理員權限</router-link
+            <span class="mdi mdi-account-key"></span>管理員權限</router-link
           >
         </li>
         <li v-if="hasAccess(7)">
-          <router-link to="/yuzubank/backmain/role">
-            <span class="mdi mdi-bank"></span>角色權限</router-link
+          <router-link to="/yuzubank/backmain/workLoge">
+           <span class="mdi mdi-file-document-edit-outline"></span>管理員記錄</router-link
           >
 
         </li>

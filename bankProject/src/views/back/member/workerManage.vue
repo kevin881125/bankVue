@@ -69,7 +69,7 @@
           </tr>
         </tbody>
       </table>
-      
+
       <table class="roleList" v-if="!roleEdit">
         <thead>
           <tr>
@@ -77,6 +77,7 @@
             <th v-for="page in pageAll">
               {{ page.pageExp }}
             </th>
+            <th>刪除</th>
           </tr>
         </thead>
         <tbody>
@@ -84,12 +85,17 @@
             <td>{{ role.role.roleName }}</td>
             <td v-for="(page, pageIndex) in pageAll" :key="pageIndex">
               <input
-              type="checkbox"
-              :checked="role.pages.some((p) => p.pageId === page.pageId)"
-              @change="
+                type="checkbox"
+                :checked="role.pages.some((p) => p.pageId === page.pageId)"
+                @change="
                   togglePermission(role.role.roleId, page.pageId, $event)
                 "
               />
+            </td>
+            <td>
+              <button class="deletebtn" @click="showConfirm(role.role.roleId,role.role.roleName)">
+                <span class="mdi mdi-delete"></span>
+              </button>
             </td>
           </tr>
         </tbody>
@@ -107,18 +113,27 @@
           <tr v-for="(role, index) in roleWithPageDatas" :key="index">
             <td>{{ role.role.roleName }}</td>
             <td v-for="(page, pageIndex) in pageAll" :key="pageIndex">
-              <span v-if="role.pages.some((p) => p.pageId === page.pageId)" class="mdi mdi-check-bold color"></span>
+              <span
+                v-if="role.pages.some((p) => p.pageId === page.pageId)"
+                class="mdi mdi-check-bold color"
+              ></span>
             </td>
           </tr>
         </tbody>
       </table>
       <div class="btn">
-        <button v-if="roleEdit" @click="roleEdit=false">編輯</button>
+        <button v-if="roleEdit" @click="roleEdit = false">編輯</button>
         <button v-if="!roleEdit" @click="editRolePermission">確定更改</button>
       </div>
-
     </div>
   </div>
+  <div v-if="showModal" class="modal">
+      <div class="modal-content">
+        <p>你確定要刪除{{roleName}}這個角色嗎？</p>
+        <button @click="deleteRole">確定</button>
+        <button @click="cancelDelete">取消</button>
+      </div>
+    </div>
 </template>
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
@@ -131,6 +146,37 @@ const roleWithPageDatas = ref({});
 const pageAll = ref({});
 const roleEdit = ref(true);
 
+
+
+/*刪除確認功能*/
+const showModal =ref(false);
+const roleIdToDelete=ref({});
+const roleName=ref("");
+const showConfirm=(roleId,name)=> {
+      roleIdToDelete.value = roleId;
+      showModal.value = true;
+      roleName.value = name;
+    }
+const cancelDelete=()=> {
+      showModal.value = false;
+      roleIdToDelete.value = null;
+      roleName.value = "";
+    }
+const deleteRole = async () => {
+  if(checkWorkersinRole(workers.value,roleIdToDelete.value)){
+    const data = await request({
+      url: "/api/roles/" + roleIdToDelete.value,
+      method: "DELETE",
+    });
+    getAllRolesWithPage();
+  }else{
+    window.alert("不能刪除此角色還在被使用中")
+  }
+  getAllrole();
+  cancelDelete()
+};
+
+
 const worker = ref({
   wName: "",
   wAccount: "",
@@ -139,6 +185,33 @@ const worker = ref({
     roleId: null,
   },
 });
+const checkWorlerNew = ()=>{
+let check = true;
+
+if(worker.value.wName ===""){
+  window.alert("名稱沒有填寫")
+  check=false;
+}
+if(worker.value.wAccount ===""){
+  window.alert("帳號沒有填寫")
+  check=false;
+}
+if(worker.value.wPassword ===""){
+  window.alert("密碼沒有填寫")
+  check=false;
+}
+if(worker.value.role.roleId === null){
+  window.alert("角色沒有選擇")
+  check=false;
+}
+  workers.value.forEach((oworker) => {
+    if (oworker.wAccount === worker.value.wAccount) {
+      window.alert("此帳號已存在請更換")
+      check = false;
+    }
+  });
+return check;
+}
 
 const cleanWorker = () => {
   worker.value.wName = "";
@@ -161,14 +234,31 @@ const clearRole = () => {
   role.value.pages = [];
 };
 
-const newWorker = async () => {
-  const data = await request({
-    url: "/worker/worker",
-    method: "POST",
-    data: worker.value,
+const checkWorkersinRole = (workers, id) => {
+  let check = true;
+  workers.forEach((worker) => {
+    if (worker.role.roleId === id) {
+      console.log(
+        "編號:" + worker.wId + ",角色正在使用:" + worker.role.roleName
+      );
+      check = false;
+    }
   });
-  getAllworker();
-  cleanWorker();
+  return check;
+};
+
+
+
+const newWorker = async () => {
+  if(checkWorlerNew()){
+    const data = await request({
+      url: "/worker/worker",
+      method: "POST",
+      data: worker.value,
+    });
+    getAllworker();
+    cleanWorker();
+  }
 };
 
 const getAllworker = async () => {
@@ -262,7 +352,7 @@ const newRole = async () => {
 };
 </script>
 <style scoped>
-*{
+* {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
@@ -354,7 +444,6 @@ th {
   padding: 20px;
   margin-bottom: 10px;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
-  
 }
 .roletable td {
   text-align: center;
@@ -379,20 +468,19 @@ th {
 .roletable button:hover {
   background-color: #e0a911;
 }
-.roletitle{
+.roletitle {
   box-shadow: none;
 }
 /*角色清單*/
-.roleList{
+.roleList {
   width: 100%;
   background-color: #fff;
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 10px;
 }
-.roleList>thead{
+.roleList > thead {
   width: 100%;
-
 }
 
 .roleList td {
@@ -401,26 +489,92 @@ th {
   border-bottom: 1px solid rgb(212, 211, 211);
   height: 50px;
 }
-.color{
+.color {
   color: green;
 }
 
-
 /*編輯按鈕*/
-.btn{
+.btn {
   float: right;
   margin-bottom: 10px;
 }
-.btn>button{
+.btn > button {
   margin-right: 10px;
-    width: 80px;
+  width: 80px;
   height: 34px;
   background-color: #ebb211;
   color: #fff;
   border-radius: 10px;
+}
 
+.deletebtn{
+  width: 100%;
+  height: 100%;
+}
+.deletebtn:hover{
+
+  color:#de5858 ;
 }
 
 
+/*確認頁面*/
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4); /* 半透明背景 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
 
+/* Modal 本體 */
+.modal-content {
+  background-color: #fff;
+  padding: 30px 20px;
+  border-radius: 12px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* 提示文字 */
+.modal-content p {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* 按鈕區塊 */
+.modal-content button {
+  background-color: #ebb211;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  margin: 0 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.modal-content button:hover {
+  background-color: #d19b0f;
+}
+
+/* 動畫（可選） */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 </style>

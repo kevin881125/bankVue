@@ -168,9 +168,9 @@ const openError = () => {
 };
 
 const OneClickInput = () => {
-  mAccount.value = "kevin";
-  mPassword.value = "123456";
-  mIdentity.value = "A123456789";
+  mAccount.value = "alice9898";
+  mPassword.value = "alice9898";
+  mIdentity.value = "H287196898";
 };
 
 const backindex = ()=>{
@@ -208,7 +208,7 @@ const doLogin = async () => {
       console.log(memberStore.mId);
       router.push("/yuzubank/front");
     } catch (error) {
-      errorMessage.value = "登入失敗，請確認帳號密碼";
+      errorMessage.value = error;
       console.error(error);
       openError();
     }

@@ -21,10 +21,19 @@ import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 
+
+
 const vuetify = createVuetify({
   components,
   directives,
 });
+
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+dayjs.extend(utc)
+dayjs.extend(timezone)
+app.config.globalProperties.$dayjs = dayjs
 
 app.use(vuetify);
 
