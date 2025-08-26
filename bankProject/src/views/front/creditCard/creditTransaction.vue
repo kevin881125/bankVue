@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="py-6 mx-auto" style="max-width: 1100px;">
     <!-- ============== 我的交易（新加） ============== -->
     <v-card class="pa-4 mb-6">
       <v-card-title>我的交易</v-card-title>
@@ -78,7 +78,7 @@
       </v-alert>
     </v-card>
 
-    <!-- ============== 你原本的「PayPal 模擬刷卡」 ============== -->
+    <!-- ============== PayPal 模擬刷卡（Sandbox / TWD） ============== -->
     <v-card class="pa-4">
       <v-card-title>PayPal 模擬刷卡（Sandbox / TWD）</v-card-title>
 
@@ -104,18 +104,23 @@
             />
           </v-col>
 
+          <!-- ✅ 只列出使用者的卡片 -->
           <v-col cols="12" sm="4">
-            <v-text-field
-              v-model.number="cardId"
-              type="number"
-              min="1"
-              label="卡片 ID（測試）"
-              hint="之後可改成載入使用者卡片"
-              persistent-hint
+            <v-select
+              v-model="selectedCardId"
+              :items="myCardOptions"
+              item-title="label"
+              item-value="value"
+              label="選擇我的卡片"
+              :disabled="!myCardOptions.length"
               clearable
             />
           </v-col>
         </v-row>
+
+        <v-alert v-if="!myCardOptions.length" type="info" class="mb-2">
+          目前沒有可用的信用卡，請先申請或開卡。
+        </v-alert>
 
         <!-- PayPal Wallet 按鈕容器 -->
         <div id="paypal-buttons" class="mt-4" />
@@ -131,12 +136,24 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { request } from "@/utils/BackAxiosUtil";
+import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 
 const memberStore = useMemberStore();
 
-/* -------------------- 新加：交易區塊 -------------------- */
+/* -------------------- 我的卡片（新加） -------------------- */
+const myCards = ref([]);               // 後端 /memberCard/getCard 回傳
+const selectedCardId = ref(null);      // PayPal 選用的卡片
+
+const myCardOptions = computed(() =>
+  myCards.value.map(c => {
+    const id = c.cardId ?? c.cardDetailId ?? c.id;
+    const code = c.cardCode || "";
+    return { value: id, label: `${maskCard(code)}（#${id}）` };
+  })
+);
+
+/* -------------------- 交易區塊 -------------------- */
 const txHeaders = [
   { title: "交易碼", key: "transactionCode", width: 120 },
   { title: "卡片", key: "cardMasked", width: 240 },
@@ -151,19 +168,8 @@ const txLoading = ref(false);
 const txRows = ref([]);
 const txQuery = ref({ yearMonth: "", cardId: null, keyword: "" });
 
-const txCardOptions = computed(() => {
-  const seen = new Map();
-  txRows.value.forEach(t => {
-    const c = t.cardDetail;
-    if (c?.cardId && !seen.has(c.cardId)) {
-      seen.set(c.cardId, {
-        value: c.cardId,
-        label: `${maskCard(c.cardCode)}（#${c.cardId}）`,
-      });
-    }
-  });
-  return Array.from(seen.values());
-});
+// ✅ 交易篩選下拉也改為只顯示自己的卡
+const txCardOptions = computed(() => myCardOptions.value);
 
 async function fetchAllTx() {
   txLoading.value = true;
@@ -218,13 +224,11 @@ const txFiltered = computed(() => {
   const kw = (txQuery.value.keyword || "").trim().toLowerCase();
 
   return txRows.value.filter(t => {
-    // 月份過濾
     if (ym) {
       const d = new Date(t.transactionTime);
       const yyyymm = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`;
       if (yyyymm !== ym) return false;
     }
-    // 關鍵字過濾
     if (kw) {
       const s = [
         t.description,
@@ -239,14 +243,35 @@ const txFiltered = computed(() => {
   });
 });
 
-/* -------------------- 你原本的 PayPal 區塊 -------------------- */
+/* -------------------- PayPal 區塊 -------------------- */
 const amount = ref(500);                 // TWD 整數
 const merchantType = ref("餐飲");
 const merchantTypes = ["餐飲", "加油", "其他"];
-const cardId = ref(19);                  // 測試卡片 ID
 
 const successText = ref("");
 const errorText   = ref("");
+
+// 載入我的卡片
+async function fetchMyCards() {
+  try {
+    const res = await request({
+      url: "/memberCard/getCard",
+      method: "GET",
+      headers: { Authorization: `Bearer ${memberStore.token}` }
+    });
+    myCards.value = Array.isArray(res) ? res : [];
+    if (myCards.value.length && !selectedCardId.value) {
+      const firstId = myCards.value[0].cardId ?? myCards.value[0].cardDetailId ?? myCards.value[0].id;
+      selectedCardId.value = firstId;
+      // 也可預設交易篩選帶上
+      // txQuery.value.cardId = firstId;
+    }
+  } catch (e) {
+    console.error(e);
+    myCards.value = [];
+    selectedCardId.value = null;
+  }
+}
 
 // 只載一次、而且強制 currency=TWD & components=buttons
 async function ensureSdkLoadedTWD() {
@@ -302,6 +327,7 @@ async function renderPaypalButtons() {
 
           const token = memberStore.token;
           if (!token) throw new Error("未登入或 token 遺失");
+          if (!selectedCardId.value) throw new Error("請先選擇你的卡片");
 
           const amtInt = Math.max(0, Math.round(Number(amount.value || 0)));
           if (amtInt <= 0) throw new Error("金額需為大於 0 的整數");
@@ -315,10 +341,8 @@ async function renderPaypalButtons() {
             });
             const orderId = res?.orderId || res?.id;
             if (!orderId) throw new Error("後端回傳缺少 orderId");
-            console.log("[createOrder] backend orderId =", orderId);
             return orderId;
           } catch (e) {
-            console.error("[createOrder] 後端建單失敗", e);
             const msg = e?.response?.data?.message || e?.message || "建單失敗";
             throw new Error(msg);
           }
@@ -327,13 +351,15 @@ async function renderPaypalButtons() {
         async onApprove(data) {
           try {
             const token = memberStore.token;
+            if (!selectedCardId.value) throw new Error("請先選擇你的卡片");
+
             const resp = await request({
               url: "/transactionFront/paypal/capture-and-add",
               method: "POST",
               headers: { Authorization: `Bearer ${token}` },
               data: {
                 orderId: data.orderID,
-                cardId: Number(cardId.value),
+                cardId: Number(selectedCardId.value),   // ✅ 使用者自己的卡片
                 merchantType: merchantType.value || "其他",
                 description: "PayPal Wallet 交易 - User",
               },
@@ -345,7 +371,6 @@ async function renderPaypalButtons() {
               resp?.id != null;
 
             if (!hasId) {
-              console.error("[capture-and-add] 後端回傳不含交易識別資訊", resp);
               throw new Error("扣款成功但入庫確認失敗（回傳格式不含交易識別資訊）");
             }
 
@@ -355,22 +380,18 @@ async function renderPaypalButtons() {
             // 付款完成後，順便刷新上面的「我的交易」
             fetchTx();
           } catch (e) {
-            console.error("[onApprove] error", e);
-            errorText.value =
-              e?.response?.data?.message || e?.message || "扣款或入庫失敗";
+            errorText.value = e?.response?.data?.message || e?.message || "扣款或入庫失敗";
             successText.value = "";
           }
         },
 
         onError(err) {
-          console.error("[paypal onError]", err);
           errorText.value = err?.message || "PayPal 付款錯誤";
           successText.value = "";
         },
       })
       .render("#paypal-buttons");
   } catch (e) {
-    console.error(e);
     errorText.value = e?.message || "載入 PayPal 按鈕失敗";
   }
 }
@@ -401,9 +422,10 @@ function fmtDateTime(v) {
   }
 }
 
-onMounted(() => {
-  fetchAllTx();          // 先帶入我的交易
-  renderPaypalButtons(); // 渲染 PayPal
+onMounted(async () => {
+  await fetchMyCards();     // 先載入「我的卡片」
+  await fetchAllTx();       // 帶入我的交易
+  renderPaypalButtons();    // 渲染 PayPal 按鈕
 });
 </script>
 
