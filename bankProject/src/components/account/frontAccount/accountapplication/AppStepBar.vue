@@ -60,18 +60,18 @@ const cur = computed(() => Math.min(Math.max(props.activeStep, 1), 3));
   position: relative;
   display: grid;
   grid-template-columns: 40px 1fr;
-  gap: 12px;
-  padding-bottom: 28px; /* 下一顆 icon 的間距 */
+  gap: 40px;
+  padding-bottom: 64px; /* 下一顆 icon 的間距 */
   --seg-progress: 0; /* 預設 0（未開始） */
 }
 /* 灰底全長線（到下一顆 icon 頂端） */
 .step:not(:last-child)::after {
   content: "";
   position: absolute;
-  left: 20px; /* icon 正中 */
-  top: 40px; /* 從圓圈底部開始 */
+  left: 32px; /* icon 正中 */
+  top: 64px; /* 從圓圈底部開始 */
   width: 2px;
-  height: calc(100% - 40px);
+  height: calc(100% - 64px);
   background: var(--line);
   z-index: 0;
   pointer-events: none;
@@ -82,10 +82,10 @@ const cur = computed(() => Math.min(Math.max(props.activeStep, 1), 3));
 .step:not(:last-child)::before {
   content: "";
   position: absolute;
-  left: 20px;
-  top: 40px;
+  left: 32px;
+  top: 64px;
   width: 2px;
-  height: calc(100% - 40px);
+  height: calc(100% - 64px);
   background: var(--brand);
   transform-origin: top;
   transform: scaleY(var(--seg-progress));
@@ -96,26 +96,37 @@ const cur = computed(() => Math.min(Math.max(props.activeStep, 1), 3));
 /* 狀態：完成＝全亮、目前＝亮一半 */
 .step.completed {
   --seg-progress: 1;
+  opacity: 0.8;
 }
+
+.step.completed .icon{
+  background-color: var(--brand);
+  border-color: var(--brand);
+}
+
+.step.completed .step:not {
+  background: var(--line);
+}
+
 .step.active {
   --seg-progress: 0.3;
 }
 
 /* 預設（未開始） */
 .icon {
-  width: 40px;
-  height: 40px;
+  width: 64px;
+  height: 64px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   border: 2px solid var(--line);
-  border-color: var(--brand);
-  background: var(--brand);
+  border-color: var(--line);
+  background: var(--line);
   opacity: 0.75;
 }
 .step-icon {
-  font-size: 24px;
-  color: var(--line);
+  font-size: 32px;
+  color: var(--ink);
   transition: color 0.3s;
 }
 /* 當前步驟 */
@@ -126,7 +137,7 @@ const cur = computed(() => Math.min(Math.max(props.activeStep, 1), 3));
   opacity: 1;
 }
 .step.active .step-icon {
-  font-size: 24px;
+  font-size: 32px;
 }
 
 .step.active .text .title,
@@ -143,12 +154,12 @@ const cur = computed(() => Math.min(Math.max(props.activeStep, 1), 3));
 }
 
 .text .title {
-  font-size: 14px;
-  margin-bottom: 4px;
+  font-size: 20px;
+  margin-bottom: 6px;
 }
 .text .bold {
   font-weight: 500;
-  font-size: 20px;
+  font-size: 24px;
   color: var(--line);
 }
 .text .muted {

@@ -102,6 +102,12 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 
 <script setup lang="ts">
@@ -109,7 +115,7 @@ import { ref, watch, defineProps, defineEmits, computed, nextTick } from "vue";
 import { request } from "@/utils/BackAxiosUtil";
 import { formatDateOnly, formatDateTime } from "@/utils/DataUtil";
 import { VDateInput } from "vuetify/labs/VDateInput";
-
+import ErrorMessage from "@/components/ErrorMessage.vue";
 /** ========= Props / Emits / Dialog 同步 ========= **/
 const props = defineProps({
   show: Boolean,
@@ -117,7 +123,8 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:show"]);
 const internalShow = ref(props.show);
-
+const showError = ref(false);
+const errorMsg = ref("");
 watch(
   () => props.show,
   (val) => (internalShow.value = val)
@@ -195,7 +202,8 @@ function within3Months() {
 
 const onSearch = () => {
   if (!within3Months()) {
-    alert("查詢區間不可超過三個月");
+    errorMsg.value = "查詢區間不可超過三個月";
+    showError.value = true;
     return;
   }
   getTransactionsRecords();

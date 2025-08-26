@@ -54,12 +54,15 @@ function handleStep2Next(payload) {
   --brand: #ebb211;
   --accent: #ce1465;
   --ink: #222626;
-  --line: #e5e7eb;
+  --line: #e5e7eb;  
 
-  min-height: 100vh;
+  min-height: 820px;
   background: linear-gradient(135deg, var(--ink) 0%, #333 100%);
-  padding: 48px 24px;
+  /* padding: 48px 24px; */
   color: var(--line);
+  /* padding-top: 72px; */
+  display: flex;
+  align-items: center;
 }
 
 .open-layout {
@@ -67,11 +70,19 @@ function handleStep2Next(payload) {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 360px 1fr;
-  gap: 32px;
+  display: flex;
+  align-items: center;
+  gap: 64px;
+}
+
+.form-area {
+  padding: 0 72px 0 72px;
+  display: flex;
+  align-items: center;
 }
 
 .form-card {
-  width: 90%;
+  width: 100%;
   border-radius: 24px;
   background: #fff;
 }

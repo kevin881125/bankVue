@@ -1,121 +1,125 @@
 <template>
-  <h2 class="form-title">上傳身分證件</h2>
+  <div class="step-two">
+    <h2 class="form-title">上傳身分證件</h2>
 
-  <!-- 身分證正面（必填） -->
-  <div class="form-group">
-    <label class="field-label">身分證正面（必填）</label>
-    <!-- 上排：自訂檔案按鈕 + 檔名 + 移除 -->
-    <div class="uploader-row">
-      <!-- 隱藏原生 input，改用 label 當漂亮按鈕 -->
-      <input
-        id="frontInput"
-        ref="frontInput"
-        class="file-input"
-        type="file"
-        accept="image/*"
-        @change="onPick($event, 'front')"
-      />
-      <label class="file-btn" for="frontInput">選擇檔案</label>
+    <!-- 身分證正面（必填） -->
+    <div class="form-group">
+      <label class="field-label">*身分證正面（必填）</label>
+      <!-- 上排：自訂檔案按鈕 + 檔名 + 移除 -->
+      <div class="uploader-row">
+        <!-- 隱藏原生 input，改用 label 當漂亮按鈕 -->
+        <input
+          id="frontInput"
+          ref="frontInput"
+          class="file-input"
+          type="file"
+          accept="image/*"
+          @change="onPick($event, 'front')"
+        />
+        <label class="file-btn" for="frontInput">選擇檔案</label>
 
-      <span class="file-name" v-if="idFront">
-        {{ idFront.name }}（{{ prettySize(idFront.size) }}）
-      </span>
+        <span class="file-name" v-if="idFront">
+          {{ idFront.name }}（{{ prettySize(idFront.size) }}）
+        </span>
 
+        <button
+          v-if="idFront"
+          type="button"
+          class="btn ghost"
+          @click="clearFile('front')"
+        >
+          移除
+        </button>
+      </div>
+
+      <div class="hint error" v-if="errFront">{{ errFront }}</div>
+      <div class="preview" v-if="frontPreview" style="margin-top: 8px">
+        <img :src="frontPreview" alt="正面預覽" />
+      </div>
+    </div>
+
+    <!-- 身分證反面（必填） -->
+    <div class="form-group">
+      <label class="field-label">*身分證反面（必填）</label>
+      <div class="uploader-row">
+        <input
+          id="backInput"
+          ref="backInput"
+          class="file-input"
+          type="file"
+          accept="image/*"
+          @change="onPick($event, 'back')"
+        />
+        <label class="file-btn" for="backInput">選擇檔案</label>
+
+        <span class="file-name" v-if="idBack">
+          {{ idBack.name }}（{{ prettySize(idBack.size) }}）
+        </span>
+
+        <button
+          v-if="idBack"
+          type="button"
+          class="btn ghost"
+          @click="clearFile('back')"
+        >
+          移除
+        </button>
+      </div>
+
+      <div class="hint error" v-if="errBack">{{ errBack }}</div>
+      <div class="preview" v-if="backPreview" style="margin-top: 8px">
+        <img :src="backPreview" alt="反面預覽" />
+      </div>
+    </div>
+
+    <!-- 第二證件（選填） -->
+    <div class="form-group">
+      <label class="field-label">第二證件（選填：健保卡/駕照）</label>
+      <div class="uploader-row">
+        <input
+          id="secondInput"
+          ref="secondInput"
+          class="file-input"
+          type="file"
+          accept="image/*"
+          @change="onPick($event, 'second')"
+        />
+        <label class="file-btn" for="secondInput">選擇檔案</label>
+
+        <span class="file-name" v-if="secondId">
+          {{ secondId.name }}（{{ prettySize(secondId.size) }}）
+        </span>
+
+        <button
+          v-if="secondId"
+          type="button"
+          class="btn ghost"
+          @click="clearFile('second')"
+        >
+          移除
+        </button>
+      </div>
+
+      <div class="hint error" v-if="errSecond">{{ errSecond }}</div>
+      <div class="preview" v-if="secondPreview" style="margin-top: 8px">
+        <img :src="secondPreview" alt="第二證件預覽" />
+      </div>
+    </div>
+
+    <!-- 導覽 -->
+    <div class="btn-row" style="justify-content: space-between">
+      <button type="button" class="next-btn" @click="emit('prev')">
+        上一步
+      </button>
       <button
-        v-if="idFront"
         type="button"
-        class="btn ghost"
-        @click="clearFile('front')"
+        class="next-btn"
+        :disabled="submitting || !canNext"
+        @click="goNext"
       >
-        移除
+        下一步
       </button>
     </div>
-
-    <div class="hint error" v-if="errFront">{{ errFront }}</div>
-    <div class="preview" v-if="frontPreview" style="margin-top: 8px">
-      <img :src="frontPreview" alt="正面預覽" />
-    </div>
-  </div>
-
-  <!-- 身分證反面（必填） -->
-  <div class="form-group">
-    <label class="field-label">身分證反面（必填）</label>
-    <div class="uploader-row">
-      <input
-        id="backInput"
-        ref="backInput"
-        class="file-input"
-        type="file"
-        accept="image/*"
-        @change="onPick($event, 'back')"
-      />
-      <label class="file-btn" for="backInput">選擇檔案</label>
-
-      <span class="file-name" v-if="idBack">
-        {{ idBack.name }}（{{ prettySize(idBack.size) }}）
-      </span>
-
-      <button
-        v-if="idBack"
-        type="button"
-        class="btn ghost"
-        @click="clearFile('back')"
-      >
-        移除
-      </button>
-    </div>
-
-    <div class="hint error" v-if="errBack">{{ errBack }}</div>
-    <div class="preview" v-if="backPreview" style="margin-top: 8px">
-      <img :src="backPreview" alt="反面預覽" />
-    </div>
-  </div>
-
-  <!-- 第二證件（選填） -->
-  <div class="form-group">
-    <label class="field-label">第二證件（選填：健保卡/駕照）</label>
-    <div class="uploader-row">
-      <input
-        id="secondInput"
-        ref="secondInput"
-        class="file-input"
-        type="file"
-        accept="image/*"
-        @change="onPick($event, 'second')"
-      />
-      <label class="file-btn" for="secondInput">選擇檔案</label>
-
-      <span class="file-name" v-if="secondId">
-        {{ secondId.name }}（{{ prettySize(secondId.size) }}）
-      </span>
-
-      <button
-        v-if="secondId"
-        type="button"
-        class="btn ghost"
-        @click="clearFile('second')"
-      >
-        移除
-      </button>
-    </div>
-
-    <div class="hint error" v-if="errSecond">{{ errSecond }}</div>
-    <div class="preview" v-if="secondPreview" style="margin-top: 8px">
-      <img :src="secondPreview" alt="第二證件預覽" />
-    </div>
-  </div>
-
-  <!-- 導覽 -->
-  <div class="btn-row" style="justify-content: space-between">
-    <button type="button" class="next-btn" @click="emit('prev')">上一步</button>
-    <button
-      type="button"
-      class="next-btn"
-      :disabled="submitting || !canNext"
-      @click="goNext"
-    >
-      下一步
-    </button>
   </div>
 </template>
 
@@ -266,13 +270,18 @@ onUnmounted(() => {
 <style scoped>
 /* 右邊表單 */
 
+.step-two {
+  margin: 4px 24px 4px 24px;
+}
+
 .form-title {
   color: var(--ink);
   font-weight: 700;
   font-size: 22px;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 .form-group {
+  width: 500px;
   margin-bottom: 20px;
 }
 .field-label {
@@ -280,6 +289,7 @@ onUnmounted(() => {
   font-weight: 500;
   margin-bottom: 6px;
   display: block;
+  padding: 8px 0 8px 0;
 }
 .hint {
   color: #6b7f95;
@@ -328,24 +338,27 @@ onUnmounted(() => {
 .btn-row {
   display: flex;
   justify-content: flex-end;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 .next-btn {
-  min-width: 150px;
+  width: 150px;
+  display: inline-block;
+  padding: 8px 16px;
   border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
   font-weight: 500;
-  background: #fff;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  padding: 10px 20px;
   cursor: pointer;
+  user-select: none;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+  margin-top: 8px;
 }
 .next-btn:disabled {
   cursor: not-allowed;
 }
 .next-btn:hover {
-  background: var(--accent);
-  color: #fff;
+  opacity: 1;
 }
 .warm {
   margin-top: 12px;
@@ -363,7 +376,7 @@ onUnmounted(() => {
 /* 按鈕 */
 .btn {
   border-radius: 999px;
-  padding: 10px 16px;
+  padding: 4px 16px;
   border: 1px solid #696868;
   cursor: pointer;
   color: #696868;
@@ -421,18 +434,21 @@ onUnmounted(() => {
 /* 自訂「選擇檔案」按鈕 */
 .file-btn {
   display: inline-block;
-  padding: 10px 16px;
+  padding: 4px 16px;
   border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
+
+  border-radius: 999px;
   font-weight: 500;
+  background: #fff;
+  color: var(--accent);
+  border: 1px solid var(--accent);
   cursor: pointer;
   user-select: none;
-  opacity: 0.85;
   transition: opacity 0.2s;
 }
 .file-btn:hover {
-  opacity: 1;
+  background: var(--accent);
+  color: #fff;
 }
 
 .file-name {
@@ -450,7 +466,7 @@ onUnmounted(() => {
   justify-content: center; /* 水平置中 */
 }
 .preview img {
-  width: 300px; /* 想大一點就調這裡 */
+  width: 216px; /* 想大一點就調這裡 */
   max-width: 100%;
   aspect-ratio: 4 / 3; /* 固定外框比例（可改 3/2 或 1/1） */
   object-fit: contain; /* 以裁切方式塞滿框 */

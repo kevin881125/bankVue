@@ -257,16 +257,30 @@
       </v-sheet>
     </v-main>
   </v-app>
+
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
+
+  <SuccessMessage
+    :visible="showSuccess"
+    :successMessage="successMsg"
+    @cancel="showSuccess = false"
+  ></SuccessMessage>
 </template>
 
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
-import { ref, onMounted, watch } from "vue";
+import { ref } from "vue";
 import { useWorkerStore } from "@/stores/Worker";
 import InsertAccountDialog from "@/components/account/accountVue/InsertAccountDialog.vue";
 import UpdateAccountDialog from "@/components/account/accountVue/UpdateAccountDialog.vue";
 import TransactionDetailDialog from "@/components/account/accountVue/TransactionDetailDialog.vue";
 import TradeAccountDialog from "@/components/account/accountVue/TradeAccountDialog.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import SuccessMessage from "@/components/SuccessMessage.vue";
 
 const addDialog = ref(false);
 const tradeDialog = ref(false);
@@ -276,6 +290,10 @@ const filteredAccounts = ref([]);
 const selectedAccount = ref(null);
 const workerStore = useWorkerStore();
 const workerId = workerStore.wId; // 操作行員ID
+const showError = ref(false);
+const errorMsg = ref("");
+const showSuccess = ref(false);
+const successMsg = ref("");
 
 // 搜尋欄位
 const fetchAccounts = async () => {
@@ -417,13 +435,15 @@ const openUpdateDialog = (item) => {
 
 const submitUpdateStatus = async () => {
   if (updateForm.value.status === selectedAccount.value.status) {
-    alert("請修改狀態");
+    errorMsg.value = "請修改狀態";
+    showError.value = true;
     return;
   }
 
   // memo是null的話 => false 是空白的話.trim() => ""空白刪掉 => 沒有東西所以是false
   if (!updateForm.value.memo?.trim()) {
-    alert("請填寫修改狀態原因");
+    errorMsg.value = "請填寫修改狀態原因";
+    showError.value = true;
     return;
   }
   console.log(updateForm);
@@ -435,7 +455,9 @@ const submitUpdateStatus = async () => {
     headers: { "Content-Type": "application/json" },
   });
 
-  alert("修改狀態成功");
+  successMsg.value = "修改狀態成功";
+  showSuccess.value = true;
+
   updateDialog.value = false;
   fetchAccounts();
 };

@@ -110,13 +110,23 @@
       <memberRegister @moveslideClick="moveslide"></memberRegister>
     </div>
   </div>
+
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 <script setup>
 import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 import { ref } from "vue";
 import router from "@/router/index";
+
 import memberRegister from "@/views/front/member/memberRegister.vue";
+
+import ErrorMessage from "@/components/ErrorMessage.vue";
+
 
 /*登入邏輯*/
 const memberStore = useMemberStore();
@@ -132,6 +142,9 @@ const mAccountErrorMessage = ref("");
 const mIdentityEmpty = ref(false);
 const mPasswordEmpty = ref(false);
 const mAccountEmpty = ref(false);
+
+const showError = ref(false);
+const errorMsg = ref("");
 
 const checkEmpty = () => {
   let check = true;
@@ -177,6 +190,7 @@ const backindex = ()=>{
   router.push("/yuzubank/front");
 }
 
+
 const doLogin = async () => {
   checkclean();
   if (checkEmpty()) {
@@ -210,6 +224,7 @@ const doLogin = async () => {
     } catch (error) {
       errorMessage.value = error;
       console.error(error);
+
       openError();
     }
   }

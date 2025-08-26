@@ -111,13 +111,19 @@
       </div>
     </div>
   </dialog>
+
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 
 <script setup>
 import { ref, watch, computed } from "vue";
 import { request } from "@/utils/FontAxiosUtil";
 import { formatDateOnly, formatDateTime } from "@/utils/DataUtil";
-
+import ErrorMessage from "@/components/ErrorMessage.vue";
 const transactionsList = ref([]);
 
 /** Props 與 Emits（JS 版） */
@@ -127,6 +133,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue"]);
+const showError = ref(false);
+const errorMsg = ref("");
 
 /** 原生 dialog ref */
 const dlg = ref(null);
@@ -207,7 +215,8 @@ const loadTransactionsRC = async (id) => {
       info: `${tx.toBankCode || ""}-${tx.toAccountId || ""}`,
     }));
   } catch (error) {
-    console.error("載入交易資料失敗", error);
+    errorMsg.value = error;
+    showError.value = true;
   }
 };
 /** 表格與分頁 */

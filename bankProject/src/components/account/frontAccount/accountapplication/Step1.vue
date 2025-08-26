@@ -60,7 +60,7 @@
       </button>
     </div>
     <div class="hint error" v-if="otpError">{{ otpError }}</div>
-    <div class="hint success" v-if="otpPassed">✅ 驗證成功</div>
+    <div class="hint success" v-if="otpPassed">驗證成功</div>
   </div>
 
   <!-- 驗證碼 -->
@@ -366,7 +366,7 @@ const verifyCaptcha = async () => {
   border: none;
   background: none;
   cursor: pointer;
-  color: var(--brand);
+  color: var(--ink);
   font-size: 18px;
 }
 .check {

@@ -46,7 +46,7 @@ apiService.interceptors.response.use(
     // 參數錯誤
     if (status == 400) {
       alert(`請求參數錯誤:${data}`);
-      return;
+      return Promise.reject(data);
     }
 
     // 登入失敗或 token 過期
@@ -54,7 +54,7 @@ apiService.interceptors.response.use(
       alert(`${data}`);
 
       workerStore.logout();
-      return;
+      return Promise.reject(data);
     }
   }
 );

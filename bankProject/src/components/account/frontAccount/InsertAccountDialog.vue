@@ -164,29 +164,13 @@ const submitAddAccount = async () => {
 /* 內層白色面板 */
 .panel {
   position: relative; /* ← 關鍵：讓 close 以面板為參考 */
-  width: min(96vw, 1100px);
+  width: min(96vw, 600px);
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   margin: 0;
   max-height: calc(100vh - 12vh); /* 視窗變小時避免溢出 */
   overflow: auto; /* 內容可卷動 */
-}
-
-/* 關閉圓鈕（右上角） */
-.close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
 }
 
 .dlg-card {
@@ -199,8 +183,8 @@ const submitAddAccount = async () => {
   margin-bottom: 8px;
 }
 .dlg-title {
-  font-weight: 700;
-  font-size: 18px;
+  font-weight: 500;
+  font-size: 24px;
 }
 .field {
   margin: 12px 10px;
@@ -211,13 +195,19 @@ const submitAddAccount = async () => {
   padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 16px;
 }
 .field .req {
   color: #ef4444;
 }
+.field label {
+  font-weight: 400;
+  font-size: 18px;
+  margin-bottom: 6px;
+  display: inline-block;
+}
 .hint {
-  font-size: 12px;
+  font-size: 14px;
   color: #6b7280;
   margin-top: 6px;
 }

@@ -136,13 +136,24 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
+  <SuccessMessage
+    :visible="showSuccess"
+    :errorMessage="successMsg"
+    @cancel="showSuccess = false"
+  ></SuccessMessage>
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref, watch, readonly } from "vue";
+import { defineProps, defineEmits, ref, watch } from "vue";
 import { useWorkerStore } from "@/stores/Worker";
 import { formatDateOnly } from "@/utils/DataUtil";
-
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import SuccessMessage from "@/components/SuccessMessage.vue";
 const workerStore = useWorkerStore();
 
 const props = defineProps({
@@ -152,7 +163,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue", "updated"]);
+const showError = ref(false);
+const errorMsg = ref("");
 
+const showSuccess = ref(false);
+const successMsg = ref("");
 const dialog = ref(false);
 const selectedImage = ref("");
 
@@ -183,12 +198,14 @@ watch(
 // 送出更新資料到後端
 const submitUpdate = async () => {
   if (!selectedStatus.value) {
-    alert("請選擇狀態！");
+    errorMsg.value = "請選擇狀態！";
+    showError.value = true;
     return;
   }
 
   if (selectedStatus.value !== "通過" && !note.value.trim()) {
-    alert("備註為必填（如退件原因）！");
+    errorMsg.value = "備註為必填（如退件原因）！";
+    showError.value = true;
     return;
   }
 
@@ -216,12 +233,13 @@ const submitUpdate = async () => {
 
     if (!res.ok) throw new Error("更新失敗");
 
-    alert("狀態更新成功！");
+    successMsg.value = "狀態更新成功！";
+    showSuccess.value = true;
     emit("updated"); //通知父元件刷新資料
     emit("update:modelValue", false); // 關閉dialog
   } catch (error) {
-    console.error(error);
-    alert("送出失敗，請稍後再試!");
+    errorMsg.value = error;
+    showError.value = true;
   }
 };
 </script>
