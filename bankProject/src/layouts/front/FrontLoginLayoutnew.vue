@@ -17,7 +17,7 @@
               <img src="../../image/member/logicon.png" alt="" />
               <h2>我要登入</h2>
             </div>
-            <div class="form1"  >
+            <div class="form1">
               <div>
                 <div class="inputbox">
                   <span class="must">*</span>
@@ -107,6 +107,12 @@
       <memberRegisterNew @moveslideClick="moveslide"></memberRegisterNew>
     </div>
   </div>
+
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 <script setup>
 import { request } from "@/utils/FontAxiosUtil";
@@ -114,6 +120,7 @@ import { useMemberStore } from "@/stores/MemberStore";
 import { ref } from "vue";
 import router from "@/router/index";
 import memberRegisterNew from "@/views/front/member/memberRegisterNew.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 
 /*登入邏輯*/
 const memberStore = useMemberStore();
@@ -129,6 +136,9 @@ const mAccountErrorMessage = ref("");
 const mIdentityEmpty = ref(false);
 const mPasswordEmpty = ref(false);
 const mAccountEmpty = ref(false);
+
+const showError = ref(false);
+const errorMsg = ref("");
 
 const checkEmpty = () => {
   let check = true;
@@ -164,11 +174,11 @@ const openError = () => {
   mPasswordEmpty.value = true;
 };
 
-const OneClickInput=()=>{
-   mAccount.value = "kevin"
- mPassword.value ="123456"
-mIdentity.value ="A123456789"
-}
+const OneClickInput = () => {
+  mAccount.value = "kevin";
+  mPassword.value = "123456";
+  mIdentity.value = "A123456789";
+};
 
 const doLogin = async () => {
   checkclean();
@@ -202,7 +212,11 @@ const doLogin = async () => {
       router.push("/yuzubank/front");
     } catch (error) {
       errorMessage.value = "登入失敗，請確認帳號密碼";
-      console.error(error);
+
+      errorMsg.value = error;
+      showError.value = true;
+
+      // console.error(error);
       openError();
     }
   }
@@ -422,7 +436,7 @@ label {
   display: flex;
 }
 
-.register>button {
+.register > button {
   margin-left: 5px;
   color: #13aebd;
 }

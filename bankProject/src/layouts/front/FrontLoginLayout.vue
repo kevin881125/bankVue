@@ -36,12 +36,15 @@
       </form>
     </div>
   </div>
+
+  
 </template>
 <script setup>
 import { request } from "@/utils/FontAxiosUtil"; // 你剛才寫的 axios service
 import { useMemberStore } from "@/stores/MemberStore";
 import { ref } from "vue";
 import router from "@/router/index";
+
 
 const memberStore = useMemberStore();
 const mAccount = ref("");

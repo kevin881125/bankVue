@@ -5,7 +5,7 @@
 
     <p class="done__desc">
       我們已收到你的資料，將於
-      <strong>5 個工作天</strong> 左右完成審核。
+      <strong>5 個工作天</strong> 左右完成審核。<br></br>
       <template v-if="email"
         >確認信已寄到 <strong>{{ email }}</strong
         >。</template
@@ -31,7 +31,7 @@
     </ul>
 
     <div class="actions">
-      <RouterLink class="next-btn" to="/yuzubank/index">返回首頁</RouterLink>
+      <RouterLink class="next-btn" to="/yuzubank/front">返回首頁</RouterLink>
     </div>
   </section>
 </template>
@@ -51,46 +51,49 @@ function copy(text) {
 <style scoped>
 .done {
   text-align: center;
-  padding: 28px 12px;
+  padding: 28px 60px;
 }
 .done__icon {
   width: 64px;
   height: 64px;
-  margin: 0 auto 8px;
+  margin: 0 auto 12px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eaf9f0;
-  color: #2e7d32;
+  border: 2.5px solid var(--accent);
+  /* background: #ce146510; */
+  color: var(--accent);
   font-size: 30px;
   font-weight: 900;
 }
 .done__title {
   font-size: 22px;
-  margin: 12px 0 6px;
+  margin: 8px 0 8px;
   color: var(--accent);
 }
 .done__desc {
-  color: #6b7f95;
+  color: #ce1465bd;
   margin: 0 0 12px;
 }
 .done__summary {
-  max-width: 520px;
+  max-width: 640px;
   margin: 14px auto;
   text-align: left;
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 8px 14px;
   background: #fafbfc;
+  margin-bottom: 16px;
+  margin-top: 16px;
 }
 .done__summary .row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 2px;
+  padding: 10px 2px;
   border-bottom: 1px dashed #e6e8ea;
-  color: #6b7f95;
+  color: rgb(122, 122, 122);
 }
 .done__summary .row:last-child {
   border-bottom: 0;
@@ -103,9 +106,9 @@ function copy(text) {
 }
 .next-steps {
   max-width: 520px;
-  margin: 10px auto 18px;
+  margin: 16px auto 18px;
   text-align: left;
-  color: #6b7f95;
+  color: rgba(128, 128, 128, 0.712);
 }
 .next-steps li {
   margin: 6px 0;
@@ -137,11 +140,13 @@ function copy(text) {
   min-width: 150px;
   border-radius: 999px;
   font-weight: 500;
-  background: #fff;
-  color: var(--accent);
+  background: var(--accent);
+  color: #fff;
   border: 1px solid var(--accent);
   padding: 10px 20px;
   cursor: pointer;
+  margin-top: 16px;
+  text-decoration: none;
 }
 .next-btn:disabled {
   cursor: not-allowed;
