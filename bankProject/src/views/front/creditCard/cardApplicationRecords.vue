@@ -1,5 +1,5 @@
 <template>
-  <v-container class="py-8 mx-auto" style="max-width: 1200px;">
+  <v-container class="py-8 mx-auto" style="max-width: 1200px; height: 700px;">
     <div class="d-flex align-center mb-4">
       <div class="text-h5 font-weight-bold">我的信用卡申請紀錄</div>
       <v-spacer />

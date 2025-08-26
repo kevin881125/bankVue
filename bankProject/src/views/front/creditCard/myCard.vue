@@ -1,14 +1,25 @@
 <template>
-  <v-container class="py-8 mx-auto" style="max-width: 1100px;">
+  <v-container class="py-8 mx-auto" style="max-width: 900px;">
     <div class="d-flex align-center mb-4">
       <div class="text-h5 font-weight-bold">我的信用卡</div>
       <v-spacer />
-      <v-btn variant="text" prepend-icon="mdi-refresh" :loading="loading" @click="fetchCards">
+      <div class="text-caption mr-4" v-if="cards.length">
+        {{ currentIndex + 1 }} / {{ cards.length }}
+      </div>
+      <v-btn
+        variant="text"
+        prepend-icon="mdi-refresh"
+        :loading="loading"
+        @click="fetchCards"
+        :disabled="loading"
+      >
         重新整理
       </v-btn>
     </div>
 
-    <v-alert v-if="pageError" type="error" variant="tonal" class="mb-4">{{ pageError }}</v-alert>
+    <v-alert v-if="pageError" type="error" variant="tonal" class="mb-4">
+      {{ pageError }}
+    </v-alert>
 
     <v-empty-state
       v-if="!loading && cards.length === 0"
@@ -17,26 +28,37 @@
       class="my-12"
     />
 
-    <v-row v-else class="ga-6" justify="center">
-      <v-col v-for="c in cards" :key="c.cardId" cols="12" md="10">
-        <v-card class="rounded-2xl elevation-3">
-          <!-- 卡面圖 -->
-          <div class="pa-4 pb-0 d-flex align-center">
+    <!-- 單張顯示/可滑動切換 -->
+    <v-window
+      v-else
+      v-model="currentIndex"
+      show-arrows="hover"
+      class="rounded-2xl elevation-2"
+      continuous
+      touch
+    >
+      <v-window-item v-for="c in cards" :key="c.cardId">
+        <v-card class="rounded-2xl">
+          <!-- 卡面 -->
+          <div class="pa-6 pb-0 d-flex align-center justify-center">
             <v-img
               :src="cardImage(c)"
               :alt="`${c.cardType?.typeName || ''} 卡面`"
-              class="rounded-xl bg-grey-lighten-4"
-              height="160"
+              height="180"
+              class="rounded-xl"
               contain
+              style="max-width: 520px;"
             />
           </div>
 
-          <v-card-text>
-            <!-- 卡名 & 末四碼 -->
-            <div class="d-flex align-center mt-2">
+          <v-card-text class="pt-4">
+            <!-- 標題列 -->
+            <div class="d-flex align-center">
               <div class="text-h6">
                 {{ c.cardType?.typeName || '信用卡' }}
-                <span class="text-medium-emphasis text-subtitle-2 ml-1">｜末四碼 {{ last4(c.cardCode) }}</span>
+                <span class="text-medium-emphasis text-subtitle-2 ml-1">
+                  ｜末四碼 {{ last4(c.cardCode) }}
+                </span>
               </div>
               <v-spacer />
               <v-chip :color="statusColor(c.status)" size="small" variant="flat">
@@ -46,48 +68,72 @@
 
             <v-divider class="my-3" />
 
-            <!-- 主要資訊 -->
+            <!-- 主資訊 -->
             <v-row>
-              <v-col cols="12" sm="6" md="3">
+              <v-col cols="12" sm="6">
                 <div class="text-caption text-medium-emphasis">卡別 / 類型</div>
                 <div class="text-body-1">
                   {{ c.cardType?.typeName || '—' }}
-                  <span v-if="c.cardType?.typeCode" class="text-medium-emphasis">（{{ c.cardType.typeCode }}）</span>
+                  <span v-if="c.cardType?.typeCode" class="text-medium-emphasis">
+                    （{{ c.cardType.typeCode }}）
+                  </span>
                 </div>
               </v-col>
-
-              <v-col cols="12" sm="6" md="3">
+              <v-col cols="6" sm="3">
                 <div class="text-caption text-medium-emphasis">發卡日</div>
                 <div class="text-body-1">{{ fmtDate(c.issuedDate) || '—' }}</div>
               </v-col>
-
-              <v-col cols="12" sm="6" md="3">
+              <v-col cols="6" sm="3">
                 <div class="text-caption text-medium-emphasis">到期日</div>
                 <div class="text-body-1">{{ fmtYm(c.expirationDate) || '—' }}</div>
               </v-col>
+            </v-row>
 
-              <v-col cols="12" sm="6" md="3">
+            <v-row>
+              <v-col cols="6" sm="3">
+                <div class="text-caption text-medium-emphasis">信用額度</div>
+                <div class="text-body-1">{{ money(c.creditLimit) }}</div>
+              </v-col>
+              <v-col cols="6" sm="3">
+                <div class="text-caption text-medium-emphasis">可用額度</div>
+                <div class="text-body-1">{{ money(c.currentBalance) }}</div>
+              </v-col>
+              <v-col cols="6" sm="3">
+                <div class="text-caption text-medium-emphasis">已用額度</div>
+                <div class="text-body-1">{{ money(available(c)) }}</div>
+              </v-col>
+              <v-col cols="6" sm="3">
                 <div class="text-caption text-medium-emphasis">卡片安全碼</div>
                 <div class="text-body-1">{{ maskCvv(c.cvvCode) }}</div>
               </v-col>
             </v-row>
 
-            <v-row class="mt-1">
-              <v-col cols="12" sm="6" md="3">
-                <div class="text-caption text-medium-emphasis">信用額度</div>
-                <div class="text-body-1">{{ money(c.creditLimit) }}</div>
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <div class="text-caption text-medium-emphasis">已用額度</div>
-                <div class="text-body-1">{{ money(c.currentBalance) }}</div>
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <div class="text-caption text-medium-emphasis">可用額度</div>
-                <div class="text-body-1">{{ money(available(c)) }}</div>
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <div class="text-caption text-medium-emphasis">卡片狀態</div>
-                <div class="text-body-1">{{ statusText(c.status) }}</div>
+            <v-row>
+              <v-col cols="12" sm="6" md="4">
+                <div class="d-flex align-center justify-space-between">
+                  <div>
+                    <div class="text-caption text-medium-emphasis">可用紅利點數</div>
+                    <div class="text-body-1">
+                      <template v-if="pointsLoading[c.cardId]">
+                        <v-progress-circular indeterminate size="16" class="mr-2" />
+                        載入中…
+                      </template>
+                      <template v-else>
+                        {{ pointsText(c.cardId) }}
+                      </template>
+                    </div>
+                  </div>
+                  <v-btn
+                    icon
+                    size="small"
+                    variant="text"
+                    :loading="pointsLoading[c.cardId]"
+                    :disabled="pointsLoading[c.cardId]"
+                    @click="refreshPoints(c.cardId)"
+                  >
+                    <v-icon>mdi-refresh</v-icon>
+                  </v-btn>
+                </div>
               </v-col>
             </v-row>
           </v-card-text>
@@ -96,6 +142,7 @@
 
           <!-- 動作 -->
           <v-card-actions class="pa-4">
+            <v-btn variant="text" prepend-icon="mdi-chevron-left" @click="prev" />
             <v-spacer />
             <template v-if="isInactive(c.status)">
               <v-btn color="primary" :loading="actingId === c.cardId" @click="confirmChange(c, 'active')">
@@ -112,10 +159,28 @@
                 重新啟用
               </v-btn>
             </template>
+            <v-spacer />
+            <v-btn variant="text" append-icon="mdi-chevron-right" @click="next" />
           </v-card-actions>
         </v-card>
-      </v-col>
-    </v-row>
+      </v-window-item>
+    </v-window>
+
+    <!-- 點點導覽 -->
+    <div v-if="cards.length" class="d-flex justify-center mt-3">
+      <v-btn
+        v-for="(c, i) in cards"
+        :key="c.cardId"
+        icon
+        size="small"
+        variant="text"
+        :color="i === currentIndex ? 'primary' : 'grey'"
+        @click="currentIndex = i"
+        :aria-label="`切到第 ${i+1} 張`"
+      >
+        <v-icon>mdi-circle-small</v-icon>
+      </v-btn>
+    </div>
 
     <v-snackbar v-model="toast.open" :timeout="2200">{{ toast.msg }}</v-snackbar>
 
@@ -146,10 +211,8 @@ const BACKEND_BASE   = '/bank'
 
 const memberStore = useMemberStore()
 
-/* 自動配對卡面圖（把 /src/image/creditCard/* 全抓進來） */
+/* 自動配對卡面圖 */
 const cardImages = import.meta.glob('@/image/creditCard/*', { eager: true, as: 'url' })
-
-/* 常用備援圖 */
 const imgVisa     = new URL('@/image/creditCard/visa.jpg', import.meta.url).href
 const imgJcb      = new URL('@/image/creditCard/jcb.png', import.meta.url).href
 const imgInfinite = new URL('@/image/creditCard/infiniteVisa.jpg', import.meta.url).href
@@ -167,8 +230,13 @@ const pageError = ref('')
 const cards     = ref([])
 const actingId  = ref(null)
 const toast     = ref({ open: false, msg: '' })
+const currentIndex = ref(0) // 目前顯示哪一張
 
-/* 確認窗 */
+/* 紅利點數 */
+const points = ref({})
+const pointsLoading = ref({})
+const pointsError = ref({})
+
 const confirm = ref({ open: false, card: null, action: '', title: '', text: '', color: 'primary' })
 
 function getToken() {
@@ -189,13 +257,48 @@ async function fetchCards() {
     if (!res.ok) throw new Error(data?.error || data?.message || `載入失敗 (${res.status})`)
 
     cards.value = Array.isArray(data) ? data.map(mapCard) : []
+    currentIndex.value = 0
+    await Promise.all(cards.value.map(c => refreshPoints(c.cardId)))
   } catch (e) {
     console.error(e)
     pageError.value = e.message || '載入失敗'
     cards.value = []
+    currentIndex.value = 0
   } finally {
     loading.value = false
   }
+}
+
+/* 單卡刷新紅利點數 */
+async function refreshPoints(cardId) {
+  pointsLoading.value = { ...pointsLoading.value, [cardId]: true }
+  pointsError.value   = { ...pointsError.value,   [cardId]: '' }
+  try {
+    const token = getToken()
+    const url = new URL(`${BACKEND_ORIGIN}${BACKEND_BASE}/reward/points`)
+    url.searchParams.set('cardId', String(cardId))
+    const res = await fetch(url.toString(), {
+      method: 'GET',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data?.error || data?.message || `點數查詢失敗 (${res.status})`)
+    const val = Number(data?.points ?? 0)
+    points.value = { ...points.value, [cardId]: Number.isFinite(val) ? val : 0 }
+  } catch (e) {
+    console.error(e)
+    pointsError.value = { ...pointsError.value, [cardId]: e.message || '查詢失敗' }
+    points.value = { ...points.value, [cardId]: 0 }
+  } finally {
+    pointsLoading.value = { ...pointsLoading.value, [cardId]: false }
+  }
+}
+
+function pointsText(cardId) {
+  if (pointsError.value[cardId]) return '—'
+  const p = points.value[cardId]
+  if (typeof p !== 'number' || Number.isNaN(p)) return '—'
+  return `${p.toLocaleString()} 點`
 }
 
 /* 統一整理後端物件 */
@@ -209,11 +312,11 @@ function mapCard(raw) {
     creditLimit: raw.creditLimit ?? 0,
     currentBalance: raw.currentBalance ?? 0,
     status: raw.status || 'inactive',
-    cardType: raw.cardType || null,  // { typeCode, typeName, ... }
+    cardType: raw.cardType || null,
   }
 }
 
-/* 卡面圖決策：先用 type_code 檔名比對，其次用 typeName 關鍵字，最後給預設圖 */
+/* 顯示工具 */
 function cardImage(c) {
   const code = (c.cardType?.typeCode || '').toLowerCase().trim()
   if (code) {
@@ -228,7 +331,6 @@ function cardImage(c) {
   return imgVisa
 }
 
-/* 顯示工具 */
 const money = v => `NT$${Number(v ?? 0).toLocaleString()}`
 function fmtDate(v) {
   if (!v) return ''
@@ -246,23 +348,33 @@ function fmtYm(v) {
 }
 const last4 = code => String(code || '').slice(-4).padStart(4, '•')
 const available = c => Math.max(0, Number(c.creditLimit || 0) - Number(c.currentBalance || 0))
-const maskCvv = s => s ? '•••' : '—'
+const maskCvv = s => (s ? '•••' : '—')
 
-/* 變更狀態：先跳確認窗 */
+/* 切換 */
+function next() {
+  if (!cards.value.length) return
+  currentIndex.value = (currentIndex.value + 1) % cards.value.length
+}
+function prev() {
+  if (!cards.value.length) return
+  currentIndex.value = (currentIndex.value - 1 + cards.value.length) % cards.value.length
+}
+
+/* 變更狀態 */
 function confirmChange(card, action) {
   confirm.value = {
     open: true,
     card,
     action,
     title: action === 'active' ? '確認開卡' : action === 'suspend' ? '確認停卡' : '確認變更',
-    text: action === 'active'
-      ? `確定要為「${card.cardType?.typeName || '信用卡'}（末四碼 ${last4(card.cardCode)}）」進行開卡嗎？`
-      : `確定要將「${card.cardType?.typeName || '信用卡'}（末四碼 ${last4(card.cardCode)}）」停卡嗎？`,
+    text:
+      action === 'active'
+        ? `確定要為「${card.cardType?.typeName || '信用卡'}（末四碼 ${last4(card.cardCode)}）」進行開卡嗎？`
+        : `確定要將「${card.cardType?.typeName || '信用卡'}（末四碼 ${last4(card.cardCode)}）」停卡嗎？`,
     color: action === 'suspend' ? 'error' : 'primary',
   }
 }
 
-/* 送出變更 */
 async function doChange() {
   const card = confirm.value.card
   const action = confirm.value.action
@@ -301,5 +413,5 @@ onMounted(fetchCards)
 </script>
 
 <style scoped>
-/* 需要可再微調樣式 */
+/* 可自行微調導覽按鈕與容器寬度 */
 </style>

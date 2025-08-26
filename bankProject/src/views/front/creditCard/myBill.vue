@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="py-6 mx-auto" style="max-width: 1100px;height: 700px;">
     <v-card class="pa-4 mb-4">
       <v-card-title>我的信用卡帳單</v-card-title>
 
@@ -53,8 +53,8 @@
       </v-data-table>
     </v-card>
 
-    <!-- 繳費對話框 -->
-    <v-dialog v-model="payDialog" max-width="520">
+    <!-- 繳費對話框（含紅利折抵） -->
+    <v-dialog v-model="payDialog" max-width="560">
       <v-card>
         <v-card-title class="pb-0">
           繳費
@@ -86,7 +86,6 @@
                   最低應繳：{{ money(selectedBill?.minimumPayment || 0) }}
                 </div>
 
-                <!-- 用 v-btn-toggle，避免 v-segmented-button 錯誤 -->
                 <v-btn-toggle v-model="quick" density="comfortable" mandatory divided class="rounded">
                   <v-btn value="min">最低</v-btn>
                   <v-btn value="full">全額</v-btn>
@@ -102,6 +101,49 @@
                 hint="TWD 為整數金額"
                 persistent-hint
               />
+            </v-col>
+
+            <!-- 紅利折抵區塊 -->
+            <v-col cols="12">
+              <div class="d-flex align-center mb-1">
+                <v-switch
+                  v-model="reward.use"
+                  :disabled="reward.loading || reward.available <= 0"
+                  inset
+                  density="comfortable"
+                  color="primary"
+                  class="mr-2"
+                  hide-details
+                />
+                <div class="text-body-2">
+                  使用紅利折抵
+                  <span v-if="reward.loading" class="text-grey ml-2">（讀取可用點數…）</span>
+                  <span v-else class="text-grey ml-2">
+                    可用：<b>{{ reward.available ?? '—' }}</b> 點
+                    <v-btn icon="mdi-refresh" size="x-small" variant="text" @click="refreshPoints()" :disabled="reward.loading"/>
+                  </span>
+                </div>
+              </div>
+
+              <v-expand-transition>
+                <div v-if="reward.use">
+                  <v-text-field
+                    v-model.number="reward.redeem"
+                    type="number"
+                    min="0"
+                    :max="redeemMax"
+                    label="折抵點數"
+                    :hint="`最多可折抵 ${redeemMax} 點`"
+                    persistent-hint
+                  />
+                  <div class="text-caption text-grey-darken-1">
+                    實付預估：{{ money(estimatedPay) }}（折抵 {{ rewardApplied }} 點）
+                  </div>
+                  <v-alert v-if="reward.error" type="warning" variant="tonal" class="mt-2">
+                    {{ reward.error }}
+                  </v-alert>
+                </div>
+              </v-expand-transition>
             </v-col>
           </v-row>
 
@@ -120,8 +162,8 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
-import { request } from "@/utils/BackAxiosUtil";
+import { ref, watch, onMounted, computed } from "vue";
+import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 
 const memberStore = useMemberStore();
@@ -149,6 +191,15 @@ const paySuccess = ref("");
 const quick = ref("min");
 const payForm = ref({ accountId: "", amount: null });
 
+// 紅利折抵狀態
+const reward = ref({
+  loading: false,
+  available: 0,
+  use: false,
+  redeem: 0,
+  error: "",
+});
+
 // 取得我的帳單
 async function fetchBills() {
   loading.value = true;
@@ -173,10 +224,57 @@ function openPay(bill) {
   paySuccess.value = "";
   quick.value = "min";
   payForm.value.amount = Number(bill?.minimumPayment || 0);
+  // 初始化紅利區塊
+  reward.value = { loading: true, available: 0, use: false, redeem: 0, error: "" };
   payDialog.value = true;
+  // 讀點數
+  refreshPoints();
 }
 
-// 送出繳費（@RequestParam → x-www-form-urlencoded）
+async function refreshPoints() {
+  reward.value.loading = true;
+  reward.value.error = "";
+  reward.value.available = 0;
+  try {
+    const cardId = selectedBill.value?.cardDetail?.cardId;
+    if (!cardId) throw new Error("卡片資訊缺失");
+    const res = await request({
+      url: "/reward/points",
+      method: "GET",
+      headers: { Authorization: `Bearer ${memberStore.token}` },
+      params: { cardId },
+    });
+    reward.value.available = Number(res?.points ?? 0);
+  } catch (e) {
+    console.error(e);
+    reward.value.error = e?.response?.data?.message || e?.message || "讀取紅利點數失敗";
+  } finally {
+    reward.value.loading = false;
+  }
+}
+
+// 可折抵上限：不可超過「可用點數、未繳金額、付款金額」
+const redeemMax = computed(() => {
+  const avail = Number(reward.value.available || 0);
+  const due = outstandingOf(selectedBill.value);
+  const amt = Math.max(0, Math.round(Number(payForm.value.amount) || 0));
+  return Math.max(0, Math.min(avail, due, amt));
+});
+
+// 實際採用的折抵（自動夾限）
+const rewardApplied = computed(() => {
+  const want = Math.max(0, Math.round(Number(reward.value.redeem) || 0));
+  return Math.min(want, redeemMax.value);
+});
+
+// 預估實付
+const estimatedPay = computed(() => {
+  const amt = Math.max(0, Math.round(Number(payForm.value.amount) || 0));
+  const paid = Math.max(0, amt - rewardApplied.value);
+  return paid;
+});
+
+// 送出繳費
 async function submitPay() {
   payError.value = "";
   paySuccess.value = "";
@@ -195,27 +293,54 @@ async function submitPay() {
   try {
     paying.value = true;
 
-    const body = new URLSearchParams();
-    body.append("creditBillId", String(selectedBill.value.creditBillId));
-    body.append("cardId", String(selectedBill.value.cardDetail?.cardId));
-    body.append("accountId", payForm.value.accountId);
-    body.append("amount", String(amt));
+    // 有勾選折抵：呼叫單一原子 API
+    if (reward.value.use && redeemMax.value > 0) {
+      const body = new URLSearchParams();
+      body.append("creditBillId", String(selectedBill.value.creditBillId));
+      body.append("cardId", String(selectedBill.value.cardDetail?.cardId));
+      body.append("accountId", payForm.value.accountId);
+      body.append("amount", String(amt)); // 使用者計劃付款金額
+      body.append("redeemPoints", String(rewardApplied.value));
 
-    const resp = await request({
-      url: "/cardPaymentFront/pay",
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${memberStore.token}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      data: body,
-    });
+      const resp = await request({
+        url: "/cardPaymentFront/pay-with-reward",
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${memberStore.token}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        data: body,
+      });
 
-    if (!resp || !resp.status) throw new Error("繳費失敗或無回應");
-    if (resp.status !== "COMPLETED") throw new Error(`繳費狀態：${resp.status}`);
+      if (!resp || !resp.status) throw new Error("繳費/折抵失敗或無回應");
+      if (resp.status !== "COMPLETED") throw new Error(`狀態：${resp.status}`);
 
-    paySuccess.value = "繳款成功！帳單已更新。";
-    await fetchBills();
+      paySuccess.value = `完成！折抵 ${resp.actualRedeem ?? rewardApplied.value} 點，實付 ${fmtMoney(resp.actualPay ?? estimatedPay.value)}。`;
+      await fetchBills();
+    } else {
+      // 沒折抵：走原來 /pay
+      const body = new URLSearchParams();
+      body.append("creditBillId", String(selectedBill.value.creditBillId));
+      body.append("cardId", String(selectedBill.value.cardDetail?.cardId));
+      body.append("accountId", payForm.value.accountId);
+      body.append("amount", String(amt));
+
+      const resp = await request({
+        url: "/cardPaymentFront/pay",
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${memberStore.token}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        data: body,
+      });
+
+      if (!resp || !resp.status) throw new Error("繳費失敗或無回應");
+      if (resp.status !== "COMPLETED") throw new Error(`繳費狀態：${resp.status}`);
+
+      paySuccess.value = "繳款成功！帳單已更新。";
+      await fetchBills();
+    }
   } catch (e) {
     console.error(e);
     payError.value = e?.response?.data?.message || e?.message || "繳費發生錯誤，請稍後重試";
