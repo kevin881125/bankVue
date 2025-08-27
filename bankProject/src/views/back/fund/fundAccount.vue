@@ -244,12 +244,54 @@
         共 {{ totalAccounts }} 個基金帳戶
       </div>
     </div>
+
+    <!-- 子頁面彈窗 -->
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-container" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">{{ modalTitle }}</h3>
+          <button class="btn-close" @click="closeModal">
+            <span class="mdi mdi-close"></span>
+          </button>
+        </div>
+
+        <!-- 頁簽導航 -->
+        <div class="tab-nav">
+          <button v-for="tab in availableTabs" :key="tab.key" :class="['tab-btn', { active: activeTab === tab.key }]"
+            @click="switchTab(tab.key)">
+            <span :class="tab.icon"></span>
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- 持有基金頁面 -->
+          <div v-if="activeTab === 'holdings'" class="tab-content">
+            <FundHoldings :fund-acc-id="selectedAccount?.fundAccId" :key="selectedAccount?.fundAccId" />
+          </div>
+
+          <!-- 交易記錄頁面 -->
+          <div v-if="activeTab === 'transaction'" class="tab-content">
+            <FundTransaction :fund-acc-id="selectedAccount?.fundAccId" :key="selectedAccount?.fundAccId" />
+          </div>
+
+          <!-- 定期定額頁面 -->
+          <div v-if="activeTab === 'sip'" class="tab-content">
+            <FundSip :fund-acc-id="selectedAccount?.fundAccId" :key="selectedAccount?.fundAccId" />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import axios from 'axios'
+import { ref, computed, onMounted } from 'vue'
 import { request } from '@/utils/BackAxiosUtil'
+import FundHoldings from './fundHoldings.vue'
+import FundTransaction from './fundTransaction.vue'
+import FundSip from './fundSip.vue'
 
 // 除錯模式
 const debugMode = ref(true)
@@ -265,6 +307,12 @@ const allAccounts = ref([])
 const stats = ref({})
 const totalAccounts = ref(0)
 
+// 子頁面相關狀態
+const showModal = ref(false)
+const selectedAccount = ref(null)
+const activeTab = ref('holdings')
+const modalTitle = ref('')
+
 // 篩選條件
 const searchTerm = ref('')
 const selectedStatus = ref('')
@@ -275,6 +323,25 @@ const endDate = ref('')
 // 排序條件
 const sortField = ref('openTime')
 const sortDirection = ref('desc')
+
+// 可用的頁簽配置
+const availableTabs = computed(() => [
+  {
+    key: 'holdings',
+    label: '持有基金',
+    icon: 'mdi mdi-chart-pie'
+  },
+  {
+    key: 'transaction',
+    label: '交易記錄',
+    icon: 'mdi mdi-history'
+  },
+  {
+    key: 'sip',
+    label: '定期定額',
+    icon: 'mdi mdi-calendar-clock'
+  }
+])
 
 // 除錯日志函數
 const debugLog = (message, data = null) => {
@@ -390,15 +457,13 @@ const fetchAccounts = async () => {
     tableLoading.value = true
     error.value = ''
 
-    const response = await request({
-      url: API_BASE,
-      method: 'GET'
-    })
+    // 直接使用 axios 或確保 request 工具正確配置
+    const response = await axios.get('http://localhost:8080/bank/fundAccount')
 
     debugLog('📡 API 回應:', response)
 
     // 處理回應數據
-    let responseData = response?.data || response
+    let responseData = response?.data
 
     if (Array.isArray(responseData)) {
       allAccounts.value = responseData
@@ -410,10 +475,7 @@ const fetchAccounts = async () => {
         total: totalAccounts.value
       })
 
-      // 計算統計資料
       calculateStats()
-
-      // 應用篩選
       applyFilters()
     } else {
       debugLog('❌ API 回應格式異常')
@@ -464,6 +526,25 @@ const updateAccountStatus = async (accountId, newStatus) => {
   } finally {
     loading.value = false
   }
+}
+
+// 子頁面相關方法
+const openModal = (account, tabKey = 'holdings') => {
+  selectedAccount.value = account
+  activeTab.value = tabKey
+  modalTitle.value = `${account.member?.mName || '基金帳戶'} - ${account.fundAccId}`
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+  selectedAccount.value = null
+  activeTab.value = 'holdings'
+  modalTitle.value = ''
+}
+
+const switchTab = (tabKey) => {
+  activeTab.value = tabKey
 }
 
 // 工具方法
@@ -592,7 +673,20 @@ const refreshData = async () => {
   }
 }
 
-// 操作方法
+// 操作方法（修改為使用彈窗）
+const viewFundHoldings = (account) => {
+  openModal(account, 'holdings')
+}
+
+const viewTransactionHistory = (account) => {
+  openModal(account, 'transaction')
+}
+
+const viewSipApplications = (account) => {
+  openModal(account, 'sip')
+}
+
+// 其他操作方法
 const openCreateAccountModal = () => {
   debugLog('➕ 開啟新增帳戶對話框')
   alert('新增帳戶功能需要實作表單對話框')
@@ -642,132 +736,6 @@ const exportAccounts = () => {
   }
 }
 
-// 查看持有基金
-const viewFundHoldings = async (account) => {
-  try {
-    debugLog('📊 查看持有基金:', account.fundAccId)
-    loading.value = true
-
-    const response = await request({
-      url: '/fundHoldings',
-      method: 'GET',
-      params: { fundAccId: account.fundAccId }
-    })
-
-    let responseData = response?.data || response
-    debugLog('📊 持有基金回應:', responseData)
-
-    if (Array.isArray(responseData)) {
-      showFundHoldingsModal(account, responseData)
-    } else {
-      alert('無法載入持有基金資料')
-    }
-  } catch (err) {
-    debugLog('❌ 查看持有基金錯誤:', err)
-    alert(`查看持有基金失敗: ${err.message}`)
-  } finally {
-    loading.value = false
-  }
-}
-
-// 查看交易記錄
-const viewTransactionHistory = (account) => {
-  debugLog('📋 查看交易記錄:', account.fundAccId)
-
-  // 導航到交易記錄頁面，帶上 fundAccId 參數
-  const url = `/yuzubank/backmain/fund/fundTransaction?fundAccId=${account.fundAccId}`
-  window.open(url, '_blank')
-}
-
-// 查看定期定額申請
-const viewSipApplications = async (account) => {
-  try {
-    debugLog('🕒 查看定期定額申請:', account.fundAccId)
-    loading.value = true
-
-    const response = await request({
-      url: `/fundSip/${account.fundAccId}`,
-      method: 'GET'
-    })
-
-    let responseData = response?.data || response
-    debugLog('🕒 定期定額回應:', responseData)
-
-    if (Array.isArray(responseData)) {
-      showSipApplicationsModal(account, responseData)
-    } else {
-      alert('無法載入定期定額申請資料')
-    }
-  } catch (err) {
-    debugLog('❌ 查看定期定額錯誤:', err)
-    alert(`查看定期定額申請失敗: ${err.message}`)
-  } finally {
-    loading.value = false
-  }
-}
-
-// 顯示持有基金對話框
-const showFundHoldingsModal = (account, holdings) => {
-  let modalContent = `${account.member?.mName} 的持有基金：\n\n`
-
-  if (holdings.length === 0) {
-    modalContent += '目前沒有持有任何基金'
-  } else {
-    holdings.forEach((holding, index) => {
-      const fundName = holding.fund?.fundName || '未知基金'
-      const fundCode = holding.fund?.fundCode || '-'
-      const units = formatNumber(holding.units, 4)
-      const cost = formatNumber(holding.cost, 2)
-      const updateTime = formatDateTime(holding.updateTime)
-
-      modalContent += `${index + 1}. ${fundName}\n`
-      modalContent += `   基金代碼: ${fundCode}\n`
-      modalContent += `   持有單位: ${units}\n`
-      modalContent += `   總成本: NT$ ${cost}\n`
-      modalContent += `   更新時間: ${updateTime}\n\n`
-    })
-
-    const totalCost = holdings.reduce((sum, h) => sum + (parseFloat(h.cost) || 0), 0)
-    modalContent += `總投資成本: NT$ ${formatNumber(totalCost, 2)}`
-  }
-
-  alert(modalContent)
-}
-
-// 顯示定期定額申請對話框  
-const showSipApplicationsModal = (account, sipApplications) => {
-  let modalContent = `${account.member?.mName} 的定期定額申請：\n\n`
-
-  if (sipApplications.length === 0) {
-    modalContent += '目前沒有定期定額申請'
-  } else {
-    sipApplications.forEach((sip, index) => {
-      const fundName = sip.fund?.fundName || '未知基金'
-      const fundCode = sip.fund?.fundCode || '-'
-      const amount = formatNumber(sip.amount, 2)
-      const frequency = sip.frequency || '-'
-      const startDate = sip.startDate || '-'
-      const endDate = sip.endDate || '無期限'
-      const status = sip.status || '-'
-
-      modalContent += `${index + 1}. ${fundName}\n`
-      modalContent += `   基金代碼: ${fundCode}\n`
-      modalContent += `   扣款金額: NT$ ${amount}\n`
-      modalContent += `   扣款頻率: ${frequency}\n`
-      modalContent += `   開始日期: ${startDate}\n`
-      modalContent += `   結束日期: ${endDate}\n`
-      modalContent += `   狀態: ${status}\n\n`
-    })
-
-    const totalAmount = sipApplications
-      .filter(s => s.status === '啟用' || s.status === '執行中')
-      .reduce((sum, s) => sum + (parseFloat(s.amount) || 0), 0)
-    modalContent += `每月總扣款: NT$ ${formatNumber(totalAmount, 2)}`
-  }
-
-  alert(modalContent)
-}
-
 const approveAccount = async (account) => {
   if (confirm(`確定要審核通過 ${account.member?.mName} 的基金帳戶申請嗎？`)) {
     const result = await updateAccountStatus(account.fundAccId, '啟用')
@@ -800,33 +768,7 @@ const activateAccount = async (account) => {
     }
   }
 }
-
-const editAccount = (account) => {
-  debugLog('✏️ 編輯帳戶:', account.fundAccId)
-  alert('編輯功能需要實作表單對話框')
-}
-
-const rejectAccount = async (account) => {
-  if (confirm(`確定要拒絕 ${account.member?.mName} 的基金帳戶申請嗎？`)) {
-    const result = await updateAccountStatus(account.fundAccId, '拒絕')
-    if (result.success) {
-      alert('申請已拒絕')
-    } else {
-      alert(`拒絕失敗: ${result.message}`)
-    }
-  }
-}
-
-// 生命週期
-onMounted(async () => {
-  console.log('%c🚀 基金帳戶頁面載入', 'color: #3b82f6; font-weight: bold; font-size: 16px;')
-  debugLog('=== 頁面初始化 ===')
-  debugLog('API Base:', API_BASE)
-
-  await refreshData()
-})
 </script>
-
 <style scoped>
 .fund-account-container {
   padding: 24px;
@@ -1020,10 +962,6 @@ onMounted(async () => {
 
 .btn-icon.warning:hover {
   background-color: #fef3c7;
-}
-
-.btn-icon.danger {
-  color: #ef4444;
 }
 
 .btn-icon.danger {
@@ -1384,6 +1322,105 @@ onMounted(async () => {
   font-size: 0.875rem;
 }
 
+/* 彈窗樣式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.btn-close {
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+/* 頁簽導航 */
+.tab-nav {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+.tab-btn {
+  padding: 16px 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-btn:hover {
+  color: #374151;
+  background-color: #f9fafb;
+}
+
+.tab-btn.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background-color: #f8faff;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.tab-content {
+  padding: 24px;
+}
+
 /* 動畫效果 */
 @keyframes spin {
   to {
@@ -1409,6 +1446,11 @@ onMounted(async () => {
   .filter-select,
   .filter-date {
     width: 100%;
+  }
+
+  .modal-container {
+    width: 95%;
+    max-width: none;
   }
 }
 
@@ -1447,10 +1489,27 @@ onMounted(async () => {
   .account-details {
     gap: 1px;
   }
-}
 
-/* 表格行hover效果 */
-.account-table tbody tr {
-  transition: background-color 0.2s;
+  .tab-nav {
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  .modal-container {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .modal-header {
+    border-radius: 0;
+  }
 }
 </style>

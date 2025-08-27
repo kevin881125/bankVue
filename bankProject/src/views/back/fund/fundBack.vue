@@ -95,7 +95,7 @@ const navItems = ref([
     colorClass: 'teal'
   },
   {
-    id: 'fundList',
+    id: 'fund',
     title: '基金商品管理',
     description: '新增、編輯、刪除基金商品',
     icon: 'mdi-chart-pie',
