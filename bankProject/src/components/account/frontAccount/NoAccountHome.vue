@@ -23,6 +23,7 @@
   justify-content: space-between;
   align-items: center;
   max-width: 1200px;
+  height: 880px;
   margin: 0 auto;
   gap: 48px;
   flex-direction: row;

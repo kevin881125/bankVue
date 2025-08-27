@@ -314,7 +314,7 @@ async function saveReviewWithContract(contractFile, loanId) {
 async function openRepaymentDetail(loanId) {
   try {
     const data = await request({
-      url: `/loans/${loanId}/payments`,
+      url: `/loans/${loanId}/payments_dto`,
       method: "GET",
     });
 

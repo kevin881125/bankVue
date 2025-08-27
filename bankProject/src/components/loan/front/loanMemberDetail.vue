@@ -175,10 +175,9 @@ const animatedProgress = ref(0);
 watch(
   () => props.visible,
   async (val) => {
-    if (val && props.data?.progress) {
+    if (val && props.data?.progress !== undefined) {
       animatedProgress.value = 0;
       await nextTick();
-      // 增加延遲確保動畫正確觸發
       requestAnimationFrame(() => {
         setTimeout(() => {
           animatedProgress.value = props.data.progress;
