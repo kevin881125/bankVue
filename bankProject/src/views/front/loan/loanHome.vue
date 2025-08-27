@@ -155,8 +155,8 @@
         v-model="showPayModal"
         :loan-id="selectedLoanId"
         @success="fetchMemberPayments"
-        @update-schedule="fetchNextSchedule"
-        @refresh-loans="fetchMemberLoans"
+        @updateSchedule="fetchNextSchedule"
+        @refreshLoans="fetchMemberLoans"
       />
     </section>
 

@@ -146,7 +146,7 @@ const props = defineProps({
   loanId: { type: String, default: null },
 });
 
-const emit = defineEmits(["update:modelValue", "success", "updateSchedule"]);
+const emit = defineEmits(["update:modelValue", "success", "updateSchedule", "refreshLoans"]);
 
 const innerVisible = ref(props.modelValue);
 watch(
@@ -224,7 +224,7 @@ async function submitPayment() {
         transactionType: "繳納貸款",
         toAccountId: "7999999987",
         amount: schedule.value.amountDue,
-        operatorId: memberStore.mId,
+        operatorId: null,
         memo: `貸款 ${props.loanId || ""} 繳款`,
       };
       const txRes = await request({
