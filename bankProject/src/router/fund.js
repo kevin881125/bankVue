@@ -8,7 +8,6 @@ export default [
     path: "fundTrading",
     component: () => import("@/views/back/fund/fundTrading.vue"),
   },
-
   {
     path: "fundAccount",
     component: () => import("@/views/back/fund/fundAccount.vue"),
@@ -18,68 +17,51 @@ export default [
         component: () => import("@/views/back/fund/fundHoldings.vue"),
       },
       {
+        path: "fundTransaction",
+        component: () => import("@/views/back/fund/fundTransaction.vue"),
+      },
+      {
         path: "fundSip",
         component: () => import("@/views/back/fund/fundSip.vue"),
       },
     ]
   },
-  // {
-  //   path: "fundTrading",
-  //   component: () => import("@/views/back/fund/fundTrading.vue"),
-  //   children: [
-  //     {
-  //       path: "fund",
-  //       component: () => import("@/views/back/fund/fund.vue"),
-  //       children: [
-  //         {
-  //           path: "fundNav",
-  //           component: () => import("@/views/back/fund/fundNav.vue"),
-  //         },
-  //       ]
-  //     },
-  //   ]
-  // },
-  // 前台
   {
-    path: "myFund",
-    component: () => import("@/views/front/fund/fundAccount.vue"),
+    path: "fund",
+    component: () => import("@/views/back/fund/fund.vue"),
     children: [
-      // 申辦基金帳戶流程
       {
-        path: 'fundAccountSetup',
-        component: () => import("@/views/front/fund/fundAccountSetup.vue"),
-      },
-      // 持有基金
-      {
-        path: 'fundHoldings',
-        component: () => import("@/views/front/fund/fundHoldings.vue"),
-      },
-      // 交易紀錄
-      {
-        path: 'fundTransactions',
-        component: () => import("@/views/front/fund/fundTransaction.vue"),
-      },
-      // 定期定額
-      {
-        path: 'fundSips',
-        component: () => import("@/views/front/fund/fundSip.vue"),
+        path: "fundNav",
+        component: () => import("@/views/back/fund/fundNav.vue"),
       },
     ]
   },
+
+  // 前台
   {
-    path: "buyFund",
-    component: () => import("@/views/front/fund/fund.vue"),
+    path: "myFund",
+    component: () => import("@/views/front/fund/myFund.vue"),
     children: [
-      // 單筆基金淨值
+      // 持有基金
       {
-        path: 'fundNav',
-        component: () => import("@/views/front/fund/fundNav.vue"),
+        path: 'myFundHoldings',
+        component: () => import("@/views/front/fund/myFundHoldings.vue"),
       },
-      // 交易畫面
+      // 交易紀錄
       {
-        path: 'fundTrading',
-        component: () => import("@/views/front/fund/fundTrading.vue"),
+        path: 'myFundTransaction',
+        component: () => import("@/views/front/fund/myFundTransaction.vue"),
       },
+      // 定期定額
+      {
+        path: 'myFundSip',
+        component: () => import("@/views/front/fund/myFundSip.vue"),
+      },
+      // 申購基金
+      {
+        path: "buyFund",
+        component: () => import("@/views/front/fund/buyFund.vue"),
+      }
     ]
-  }
+  },
 ];

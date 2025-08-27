@@ -585,59 +585,25 @@ const loadNextPage = () => {
     }
 }
 
-// 申購基金
-const buyFund = async (transactionData) => {
-    try {
-        loading.value = true
-        debugLog('📈 發送申購請求', transactionData)
+// 主方法：審核交易
+const approveTransaction = async (transaction) => {
+    debugLog('✅ 審核交易:', transaction.fundTranId, transaction.tranType)
 
-        const response = await request({
-            url: `${API_BASE}/buy`,
-            method: 'POST',
-            data: transactionData
-        })
-
-        debugLog('📈 申購回應:', response?.data)
-
-        if (response?.data) {
-            await refreshData()
-            return { success: true, data: response.data }
-        } else {
-            return { success: false, message: '申購失敗' }
+    if (confirm(`確定要審核通過此${transaction.tranType}交易嗎？`)) {
+        let result
+        if (transaction.tranType === '申購') {
+            result = await approveBuyTransaction(transaction)
+        } else if (transaction.tranType === '贖回') {
+            result = await approveSellTransaction(transaction)
         }
-    } catch (err) {
-        debugLog('❌ 申購錯誤:', err)
-        return { success: false, message: err.response?.data?.message || '申購失敗' }
-    } finally {
-        loading.value = false
-    }
-}
 
-// 贖回基金
-const sellFund = async (transactionData) => {
-    try {
-        loading.value = true
-        debugLog('📉 發送贖回請求', transactionData)
-
-        const response = await request({
-            url: `${API_BASE}/sell`,
-            method: 'POST',
-            data: transactionData
-        })
-
-        debugLog('📉 贖回回應:', response?.data)
-
-        if (response?.data) {
-            await refreshData()
-            return { success: true, data: response.data }
+        if (!result?.success) {
+            // 顯示後端錯誤訊息
+            alert(`審核失敗：${result?.message || '未知錯誤'}`)
+            console.error('❌ 審核錯誤詳細：', result)
         } else {
-            return { success: false, message: '贖回失敗' }
+            alert('✅ 審核成功')
         }
-    } catch (err) {
-        debugLog('❌ 贖回錯誤:', err)
-        return { success: false, message: err.response?.data?.message || '贖回失敗' }
-    } finally {
-        loading.value = false
     }
 }
 
@@ -653,17 +619,23 @@ const approveBuyTransaction = async (transaction) => {
             data: { status: '成功' }
         })
 
-        debugLog('✅ 審核申購回應:', response?.data)
-
-        if (response?.data) {
+        // 判斷 HTTP status 是否屬於成功範圍
+        if (response?.status >= 200 && response?.status < 300) {
             await refreshData()
             return { success: true }
         } else {
-            return { success: false, message: '審核失敗' }
+            return {
+                success: false,
+                message: `後端回傳異常，狀態碼: ${response?.status}`,
+                rawError: response
+            }
         }
     } catch (err) {
-        debugLog('❌ 審核申購錯誤:', err)
-        return { success: false, message: err.response?.data?.message || '審核失敗' }
+        return {
+            success: false,
+            message: err.response?.data?.message || err.message || '審核失敗',
+            rawError: err.response?.data || err
+        }
     } finally {
         loading.value = false
     }
@@ -681,21 +653,27 @@ const approveSellTransaction = async (transaction) => {
             data: { status: '成功' }
         })
 
-        debugLog('✅ 審核贖回回應:', response?.data)
-
-        if (response?.data) {
+        if (response?.status >= 200 && response?.status < 300) {
             await refreshData()
             return { success: true }
         } else {
-            return { success: false, message: '審核失敗' }
+            return {
+                success: false,
+                message: `後端回傳異常，狀態碼: ${response?.status}`,
+                rawError: response
+            }
         }
     } catch (err) {
-        debugLog('❌ 審核贖回錯誤:', err)
-        return { success: false, message: err.response?.data?.message || '審核失敗' }
+        return {
+            success: false,
+            message: err.response?.data?.message || err.message || '審核失敗',
+            rawError: err.response?.data || err
+        }
     } finally {
         loading.value = false
     }
 }
+
 
 // 工具方法
 const formatDateTime = (dateTime) => {
@@ -971,23 +949,6 @@ const exportTransactions = async () => {
 const viewTransaction = (transaction) => {
     debugLog('👁️ 查看交易詳情:', transaction.fundTranId)
     console.log('查看交易詳情:', transaction)
-}
-
-const approveTransaction = async (transaction) => {
-    debugLog('✅ 審核交易:', transaction.fundTranId, transaction.tranType)
-
-    if (confirm(`確定要審核通過此${transaction.tranType}交易嗎？`)) {
-        let result
-        if (transaction.tranType === '申購') {
-            result = await approveBuyTransaction(transaction)
-        } else if (transaction.tranType === '贖回') {
-            result = await approveSellTransaction(transaction)
-        }
-
-        if (!result.success) {
-            alert(result.message)
-        }
-    }
 }
 
 const rejectTransaction = async (transaction) => {

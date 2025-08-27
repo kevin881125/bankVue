@@ -35,18 +35,7 @@
             </li>
 
             <li><router-link to="/yuzubank/loanHome">貸款</router-link></li>
-
-            <li class="dropdown">
-              <a href="#">基金</a>
-              <ul class="dropdown-menu">
-                <li>
-                  <router-link to="/yuzubank/myFund">我的基金</router-link>
-                </li>
-                <li>
-                  <router-link to="/yuzubank/buyFund">申購基金</router-link>
-                </li>
-              </ul>
-            </li>
+            <li><router-link to="/yuzubank/myFund/myFundHoldings">基金</router-link></li>
           </ul>
 
           <!-- 未登入 -->

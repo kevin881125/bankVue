@@ -1,297 +1,4 @@
-const formatDate = (date) => {
-if (!date) return '-'
-return new Date(date).toLocaleDateString('zh-TW')
-}
-
-const formatPercentage = (value) => {
-if (value === null || value === undefined || isNaN(value)) return '0.00'
-return value.toFixed(2)
-}
-
-// 持有基金相關計算方法
-const getAverageCost = (holding) => {
-const units = parseFloat(holding.units) || 0
-const totalCost = parseFloat(holding.cost) || 0
-return units > 0 ? totalCost / units : 0
-}
-
-const getMarketValue = (holding) => {
-const units = parseFloat(holding.units) || 0
-const currentNav = parseFloat(holding.fund?.currentNav) || 0
-return units * currentNav
-}
-
-const getProfitLoss = (holding) => {
-const marketValue = getMarketValue(holding)
-const cost = parseFloat(holding.cost) || 0
-return marketValue - cost
-}
-
-const getReturnRate = (holding) => {
-const cost = parseFloat(holding.cost) || 0
-if (cost === 0) return 0
-const profitLoss = getProfitLoss(holding)
-return (profitLoss / cost) * 100
-}
-
-const getProfitLossClass = (holding) => {
-const profitLoss = getProfitLoss(holding)
-return profitLoss >= 0 ? 'profit' : 'loss'
-}
-
-const getTotalCost = () => {
-return subPageData.value.reduce((sum, h) => sum + (parseFloat(h.cost) || 0), 0)
-}
-
-const getTotalMarketValue = () => {
-return subPageData.value.reduce((sum, h) => sum + getMarketValue(h), 0)
-}
-
-const getTotalProfitLoss = () => {
-return getTotalMarketValue() - getTotalCost()
-}
-
-const getTotalReturnRate = () => {
-const totalCost = getTotalCost()
-if (totalCost === 0) return 0
-return (getTotalProfitLoss() / totalCost) * 100
-}
-
-const getTotalProfitLossClass = () => {
-return getTotalProfitLoss() >= 0 ? 'profit' : 'loss'
-}
-
-// 交易記錄相關方法
-const getTransactionTypeClass = (tranType) => {
-const classMap = {
-'申購': 'purchase',
-'贖回': 'redemption',
-'轉換': 'exchange'
-}
-return classMap[tranType] || ''
-}
-
-const getTransactionStatusClass = (status) => {
-const classMap = {
-'成功': 'success',
-'處理中': 'processing',
-'失敗': 'failed',
-'待審核': 'pending'
-}
-return classMap[status] || ''
-}
-
-const getTransactionStatusIcon = (status) => {
-const iconMap = {
-'成功': 'mdi-check-circle',
-'處理中': 'mdi-clock',
-'失敗': 'mdi-alert-circle',
-'待審核': 'mdi-help-circle'
-}
-return iconMap[status] || 'mdi-help-circle'
-}
-
-// 定期定額相關方法
-const getSipStatusClass = (status) => {
-const classMap = {
-'啟用': 'active',
-'停用': 'inactive',
-'執行中': 'running',
-'已完成': 'completed',
-'已取消': 'cancelled'
-}
-return classMap[status] || ''
-}
-
-const getSipStatusIcon = (status) => {
-const iconMap = {
-'啟用': 'mdi-check-circle',
-'停用': 'mdi-pause-circle',
-'執行中': 'mdi-play-circle',
-'已完成': 'mdi-check-circle-outline',
-'已取消': 'mdi-cancel'
-}
-return iconMap[status] || 'mdi-help-circle'
-}
-
-const getNextDeductionDate = (sip) => {
-// 簡化的下次扣款日計算
-if (sip.status !== '啟用' && sip.status !== '執行中') return '-'
-
-const today = new Date()
-const startDate = new Date(sip.startDate)
-
-if (sip.frequency === '月扣') {
-const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, startDate.getDate())
-return formatDate(nextMonth)
-} else if (sip.frequency === '週扣') {
-const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
-return formatDate(nextWeek)
-}
-
-return '-'
-}
-
-const getDeductionCount = (sip) => {
-// 簡化的扣款次數計算
-const startDate = new Date(sip.startDate)
-const today = new Date()
-const monthsDiff = (today.getFullYear() - startDate.getFullYear()) * 12 + today.getMonth() - startDate.getMonth()
-
-if (sip.frequency === '月扣') {
-return Math.max(0, monthsDiff)
-} else if (sip.frequency === '週扣') {
-const weeksDiff = Math.floor((today - startDate) / (7 * 24 * 60 * 60 * 1000))
-return Math.max(0, weeksDiff)
-}
-
-return 0
-}
-
-const getSortIcon = (field) => {
-if (sortField.value !== field) return ''
-return sortDirection.value === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'
-}
-
-// 定期定額操作方法
-const activateSip = async (sip) => {
-if (confirm(`確定要啟用定期定額申請 ${sip.sipId} 嗎？`)) {
-try {
-loading.value = true
-const updatedSip = { ...sip, status: '啟用' }
-
-const response = await request({
-url: `/fundSip/${sip.sipId}`,
-method: 'PUT',
-data: updatedSip
-})
-
-// 重新載入資料
-await viewSipApplications(currentAccount.value)
-alert('定期定額已啟用')
-} catch (err) {
-alert(`啟用失敗: ${err.message}`)
-} finally {
-loading.value = false
-}
-}
-}
-
-const suspendSip = async (sip) => {
-if (confirm(`確定要暫停定期定額申請 ${sip.sipId} 嗎？`)) {
-try {
-loading.value = true
-const updatedSip = { ...sip, status: '停用' }
-
-const response = await request({
-url: `/fundSip/${sip.sipId}`,
-method: 'PUT',
-data: updatedSip
-})
-
-// 重新載入資料
-await viewSipApplications(currentAccount.value)
-alert('定期定額已暫停')
-} catch (err) {
-alert(`暫停失敗: ${err.message}`)
-} finally {
-loading.value = false
-}
-}
-}
-
-const editSip = (sip) => {
-debugLog('✏️ 編輯定期定額:', sip.sipId)
-alert('編輯定期定額功能需要實作表單對話框')
-}
-
-// 匯出子頁面資料
-const exportSubPageData = () => {
-try {
-debugLog('📤 匯出子頁面資料:', currentSubPage.value)
-
-let headers = []
-let csvData = []
-let filename = ''
-
-if (currentSubPage.value === 'holdings') {
-headers = [
-'基金名稱', '基金代碼', '持有單位', '平均成本', '總投資金額',
-'目前淨值', '市值', '損益', '報酬率', '更新時間'
-]
-csvData = subPageData.value.map(h => [
-h.fund?.fundName || '',
-h.fund?.fundCode || '',
-formatNumber(h.units, 4),
-formatNumber(getAverageCost(h), 4),
-formatNumber(h.cost, 2),
-formatNumber(h.fund?.currentNav || 0, 4),
-formatNumber(getMarketValue(h), 2),
-formatNumber(getProfitLoss(h), 2),
-formatPercentage(getReturnRate(h)) + '%',
-formatDateTime(h.updateTime)
-])
-filename = `持有基金_${currentAccount.value?.member?.mName || 'Unknown'}_${new Date().toISOString().split('T')[0]}.csv`
-
-} else if (currentSubPage.value === 'transactions') {
-headers = [
-'交易編號', '交易日期', '基金名稱', '基金代碼', '交易類型',
-'交易金額', '手續費', '單位數量', '淨值', '狀態', '備註'
-]
-csvData = subPageData.value.map(t => [
-t.fundTranId,
-formatDateTime(t.tranTime),
-t.fund?.fundName || '',
-t.fund?.fundCode || '',
-t.tranType,
-formatNumber(t.amount, 2),
-formatNumber(t.fee, 2),
-formatNumber(t.units, 4),
-formatNumber(t.nav, 4),
-t.status,
-t.memo || ''
-])
-filename = `交易記錄_${currentAccount.value?.member?.mName || 'Unknown'}_${new Date().toISOString().split('T')[0]}.csv`
-
-} else if (currentSubPage.value === 'sip') {
-headers = [
-'申請編號', '基金名稱', '基金代碼', '扣款金額', '扣款頻率',
-'開始日期', '結束日期', '狀態', '下次扣款日', '累計扣款次數'
-]
-csvData = subPageData.value.map(s => [
-s.sipId,
-s.fund?.fundName || '',
-s.fund?.fundCode || '',
-formatNumber(s.amount, 2),
-s.frequency,
-formatDate(s.startDate),
-s.endDate ? formatDate(s.endDate) : '無期限',
-s.status,
-getNextDeductionDate(s),
-getDeductionCount(s)
-])
-filename = `定期定額_${currentAccount.value?.member?.mName || 'Unknown'}_${new Date().toISOString().split('T')[0]}.csv`
-}
-
-const csvContent = [
-headers.join(','),
-...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
-].join('\n')
-
-const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' })
-const url = window.URL.createObjectURL(blob)
-const link = document.createElement('a')
-link.href = url
-link.download = filename
-link.click()
-window.URL.revokeObjectURL(url)
-
-debugLog('✅ 匯出完成:', filename)
-} catch (err) {
-debugLog('❌ 匯出失敗:', err)
-alert('匯出失敗: ' + err.message)
-}
-}<template>
+<template>
   <div class="fund-account-container">
     <!-- 載入遮罩 -->
     <div v-if="loading" class="loading-overlay">
@@ -538,239 +245,53 @@ alert('匯出失敗: ' + err.message)
       </div>
     </div>
 
-    <!-- 子頁面顯示區 -->
-    <div v-if="showSubPage" class="sub-page-container">
-      <div class="sub-page-header">
-        <div class="sub-page-title">
-          <button class="btn-back" @click="closeSubPage">
-            <span class="mdi mdi-arrow-left"></span>
-            返回帳戶列表
-          </button>
-          <h2>{{ subPageTitle }}</h2>
-          <p class="sub-page-subtitle">{{ subPageSubtitle }}</p>
-        </div>
-        <div class="sub-page-actions">
-          <button class="btn btn-secondary" @click="exportSubPageData" v-if="subPageData.length > 0">
-            <span class="mdi mdi-download"></span>
-            匯出資料
+    <!-- 子頁面彈窗 -->
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-container" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">{{ modalTitle }}</h3>
+          <button class="btn-close" @click="closeModal">
+            <span class="mdi mdi-close"></span>
           </button>
         </div>
-      </div>
 
-      <!-- 持有基金表格 -->
-      <div v-if="currentSubPage === 'holdings'" class="sub-table-container">
-        <table class="sub-table">
-          <thead>
-            <tr>
-              <th>基金名稱</th>
-              <th>基金代碼</th>
-              <th>持有單位</th>
-              <th>平均成本</th>
-              <th>總投資金額</th>
-              <th>目前淨值</th>
-              <th>市值</th>
-              <th>損益</th>
-              <th>報酬率</th>
-              <th>更新時間</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="subPageLoading">
-              <td colspan="10" class="loading-row">
-                <span class="mdi mdi-loading mdi-spin"></span>
-                載入持有基金資料中...
-              </td>
-            </tr>
-            <tr v-else-if="subPageData.length === 0">
-              <td colspan="10" class="empty-row">
-                <span class="mdi mdi-information-outline"></span>
-                該客戶目前沒有持有任何基金
-              </td>
-            </tr>
-            <tr v-else v-for="holding in subPageData" :key="holding.holdingId">
-              <td>
-                <div class="fund-info">
-                  <div class="fund-name">{{ holding.fund?.fundName || '未知基金' }}</div>
-                  <div class="fund-type">{{ holding.fund?.fundType || '' }}</div>
-                </div>
-              </td>
-              <td class="fund-code">{{ holding.fund?.fundCode || '-' }}</td>
-              <td class="units">{{ formatNumber(holding.units, 4) }}</td>
-              <td class="cost">NT$ {{ formatNumber(getAverageCost(holding), 4) }}</td>
-              <td class="total-cost">NT$ {{ formatNumber(holding.cost, 2) }}</td>
-              <td class="nav">NT$ {{ formatNumber(holding.fund?.currentNav || 0, 4) }}</td>
-              <td class="market-value">NT$ {{ formatNumber(getMarketValue(holding), 2) }}</td>
-              <td :class="['profit-loss', getProfitLossClass(holding)]">
-                NT$ {{ formatNumber(getProfitLoss(holding), 2) }}
-              </td>
-              <td :class="['return-rate', getProfitLossClass(holding)]">
-                {{ formatPercentage(getReturnRate(holding)) }}%
-              </td>
-              <td>{{ formatDateTime(holding.updateTime) }}</td>
-            </tr>
-          </tbody>
-          <tfoot v-if="subPageData.length > 0">
-            <tr class="summary-row">
-              <td colspan="4"><strong>總計</strong></td>
-              <td><strong>NT$ {{ formatNumber(getTotalCost(), 2) }}</strong></td>
-              <td></td>
-              <td><strong>NT$ {{ formatNumber(getTotalMarketValue(), 2) }}</strong></td>
-              <td :class="['profit-loss', getTotalProfitLossClass()]">
-                <strong>NT$ {{ formatNumber(getTotalProfitLoss(), 2) }}</strong>
-              </td>
-              <td :class="['return-rate', getTotalProfitLossClass()]">
-                <strong>{{ formatPercentage(getTotalReturnRate()) }}%</strong>
-              </td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+        <!-- 頁簽導航 -->
+        <div class="tab-nav">
+          <button v-for="tab in availableTabs" :key="tab.key" :class="['tab-btn', { active: activeTab === tab.key }]"
+            @click="switchTab(tab.key)">
+            <span :class="tab.icon"></span>
+            {{ tab.label }}
+          </button>
+        </div>
 
-      <!-- 交易記錄表格 -->
-      <div v-if="currentSubPage === 'transactions'" class="sub-table-container">
-        <table class="sub-table">
-          <thead>
-            <tr>
-              <th>交易編號</th>
-              <th>交易日期</th>
-              <th>基金名稱</th>
-              <th>交易類型</th>
-              <th>交易金額</th>
-              <th>手續費</th>
-              <th>單位數量</th>
-              <th>淨值</th>
-              <th>狀態</th>
-              <th>備註</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="subPageLoading">
-              <td colspan="10" class="loading-row">
-                <span class="mdi mdi-loading mdi-spin"></span>
-                載入交易記錄中...
-              </td>
-            </tr>
-            <tr v-else-if="subPageData.length === 0">
-              <td colspan="10" class="empty-row">
-                <span class="mdi mdi-information-outline"></span>
-                該客戶目前沒有交易記錄
-              </td>
-            </tr>
-            <tr v-else v-for="transaction in subPageData" :key="transaction.fundTranId">
-              <td class="transaction-id">{{ transaction.fundTranId }}</td>
-              <td>{{ formatDateTime(transaction.tranTime) }}</td>
-              <td>
-                <div class="fund-info">
-                  <div class="fund-name">{{ transaction.fund?.fundName || '未知基金' }}</div>
-                  <div class="fund-code">{{ transaction.fund?.fundCode || '' }}</div>
-                </div>
-              </td>
-              <td>
-                <span :class="['transaction-type', getTransactionTypeClass(transaction.tranType)]">
-                  {{ transaction.tranType }}
-                </span>
-              </td>
-              <td class="amount">NT$ {{ formatNumber(transaction.amount) }}</td>
-              <td class="fee">NT$ {{ formatNumber(transaction.fee) }}</td>
-              <td class="units">{{ formatNumber(transaction.units, 4) }}</td>
-              <td class="nav">NT$ {{ formatNumber(transaction.nav, 4) }}</td>
-              <td>
-                <span :class="['status-badge', getTransactionStatusClass(transaction.status)]">
-                  <span :class="['mdi', getTransactionStatusIcon(transaction.status)]"></span>
-                  {{ transaction.status }}
-                </span>
-              </td>
-              <td class="memo">{{ transaction.memo || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <div class="modal-body">
+          <!-- 持有基金頁面 -->
+          <div v-if="activeTab === 'holdings'" class="tab-content">
+            <FundHoldings :fund-acc-id="selectedAccount?.fundAccId" :key="selectedAccount?.fundAccId" />
+          </div>
 
-      <!-- 定期定額申請表格 -->
-      <div v-if="currentSubPage === 'sip'" class="sub-table-container">
-        <table class="sub-table">
-          <thead>
-            <tr>
-              <th>申請編號</th>
-              <th>基金名稱</th>
-              <th>扣款金額</th>
-              <th>扣款頻率</th>
-              <th>開始日期</th>
-              <th>結束日期</th>
-              <th>狀態</th>
-              <th>下次扣款日</th>
-              <th>累計扣款次數</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="subPageLoading">
-              <td colspan="10" class="loading-row">
-                <span class="mdi mdi-loading mdi-spin"></span>
-                載入定期定額申請中...
-              </td>
-            </tr>
-            <tr v-else-if="subPageData.length === 0">
-              <td colspan="10" class="empty-row">
-                <span class="mdi mdi-information-outline"></span>
-                該客戶目前沒有定期定額申請
-              </td>
-            </tr>
-            <tr v-else v-for="sip in subPageData" :key="sip.sipId">
-              <td class="sip-id">{{ sip.sipId }}</td>
-              <td>
-                <div class="fund-info">
-                  <div class="fund-name">{{ sip.fund?.fundName || '未知基金' }}</div>
-                  <div class="fund-code">{{ sip.fund?.fundCode || '' }}</div>
-                </div>
-              </td>
-              <td class="amount">NT$ {{ formatNumber(sip.amount, 2) }}</td>
-              <td class="frequency">{{ sip.frequency }}</td>
-              <td>{{ formatDate(sip.startDate) }}</td>
-              <td>{{ sip.endDate ? formatDate(sip.endDate) : '無期限' }}</td>
-              <td>
-                <span :class="['status-badge', getSipStatusClass(sip.status)]">
-                  <span :class="['mdi', getSipStatusIcon(sip.status)]"></span>
-                  {{ sip.status }}
-                </span>
-              </td>
-              <td>{{ getNextDeductionDate(sip) }}</td>
-              <td class="deduction-count">{{ getDeductionCount(sip) }}</td>
-              <td>
-                <div class="sip-actions">
-                  <button class="btn-icon success" @click="activateSip(sip)" title="啟用" v-if="sip.status === '停用'">
-                    <span class="mdi mdi-play"></span>
-                  </button>
-                  <button class="btn-icon warning" @click="suspendSip(sip)" title="暫停" v-if="sip.status === '啟用'">
-                    <span class="mdi mdi-pause"></span>
-                  </button>
-                  <button class="btn-icon" @click="editSip(sip)" title="編輯">
-                    <span class="mdi mdi-pencil"></span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-          <tfoot v-if="subPageData.length > 0">
-            <tr class="summary-row">
-              <td colspan="2"><strong>總計</strong></td>
-              <td>
-                <strong>NT$ {{ formatNumber(getActiveSipTotalAmount(), 2) }}</strong>
-                <div class="summary-note">（僅計算啟用中）</div>
-              </td>
-              <td colspan="7"></td>
-            </tr>
-          </tfoot>
-        </table>
+          <!-- 交易記錄頁面 -->
+          <div v-if="activeTab === 'transaction'" class="tab-content">
+            <FundTransaction :fund-acc-id="selectedAccount?.fundAccId" :key="selectedAccount?.fundAccId" />
+          </div>
+
+          <!-- 定期定額頁面 -->
+          <div v-if="activeTab === 'sip'" class="tab-content">
+            <FundSip :fund-acc-id="selectedAccount?.fundAccId" :key="selectedAccount?.fundAccId" />
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import axios from 'axios'
+import { ref, computed, onMounted } from 'vue'
 import { request } from '@/utils/BackAxiosUtil'
+import FundHoldings from './fundHoldings.vue'
+import FundTransaction from './fundTransaction.vue'
+import FundSip from './fundSip.vue'
 
 // 除錯模式
 const debugMode = ref(true)
@@ -786,14 +307,11 @@ const allAccounts = ref([])
 const stats = ref({})
 const totalAccounts = ref(0)
 
-// 子頁面狀態
-const showSubPage = ref(false)
-const currentSubPage = ref('') // 'holdings', 'transactions', 'sip'
-const currentAccount = ref(null)
-const subPageData = ref([])
-const subPageLoading = ref(false)
-const subPageTitle = ref('')
-const subPageSubtitle = ref('')
+// 子頁面相關狀態
+const showModal = ref(false)
+const selectedAccount = ref(null)
+const activeTab = ref('holdings')
+const modalTitle = ref('')
 
 // 篩選條件
 const searchTerm = ref('')
@@ -805,6 +323,25 @@ const endDate = ref('')
 // 排序條件
 const sortField = ref('openTime')
 const sortDirection = ref('desc')
+
+// 可用的頁簽配置
+const availableTabs = computed(() => [
+  {
+    key: 'holdings',
+    label: '持有基金',
+    icon: 'mdi mdi-chart-pie'
+  },
+  {
+    key: 'transaction',
+    label: '交易記錄',
+    icon: 'mdi mdi-history'
+  },
+  {
+    key: 'sip',
+    label: '定期定額',
+    icon: 'mdi mdi-calendar-clock'
+  }
+])
 
 // 除錯日志函數
 const debugLog = (message, data = null) => {
@@ -920,15 +457,13 @@ const fetchAccounts = async () => {
     tableLoading.value = true
     error.value = ''
 
-    const response = await request({
-      url: API_BASE,
-      method: 'GET'
-    })
+    // 直接使用 axios 或確保 request 工具正確配置
+    const response = await axios.get('http://localhost:8080/bank/fundAccount')
 
     debugLog('📡 API 回應:', response)
 
     // 處理回應數據
-    let responseData = response?.data || response
+    let responseData = response?.data
 
     if (Array.isArray(responseData)) {
       allAccounts.value = responseData
@@ -940,10 +475,7 @@ const fetchAccounts = async () => {
         total: totalAccounts.value
       })
 
-      // 計算統計資料
       calculateStats()
-
-      // 應用篩選
       applyFilters()
     } else {
       debugLog('❌ API 回應格式異常')
@@ -994,6 +526,25 @@ const updateAccountStatus = async (accountId, newStatus) => {
   } finally {
     loading.value = false
   }
+}
+
+// 子頁面相關方法
+const openModal = (account, tabKey = 'holdings') => {
+  selectedAccount.value = account
+  activeTab.value = tabKey
+  modalTitle.value = `${account.member?.mName || '基金帳戶'} - ${account.fundAccId}`
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+  selectedAccount.value = null
+  activeTab.value = 'holdings'
+  modalTitle.value = ''
+}
+
+const switchTab = (tabKey) => {
+  activeTab.value = tabKey
 }
 
 // 工具方法
@@ -1050,160 +601,9 @@ const getStatusIcon = (status) => {
   return iconMap[status] || 'mdi-help-circle'
 }
 
-const formatDate = (date) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleDateString('zh-TW')
-}
-
-const formatPercentage = (value) => {
-  if (value === null || value === undefined || isNaN(value)) return '0.00'
-  return value.toFixed(2)
-}
-
-// 持有基金相關計算方法
-const getAverageCost = (holding) => {
-  const units = parseFloat(holding.units) || 0
-  const totalCost = parseFloat(holding.cost) || 0
-  return units > 0 ? totalCost / units : 0
-}
-
-const getMarketValue = (holding) => {
-  const units = parseFloat(holding.units) || 0
-  const currentNav = parseFloat(holding.fund?.currentNav) || 0
-  return units * currentNav
-}
-
-const getProfitLoss = (holding) => {
-  const marketValue = getMarketValue(holding)
-  const cost = parseFloat(holding.cost) || 0
-  return marketValue - cost
-}
-
-const getReturnRate = (holding) => {
-  const cost = parseFloat(holding.cost) || 0
-  if (cost === 0) return 0
-  const profitLoss = getProfitLoss(holding)
-  return (profitLoss / cost) * 100
-}
-
-const getProfitLossClass = (holding) => {
-  const profitLoss = getProfitLoss(holding)
-  return profitLoss >= 0 ? 'profit' : 'loss'
-}
-
-const getTotalCost = () => {
-  return subPageData.value.reduce((sum, h) => sum + (parseFloat(h.cost) || 0), 0)
-}
-
-const getTotalMarketValue = () => {
-  return subPageData.value.reduce((sum, h) => sum + getMarketValue(h), 0)
-}
-
-const getTotalProfitLoss = () => {
-  return getTotalMarketValue() - getTotalCost()
-}
-
-const getTotalReturnRate = () => {
-  const totalCost = getTotalCost()
-  if (totalCost === 0) return 0
-  return (getTotalProfitLoss() / totalCost) * 100
-}
-
-const getTotalProfitLossClass = () => {
-  return getTotalProfitLoss() >= 0 ? 'profit' : 'loss'
-}
-
-// 交易記錄相關方法
-const getTransactionTypeClass = (tranType) => {
-  const classMap = {
-    '申購': 'purchase',
-    '贖回': 'redemption',
-    '轉換': 'exchange'
-  }
-  return classMap[tranType] || ''
-}
-
-const getTransactionStatusClass = (status) => {
-  const classMap = {
-    '成功': 'success',
-    '處理中': 'processing',
-    '失敗': 'failed',
-    '待審核': 'pending'
-  }
-  return classMap[status] || ''
-}
-
-const getTransactionStatusIcon = (status) => {
-  const iconMap = {
-    '成功': 'mdi-check-circle',
-    '處理中': 'mdi-clock',
-    '失敗': 'mdi-alert-circle',
-    '待審核': 'mdi-help-circle'
-  }
-  return iconMap[status] || 'mdi-help-circle'
-}
-
-// 定期定額相關方法
-const getSipStatusClass = (status) => {
-  const classMap = {
-    '啟用': 'active',
-    '停用': 'inactive',
-    '執行中': 'running',
-    '已完成': 'completed',
-    '已取消': 'cancelled'
-  }
-  return classMap[status] || ''
-}
-
-const getSipStatusIcon = (status) => {
-  const iconMap = {
-    '啟用': 'mdi-check-circle',
-    '停用': 'mdi-pause-circle',
-    '執行中': 'mdi-play-circle',
-    '已完成': 'mdi-check-circle-outline',
-    '已取消': 'mdi-cancel'
-  }
-  return iconMap[status] || 'mdi-help-circle'
-}
-
-const getNextDeductionDate = (sip) => {
-  // 簡化的下次扣款日計算
-  if (sip.status !== '啟用' && sip.status !== '執行中') return '-'
-
-  const today = new Date()
-  const startDate = new Date(sip.startDate)
-
-  if (sip.frequency === '月扣') {
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, startDate.getDate())
-    return formatDate(nextMonth)
-  } else if (sip.frequency === '週扣') {
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
-    return formatDate(nextWeek)
-  }
-
-  return '-'
-}
-
-const getDeductionCount = (sip) => {
-  // 簡化的扣款次數計算
-  const startDate = new Date(sip.startDate)
-  const today = new Date()
-  const monthsDiff = (today.getFullYear() - startDate.getFullYear()) * 12 + today.getMonth() - startDate.getMonth()
-
-  if (sip.frequency === '月扣') {
-    return Math.max(0, monthsDiff)
-  } else if (sip.frequency === '週扣') {
-    const weeksDiff = Math.floor((today - startDate) / (7 * 24 * 60 * 60 * 1000))
-    return Math.max(0, weeksDiff)
-  }
-
-  return 0
-}
-
-const getActiveSipTotalAmount = () => {
-  return subPageData.value
-    .filter(sip => sip.status === '啟用' || sip.status === '執行中')
-    .reduce((sum, sip) => sum + (parseFloat(sip.amount) || 0), 0)
+const getSortIcon = (field) => {
+  if (sortField.value !== field) return ''
+  return sortDirection.value === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'
 }
 
 // 排序方法
@@ -1273,7 +673,20 @@ const refreshData = async () => {
   }
 }
 
-// 操作方法
+// 操作方法（修改為使用彈窗）
+const viewFundHoldings = (account) => {
+  openModal(account, 'holdings')
+}
+
+const viewTransactionHistory = (account) => {
+  openModal(account, 'transaction')
+}
+
+const viewSipApplications = (account) => {
+  openModal(account, 'sip')
+}
+
+// 其他操作方法
 const openCreateAccountModal = () => {
   debugLog('➕ 開啟新增帳戶對話框')
   alert('新增帳戶功能需要實作表單對話框')
@@ -1323,127 +736,6 @@ const exportAccounts = () => {
   }
 }
 
-// 查看持有基金
-const viewFundHoldings = async (account) => {
-  try {
-    debugLog('📊 查看持有基金:', account.fundAccId)
-
-    currentAccount.value = account
-    currentSubPage.value = 'holdings'
-    subPageTitle.value = '持有基金'
-    subPageSubtitle.value = `${account.member?.mName} (帳戶ID: ${account.fundAccId})`
-    showSubPage.value = true
-    subPageLoading.value = true
-    subPageData.value = []
-
-    const response = await request({
-      url: '/fundHoldings',
-      method: 'GET',
-      params: { fundAccId: account.fundAccId }
-    })
-
-    let responseData = response?.data || response
-    debugLog('📊 持有基金回應:', responseData)
-
-    if (Array.isArray(responseData)) {
-      subPageData.value = responseData
-    } else {
-      throw new Error('無法載入持有基金資料')
-    }
-  } catch (err) {
-    debugLog('❌ 查看持有基金錯誤:', err)
-    alert(`查看持有基金失敗: ${err.message}`)
-    showSubPage.value = false
-  } finally {
-    subPageLoading.value = false
-  }
-}
-
-// 查看交易記錄
-const viewTransactionHistory = async (account) => {
-  try {
-    debugLog('📋 查看交易記錄:', account.fundAccId)
-
-    currentAccount.value = account
-    currentSubPage.value = 'transactions'
-    subPageTitle.value = '基金交易記錄'
-    subPageSubtitle.value = `${account.member?.mName} (帳戶ID: ${account.fundAccId})`
-    showSubPage.value = true
-    subPageLoading.value = true
-    subPageData.value = []
-
-    // 呼叫 fundTransaction API 並篩選該客戶的記錄
-    const response = await request({
-      url: '/fundTransaction',
-      method: 'GET'
-    })
-
-    let responseData = response?.data || response
-    debugLog('📋 交易記錄回應:', responseData)
-
-    if (Array.isArray(responseData)) {
-      // 篩選該客戶的交易記錄
-      const filteredTransactions = responseData.filter(t =>
-        t.fundAccount?.fundAccId === account.fundAccId
-      )
-      subPageData.value = filteredTransactions
-    } else {
-      throw new Error('無法載入交易記錄資料')
-    }
-  } catch (err) {
-    debugLog('❌ 查看交易記錄錯誤:', err)
-    alert(`查看交易記錄失敗: ${err.message}`)
-    showSubPage.value = false
-  } finally {
-    subPageLoading.value = false
-  }
-}
-
-// 查看定期定額申請
-const viewSipApplications = async (account) => {
-  try {
-    debugLog('🕒 查看定期定額申請:', account.fundAccId)
-
-    currentAccount.value = account
-    currentSubPage.value = 'sip'
-    subPageTitle.value = '定期定額申請'
-    subPageSubtitle.value = `${account.member?.mName} (帳戶ID: ${account.fundAccId})`
-    showSubPage.value = true
-    subPageLoading.value = true
-    subPageData.value = []
-
-    const response = await request({
-      url: `/fundSip/${account.fundAccId}`,
-      method: 'GET'
-    })
-
-    let responseData = response?.data || response
-    debugLog('🕒 定期定額回應:', responseData)
-
-    if (Array.isArray(responseData)) {
-      subPageData.value = responseData
-    } else {
-      throw new Error('無法載入定期定額申請資料')
-    }
-  } catch (err) {
-    debugLog('❌ 查看定期定額錯誤:', err)
-    alert(`查看定期定額申請失敗: ${err.message}`)
-    showSubPage.value = false
-  } finally {
-    subPageLoading.value = false
-  }
-}
-
-// 關閉子頁面
-const closeSubPage = () => {
-  showSubPage.value = false
-  currentSubPage.value = ''
-  currentAccount.value = null
-  subPageData.value = []
-  subPageTitle.value = ''
-  subPageSubtitle.value = ''
-}
-
 const approveAccount = async (account) => {
   if (confirm(`確定要審核通過 ${account.member?.mName} 的基金帳戶申請嗎？`)) {
     const result = await updateAccountStatus(account.fundAccId, '啟用')
@@ -1476,33 +768,7 @@ const activateAccount = async (account) => {
     }
   }
 }
-
-const editAccount = (account) => {
-  debugLog('✏️ 編輯帳戶:', account.fundAccId)
-  alert('編輯功能需要實作表單對話框')
-}
-
-const rejectAccount = async (account) => {
-  if (confirm(`確定要拒絕 ${account.member?.mName} 的基金帳戶申請嗎？`)) {
-    const result = await updateAccountStatus(account.fundAccId, '拒絕')
-    if (result.success) {
-      alert('申請已拒絕')
-    } else {
-      alert(`拒絕失敗: ${result.message}`)
-    }
-  }
-}
-
-// 生命週期
-onMounted(async () => {
-  console.log('%c🚀 基金帳戶頁面載入', 'color: #3b82f6; font-weight: bold; font-size: 16px;')
-  debugLog('=== 頁面初始化 ===')
-  debugLog('API Base:', API_BASE)
-
-  await refreshData()
-})
 </script>
-
 <style scoped>
 .fund-account-container {
   padding: 24px;
@@ -1696,10 +962,6 @@ onMounted(async () => {
 
 .btn-icon.warning:hover {
   background-color: #fef3c7;
-}
-
-.btn-icon.danger {
-  color: #ef4444;
 }
 
 .btn-icon.danger {
@@ -2060,6 +1322,105 @@ onMounted(async () => {
   font-size: 0.875rem;
 }
 
+/* 彈窗樣式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.btn-close {
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+/* 頁簽導航 */
+.tab-nav {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+.tab-btn {
+  padding: 16px 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-btn:hover {
+  color: #374151;
+  background-color: #f9fafb;
+}
+
+.tab-btn.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background-color: #f8faff;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.tab-content {
+  padding: 24px;
+}
+
 /* 動畫效果 */
 @keyframes spin {
   to {
@@ -2085,6 +1446,11 @@ onMounted(async () => {
   .filter-select,
   .filter-date {
     width: 100%;
+  }
+
+  .modal-container {
+    width: 95%;
+    max-width: none;
   }
 }
 
@@ -2123,297 +1489,27 @@ onMounted(async () => {
   .account-details {
     gap: 1px;
   }
-}
 
-/* 子頁面樣式 */
-.sub-page-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-top: 24px;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+  .tab-nav {
+    flex-wrap: wrap;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.sub-page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 24px;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.sub-page-title h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 8px 0 4px 0;
-}
-
-.sub-page-subtitle {
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.btn-back {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #f3f4f6;
-  border: none;
-  border-radius: 6px;
-  color: #374151;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-  margin-bottom: 12px;
-}
-
-.btn-back:hover {
-  background: #e5e7eb;
-  color: #1f2937;
-}
-
-.sub-page-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.sub-table-container {
-  overflow-x: auto;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.sub-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 800px;
-}
-
-.sub-table th {
-  background-color: #f9fafb;
-  padding: 12px 16px;
-  text-align: left;
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.875rem;
-  border-bottom: 2px solid #e5e7eb;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.sub-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #f3f4f6;
-  vertical-align: top;
-  font-size: 0.875rem;
-}
-
-.sub-table tbody tr:hover {
-  background-color: #f9fafb;
-}
-
-/* 子表格特殊樣式 */
-.fund-info .fund-name {
-  font-weight: 500;
-  color: #1f2937;
-  margin-bottom: 2px;
-}
-
-.fund-info .fund-type,
-.fund-info .fund-code {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.fund-code,
-.sip-id,
-.transaction-id {
-  font-family: monospace;
-  font-weight: 500;
-  color: #3b82f6;
-}
-
-.units,
-.cost,
-.total-cost,
-.nav,
-.market-value,
-.amount,
-.fee {
-  text-align: right;
-  font-family: monospace;
-}
-
-.profit-loss.profit,
-.return-rate.profit {
-  color: #059669;
-  font-weight: 500;
-}
-
-.profit-loss.loss,
-.return-rate.loss {
-  color: #dc2626;
-  font-weight: 500;
-}
-
-.transaction-type {
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.transaction-type.purchase {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.transaction-type.redemption {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
-
-.transaction-type.exchange {
-  background-color: #dbeafe;
-  color: #1e40af;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.status-badge.success {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.status-badge.processing {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.status-badge.failed {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
-
-.status-badge.pending {
-  background-color: #e0e7ff;
-  color: #3730a3;
-}
-
-.status-badge.active {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.status-badge.inactive {
-  background-color: #f3f4f6;
-  color: #6b7280;
-}
-
-.status-badge.running {
-  background-color: #dbeafe;
-  color: #1e40af;
-}
-
-.status-badge.completed {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.status-badge.cancelled {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
-
-.frequency {
-  padding: 3px 8px;
-  background-color: #f3f4f6;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  color: #374151;
-}
-
-.deduction-count {
-  text-align: center;
-  font-weight: 500;
-  color: #3b82f6;
-}
-
-.sip-actions {
-  display: flex;
-  gap: 4px;
-}
-
-.memo {
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #6b7280;
-}
-
-/* 總計行樣式 */
-.summary-row {
-  background-color: #f9fafb;
-  border-top: 2px solid #e5e7eb;
-  font-weight: 600;
-}
-
-.summary-row td {
-  padding: 16px;
-  border-bottom: none;
-}
-
-.summary-note {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-weight: 400;
-  margin-top: 2px;
-}
-
-/* 響應式調整 */
-@media (max-width: 768px) {
-  .sub-page-header {
-    flex-direction: column;
-    gap: 16px;
+  .tab-btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
   }
 
-  .sub-page-actions {
+  .modal-container {
     width: 100%;
-    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    margin: 0;
   }
 
-  .sub-table {
-    min-width: 1200px;
-  }
-
-  .sub-table th,
-  .sub-table td {
-    padding: 8px 12px;
-    font-size: 0.8rem;
+  .modal-header {
+    border-radius: 0;
   }
 }
 </style>
