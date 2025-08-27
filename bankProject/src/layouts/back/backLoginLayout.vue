@@ -1,45 +1,69 @@
 <template>
   <div class="contain">
     <div class="login-container">
-      <h2>登入</h2>
-      <form @submit.prevent="doLogin">
+
+      <img src="../../image/backLoginImage.png" alt="">
+      <h2>登入帳號</h2>
+
         <div class="form-group">
-          <label for="username">帳號</label>
+
           <input
             type="text"
             id="mAccount"
             v-model="wAccount"
-            placeholder="輸入帳號"
+            placeholder="帳號"
             required
           />
         </div>
         <div class="form-group">
-          <label for="password">密碼</label>
+
           <input
             type="password"
             id="mPassword"
             v-model="wPassword"
-            placeholder="輸入密碼"
+            placeholder="密碼"
             required
           />
         </div>
-        <button type="submit" class="login-button">登入</button>
-        <div class="register-link">還沒有帳號？<a href="#">註冊</a></div>
-      </form>
+        <button  @click="doLogin" class="login-button">登入</button>
+ 
+
     </div>
   </div>
+    <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
 import { useWorkerStore } from "@/stores/Worker";
-import { ref } from "vue";
+import { ref ,onMounted, onBeforeUnmount} from "vue";
 import router from "@/router/index";
 import { usePermissionStore } from "@/stores/usePermissionStore";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 
 const permissionStore = usePermissionStore();
 const workerStore = useWorkerStore();
 const wAccount = ref("");
 const wPassword = ref("");
+const showError = ref(false);
+const errorMsg = ref("");
+
+function handleGlobalEnter(event) {
+  if (event.key === 'Enter') {
+    doLogin();
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalEnter);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleGlobalEnter);
+});
 
 const doLogin = async () => {
   try {
@@ -66,17 +90,21 @@ const doLogin = async () => {
     permissionStore.setPageMap(response2);
 
     
-       if (permissionStore.allowedPages.length > 0) {
+    if (permissionStore.allowedPages.length > 0) {
+
+      let name= permissionStore.allowedPages[0].name;
       // 跳轉到用戶的第一個可訪問頁面
-      router.push("/yuzubank/backmain/" + permissionStore.allowedPages[0].name);
+      router.push("/yuzubank/backmain/" + name) ;// 強制刷新一次畫面（保底方案）
+    
     } else {
       // 如果沒有權限頁面，重定向到登錄頁
-      alert("您沒有可訪問的頁面，請聯繫管理員！");
-      router.push("/login");
+      errorMsg.value = "您沒有可訪問的頁面，請聯繫管理員！";
+      showError.value =true;
+    
     }
   } catch (error) {
-    alert("登入失敗，請確認帳號密碼");
-    console.error(error);
+      errorMsg.value = error;
+      showError.value =true;
   }
 };
 </script>
@@ -89,16 +117,21 @@ const doLogin = async () => {
   height: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  padding-top: 200px;
 }
 
 .login-container {
-  background: white;
   padding: 30px;
   width: 100%;
-  max-width: 400px;
-  border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 30px;
+  background-color: #c4c4c417;
+
+
 }
 
 .login-container h2 {
@@ -119,40 +152,39 @@ label {
 
 input[type="text"],
 input[type="password"] {
-  width: 100%;
+  width: 300px;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 14px;
+  background-color: #f3f3f3;
 }
 
 .login-button {
-  width: 100%;
+  width: 300px;
   padding: 12px;
-  background-color: #4caf50;
-  color: white;
+  background-color: #f8c22c;
+  color: rgb(0, 0, 0);
   border: none;
   font-size: 16px;
   border-radius: 5px;
   cursor: pointer;
+  margin-top: 20px;
 }
 
 .login-button:hover {
-  background-color: #45a049;
+  background-color: #e0aa14;
 }
 
-.register-link {
-  text-align: center;
-  margin-top: 15px;
-  font-size: 14px;
-}
 
-.register-link a {
-  color: #4caf50;
-  text-decoration: none;
-}
+img{
+width: 300px; 
+height: auto;
 
-.register-link a:hover {
-  text-decoration: underline;
+}
+h2{
+  margin-top: 30px;
+  font-size: 30px;
+  margin-bottom: 10px;
 }
 </style>

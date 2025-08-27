@@ -44,15 +44,23 @@
     我有加入了<button @click="moveslide">返回登入</button>
   </div>
   <SuccessToast v-model="showToast" message="註冊已成功！" :duration="2000" />
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 <script setup>
 import { request } from "@/utils/FontAxiosUtil";
 import { ref, onMounted, reactive } from "vue";
 import { validateMember } from "@/utils/CheckMemberInformation";
-import SuccessToast from "@/components/member/successAnim.vue";
+import SuccessToast from "@/components/successAnim.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 
 const emit = defineEmits(["moveslideClick"]);
 const showToast = ref(false);
+const showError = ref(false);
+const errorMsg = ref("");
 
 const moveslide = () => {
   emit("moveslideClick");
@@ -65,6 +73,10 @@ const moveslide = () => {
   form.mPhone= "";
   form.mBirthday= null;
   form.mEmail= "";
+  fields.value.forEach((f)=>{
+    f.error=false;
+  })
+
 };
 
 const filterInput = (field) => {
@@ -202,7 +214,15 @@ async function submitForm() {
     
       }
     }catch (error){
-    
+      if(error==="身分證已註冊過"){
+        fields.value[1].error = true;
+      }
+      if(error==="信箱已註冊過"){
+        fields.value[8].error = true;
+      }
+      errorMsg.value = error;
+      showError.value = true;
+      
     }
   }
   
@@ -217,10 +237,10 @@ async function submitForm() {
   box-sizing: border-box;
 }
 .container1 {
-  width: 100%;
-  background-color: #fff;
+  margin: auto;
+  width: 70%;
   border-radius: 10px;
-  top: 50px;
+  top: 10px;
   padding: 10px;
 }
 
@@ -228,7 +248,7 @@ async function submitForm() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 5px solid #ebb211;
+
 }
 .topbar>span{
   font-size: 80px;
@@ -239,8 +259,15 @@ font-size: 50px;
 color: #ebb211;
 }
 .form {
+  background: rgba(255, 255, 255, 0.1);       /* 半透明白色背景 */
+  backdrop-filter: blur(10px);               /* 模糊背景 */
+  -webkit-backdrop-filter: blur(10px);       /* Safari 支援 */
+  border-radius: 30px;                       /* 圓角 */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* 淡淡邊框讓層次更清楚 */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);  /* 陰影 */
   display: flex;
   flex-wrap: wrap;
+  padding: 20px;
 }
 .inputBox {
   width: 50%;
@@ -257,6 +284,7 @@ input[type="text"] {
   height: 100%;
   padding: 5px 20px;
   font-size: 20px;
+  color: rgb(255, 255, 255);
 }
 select {
   width: 100%;
@@ -264,6 +292,7 @@ select {
   text-align: center;
   text-align-last: center; /* Chrome / Edge / IE */
   -moz-text-align-last: center; /* Firefox */
+  color: rgb(255, 255, 255);
 }
 
 /* select 的下拉選單 */
@@ -278,6 +307,7 @@ input[type="date"] {
   width: 100%;
   height: 100%;
   text-align: center; /* 讓輸入框內的文字置中 */
+  color: rgb(255, 255, 255);
 }
 
 .input {

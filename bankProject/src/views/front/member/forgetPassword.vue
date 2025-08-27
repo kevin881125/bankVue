@@ -39,7 +39,7 @@
 <script setup>
 import { ref } from "vue";
 import { request } from "@/utils/FontAxiosUtil";
-import SuccessToast from "@/components/member/successAnim.vue";
+import SuccessToast from "@/components/successAnim.vue";
 
 const showToast = ref(false);
 

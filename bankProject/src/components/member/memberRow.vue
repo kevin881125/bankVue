@@ -57,12 +57,12 @@ const statusClass = computed(() => {
 tr {
   width: 100%;
   &:hover {
-    background-color: #e2e1e1;
+    background-color: #f7f7f7;
   }
 }
 td {
-  border-bottom: 1px solid rgb(100, 100, 100);
-  color: rgb(156, 156, 156);
+  border-bottom: 1px solid #f0f0f0;
+  color: #666a6a;
   font-weight: 350;
   height: 62px;
   text-align: center;
@@ -75,7 +75,6 @@ td {
 
   &:hover {
     color: #ebb211;
-    background-color: #fff;
   }
 }
 .edit {
@@ -86,7 +85,6 @@ td {
 
   &:hover {
     color: rgb(1, 146, 33);
-    background-color: #fff;
   }
 }
 

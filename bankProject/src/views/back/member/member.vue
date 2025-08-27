@@ -447,6 +447,9 @@ table {
   background-color: rgb(255, 255, 255);
   border-collapse: collapse;
   box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  padding: 20px;;
 }
 thead {
   width: 100%;
@@ -474,6 +477,7 @@ th {
   display: flex;
   justify-content: center;
   align-items: center;
+  border-radius: 30px;
 }
 .pagination {
   display: flex;

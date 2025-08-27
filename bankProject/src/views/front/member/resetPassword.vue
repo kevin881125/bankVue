@@ -72,7 +72,7 @@ import { useRoute } from "vue-router";
 import { request } from "@/utils/FontAxiosUtil";
 import { ref } from "vue";
 import router from "@/router/index";
-import SuccessAnim from "@/components/member/successAnim.vue";
+import SuccessAnim from "@/components/successAnim.vue";
 
 const showpassword = ref(true);
 const showOK = ref(false);
@@ -116,7 +116,9 @@ const submit = async () => {
       method: "POST",
       data: data.value,
     });
+
     message.value = "密碼重設成功！即將跳轉登入頁";
+    showOK.value = true;
     setTimeout(() => {
       router.push("/yuzubank/frontLogin");
     }, 2000);

@@ -218,7 +218,7 @@
 import { ref, onMounted, reactive, nextTick } from "vue";
 import { useMemberStore } from "@/stores/MemberStore";
 import { request } from "@/utils/FontAxiosUtil";
-import SuccessAnim from "@/components/member/successAnim.vue";
+import SuccessAnim from "@/components/successAnim.vue";
 import DoughnutChart from "@/components/member/DoughnutChart.vue";
 import { validateMember2 } from "@/utils/CheckMemberInformation";
 const memberStore = useMemberStore();
