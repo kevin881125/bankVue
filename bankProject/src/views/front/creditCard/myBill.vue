@@ -54,7 +54,13 @@
     </v-card>
 
     <!-- 繳費對話框（含紅利折抵） -->
-    <v-dialog v-model="payDialog" max-width="560">
+    <!-- ✅ 支付進行中 persistent，避免中斷；成功後會自動關閉 -->
+    <v-dialog
+      v-model="payDialog"
+      max-width="560"
+      :persistent="paying"
+      @update:modelValue="val => { if (!val) resetPayState() }"
+    >
       <v-card>
         <v-card-title class="pb-0">
           繳費
@@ -153,8 +159,10 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="payDialog = false">取消</v-btn>
-          <v-btn color="primary" :loading="paying" @click="submitPay">確認繳費</v-btn>
+          <v-btn variant="text" :disabled="paying" @click="payDialog = false">取消</v-btn>
+          <v-btn color="primary" :loading="paying" :disabled="paying" @click="submitPay">
+            確認繳費
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -231,6 +239,19 @@ function openPay(bill) {
   refreshPoints();
 }
 
+// ✅ 關閉時重置 state（避免殘留，並確保成功後自動關閉乾淨）
+function resetPayState() {
+  payError.value = "";
+  paySuccess.value = "";
+  paying.value = false;
+  selectedBill.value = null;
+  payForm.value = { accountId: "", amount: null };
+  reward.value = { loading: false, available: 0, use: false, redeem: 0, error: "" };
+}
+function closePayDialog() {
+  payDialog.value = false; // 觸發上面的 resetPayState
+}
+
 async function refreshPoints() {
   reward.value.loading = true;
   reward.value.error = "";
@@ -274,8 +295,9 @@ const estimatedPay = computed(() => {
   return paid;
 });
 
-// 送出繳費
+// 送出繳費（✅ 防呆：paying 中直接 return；成功即自動關閉）
 async function submitPay() {
+  if (paying.value) return; // 防重複點擊
   payError.value = "";
   paySuccess.value = "";
   if (!selectedBill.value) return;
@@ -315,8 +337,9 @@ async function submitPay() {
       if (!resp || !resp.status) throw new Error("繳費/折抵失敗或無回應");
       if (resp.status !== "COMPLETED") throw new Error(`狀態：${resp.status}`);
 
-      paySuccess.value = `完成！折抵 ${resp.actualRedeem ?? rewardApplied.value} 點，實付 ${fmtMoney(resp.actualPay ?? estimatedPay.value)}。`;
+      // 成功：更新列表並自動關閉
       await fetchBills();
+      closePayDialog();
     } else {
       // 沒折抵：走原來 /pay
       const body = new URLSearchParams();
@@ -338,8 +361,9 @@ async function submitPay() {
       if (!resp || !resp.status) throw new Error("繳費失敗或無回應");
       if (resp.status !== "COMPLETED") throw new Error(`繳費狀態：${resp.status}`);
 
-      paySuccess.value = "繳款成功！帳單已更新。";
+      // 成功：更新列表並自動關閉
       await fetchBills();
+      closePayDialog();
     }
   } catch (e) {
     console.error(e);
