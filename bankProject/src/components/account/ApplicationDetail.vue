@@ -154,6 +154,7 @@ import { useWorkerStore } from "@/stores/Worker";
 import { formatDateOnly } from "@/utils/DataUtil";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import SuccessMessage from "@/components/SuccessMessage.vue";
+import { request } from "@/utils/BackAxiosUtil";
 const workerStore = useWorkerStore();
 
 const props = defineProps({
@@ -222,16 +223,13 @@ const submitUpdate = async () => {
   console.log(updateBean);
 
   try {
-    const res = await fetch(
-      "http://localhost:8080/bank/account/application/update",
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateBean),
-      }
-    );
+    const res = await request({
+      url: "/account/application/update",
+      method: "PUT",
+      data: updateBean,
+  });
 
-    if (!res.ok) throw new Error("更新失敗");
+    if (!res) throw new Error("更新失敗");
 
     successMsg.value = "狀態更新成功！";
     showSuccess.value = true;

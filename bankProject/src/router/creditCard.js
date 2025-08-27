@@ -2,7 +2,7 @@ export default [
   // 後台
   {
     path: "creditCard",
-    component: () => import("@/views/back/creditCard/creditCard.vue"),
+    component: () => import("@/views/back/creditCard/creditCard.vue"),meta: { pageId: 3 }
   },
 
   {
