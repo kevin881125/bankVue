@@ -63,6 +63,7 @@
             :loan="l"
             @open-detail="handleOpenDetail"
             @edit-review="openReviewModal"
+            @open-repayment="openRepaymentDetail"
           />
         </tbody>
       </table>
@@ -80,6 +81,12 @@
       @close="closeReviewModal"
       @save="handleSaveReview"
     />
+    <RepaymentDetilModal
+      :show="isRepaymentModalVisible"
+      :payments="repaymentPayments"
+      @close="isRepaymentModalVisible = false"
+    />
+
     <LoanReviewLogsModal
       :show="isAuditModalVisible"
       :records="auditRecords"
@@ -103,6 +110,7 @@ import loanRow from "@/components/loan/loanRow.vue";
 import LoanDetailModal from "@/components/loan/loanDetail/loanDetailModal.vue";
 import LoanReviewModal from "@/components/loan/loanReview/loanReviewModal.vue";
 import LoanReviewLogsModal from "@/components/loan/loanReview/loanReviewLogsModal.vue";
+import RepaymentDetilModal from "@/components/loan/loanDetail/RepaymentDetilModal.vue";
 import ConfirmModal from "@/components/loan/confirm/confirmModal.vue";
 import LoanSummaryDoughnuts from "@/components/loan/chart/loanSummaryDoughnuts.vue";
 
@@ -127,6 +135,10 @@ const showDetailModal = ref(false);
 // 審核 Modal
 const isReviewModalVisible = ref(false);
 const currentReview = ref(null);
+
+// 繳款明細 Modal
+const isRepaymentModalVisible = ref(false);
+const repaymentPayments = ref([]);
 
 // 確認 Modal
 const isConfirmVisible = ref(false);
@@ -241,7 +253,7 @@ async function openReviewModal(loanId) {
     const document = await request({
       url: `/loans/${loanId}/latest-review`,
       method: "GET",
-    });    
+    });
 
     currentReview.value = {
       loanId: loan.loanId,
@@ -295,6 +307,22 @@ async function saveReviewWithContract(contractFile, loanId) {
   } catch (error) {
     alert("合約檔案上傳失敗");
     throw error;
+  }
+}
+
+// 開啟繳款明細
+async function openRepaymentDetail(loanId) {
+  try {
+    const data = await request({
+      url: `/loans/${loanId}/payments_dto`,
+      method: "GET",
+    });
+
+    repaymentPayments.value = data;
+    isRepaymentModalVisible.value = true;
+  } catch (error) {
+    alert("取得繳款明細失敗");
+    console.error(error);
   }
 }
 

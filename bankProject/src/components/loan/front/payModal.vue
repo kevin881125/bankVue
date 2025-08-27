@@ -251,6 +251,7 @@ async function submitPayment() {
       emit("success", paymentRes);
       innerVisible.value = false;
       emit("updateSchedule"); // 讓父組件更新排程
+      emit("refreshLoans");   // 新增：更新個人貸款資訊
     } catch (err) {
       console.error("繳費失敗:", err);
       alert("繳費失敗，請稍後再試");
