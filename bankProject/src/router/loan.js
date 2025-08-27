@@ -3,6 +3,7 @@ export default [
   {
     path: "loan",
     component: () => import("@/views/back/loan/loan.vue"),
+    meta: { pageId: 4 }
   },
 
   // 前台
