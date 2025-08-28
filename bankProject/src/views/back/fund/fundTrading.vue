@@ -429,9 +429,6 @@ const fetchTransactions = async () => {
         fullApiUrl.value = currentApiEndpoint.value
         requestMethodUsed.value = 'GET'
 
-        debugLog('📡 API 請求 (基本獲取所有記錄):', { url: API_BASE })
-        debugLog('📡 完整請求 URL:', `${window.location.origin}/bank${API_BASE}`)
-
         const response = await request({
             url: API_BASE,
             method: 'GET'

@@ -116,6 +116,11 @@
                                     <button class="action-btn edit-btn" @click="openEditDialog(fund)" title="編輯">
                                         <i class="fas fa-edit"></i>
                                     </button>
+                                    <!-- ✅ 新增「改變狀態」按鈕 -->
+                                    <button class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
+                                        @click="toggleFundStatus(fund)">
+                                        {{ fund.status === '啟用' ? '停用' : '啟用' }}
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -145,6 +150,26 @@
                 </div>
 
                 <div class="modal-body">
+                    <!-- 一鍵輸入按鈕區域 (僅新增模式顯示) -->
+                    <div v-if="!isEdit" class="quick-fill-section">
+                        <h4 class="quick-fill-title">
+                            <i class="fas fa-magic"></i>
+                            一鍵輸入範例
+                        </h4>
+                        <div class="quick-fill-buttons">
+                            <button v-for="template in fundTemplates" :key="template.id" class="quick-fill-btn"
+                                @click="fillTemplate(template)" type="button">
+                                <div class="template-icon" :style="{ background: template.color }">
+                                    <i :class="template.icon"></i>
+                                </div>
+                                <div class="template-info">
+                                    <div class="template-name">{{ template.name }}</div>
+                                    <div class="template-desc">{{ template.description }}</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
                     <form class="fund-form">
                         <div class="form-row">
                             <div class="form-group">
@@ -303,6 +328,124 @@ const form = ref({
 
 const apiUrl = "http://localhost:8080/bank/fund";
 
+// 基金範本資料
+const fundTemplates = ref([
+    {
+        id: 1,
+        name: "台股基金",
+        description: "台灣股票型基金",
+        icon: "fas fa-flag",
+        color: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        data: {
+            fundCode: "TW001A",
+            fundName: "台灣精選股票基金A類型",
+            fundType: "EQUITY",
+            riskLevel: 4,
+            currency: "TWD",
+            comAccId: "7110000054",
+            latestNav: 15.2500,
+            buyFee: 1.50,
+            status: "OPEN",
+            navDate: new Date().toISOString().split('T')[0]
+        }
+    },
+    {
+        id: 2,
+        name: "美股基金",
+        description: "美國股票型基金",
+        icon: "fas fa-star-spangled-banner",
+        color: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+        data: {
+            fundCode: "US001A",
+            fundName: "美國成長股票基金A類型",
+            fundType: "EQUITY",
+            riskLevel: 5,
+            currency: "USD",
+            comAccId: "7110000054",
+            latestNav: 18.7800,
+            buyFee: 2.00,
+            status: "OPEN",
+            navDate: new Date().toISOString().split('T')[0]
+        }
+    },
+    {
+        id: 3,
+        name: "債券基金",
+        description: "穩健債券型基金",
+        icon: "fas fa-shield-alt",
+        color: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
+        data: {
+            fundCode: "BD001A",
+            fundName: "全球債券基金A類型",
+            fundType: "BOND",
+            riskLevel: 2,
+            currency: "TWD",
+            comAccId: "7110000054",
+            latestNav: 10.5600,
+            buyFee: 1.00,
+            status: "OPEN",
+            navDate: new Date().toISOString().split('T')[0]
+        }
+    },
+    {
+        id: 4,
+        name: "平衡基金",
+        description: "股債平衡配置",
+        icon: "fas fa-balance-scale",
+        color: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+        data: {
+            fundCode: "BL001A",
+            fundName: "環球平衡基金A類型",
+            fundType: "BALANCED",
+            riskLevel: 3,
+            currency: "TWD",
+            comAccId: "7110000054",
+            latestNav: 12.4300,
+            buyFee: 1.25,
+            status: "OPEN",
+            navDate: new Date().toISOString().split('T')[0]
+        }
+    },
+    {
+        id: 5,
+        name: "指數基金",
+        description: "追蹤市場指數",
+        icon: "fas fa-chart-line",
+        color: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+        data: {
+            fundCode: "IDX001A",
+            fundName: "台灣50指數基金",
+            fundType: "INDEX",
+            riskLevel: 4,
+            currency: "TWD",
+            comAccId: "7110000054",
+            latestNav: 16.8900,
+            buyFee: 0.50,
+            status: "OPEN",
+            navDate: new Date().toISOString().split('T')[0]
+        }
+    },
+    {
+        id: 6,
+        name: "貨幣基金",
+        description: "短期貨幣市場",
+        icon: "fas fa-coins",
+        color: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
+        data: {
+            fundCode: "MM001A",
+            fundName: "台幣貨幣市場基金",
+            fundType: "MONEY_MARKET",
+            riskLevel: 1,
+            currency: "TWD",
+            comAccId: "7110000054",
+            latestNav: 10.0120,
+            buyFee: 0.25,
+            status: "OPEN",
+            navDate: new Date().toISOString().split('T')[0]
+        }
+    }
+]);
+
 // 計算屬性
 const filteredFunds = computed(() => {
     if (!searchKeyword.value) return funds.value;
@@ -317,15 +460,22 @@ const filteredFunds = computed(() => {
 
 // 修正後的表單驗證
 const isFormValid = computed(() => {
-    return form.value.fundCode.trim() !== '' &&
-        form.value.fundName.trim() !== '' &&
+    return form.value.fundCode && form.value.fundCode.trim() !== '' &&
+        form.value.fundName && form.value.fundName.trim() !== '' &&
         form.value.fundType !== '' &&
         form.value.currency !== '' &&
-        form.value.comAccId.trim() !== '' &&
+        form.value.comAccId && form.value.comAccId.trim() !== '' &&
         parseFloat(form.value.latestNav || 0) > 0 &&
         form.value.navDate !== '' &&
         parseFloat(form.value.buyFee || 0) >= 0;
 });
+
+// 一鍵輸入範本資料
+const fillTemplate = (template) => {
+    Object.assign(form.value, template.data);
+    console.log('已填入範本:', template.name, form.value);
+};
+
 // 載入基金清單
 const fetchFunds = async () => {
     loading.value = true;
@@ -368,7 +518,7 @@ const processFundData = (fund) => {
         fundCode: fund.fundCode || '',
         fundName: fund.fundName || '',
         latestNav: parseFloat(fund.latestNav || 0),
-        navDate: fund.navDate,
+        navDate: fund.latestNavDate,
         fundType: fund.fundType || '',
         riskLevel: fund.riskLevel || 1,
         buyFee: parseFloat(fund.buyFee || 0),
@@ -476,13 +626,12 @@ const openCreateDialog = () => {
         fundType: "",
         comAccId: "",
         riskLevel: 4,
-        currency: "台幣", // 預設台幣
-        size: 1, // 預設 1000 萬
-        minBuy: 1000, // 預設最低申購 1000
+        currency: "TWD", // 修正為 TWD 而不是 "台幣"
+        size: 1,
+        minBuy: 1000,
         buyFee: 1.5,
-        status: "上架中",
-        launchTime: new Date().toISOString().slice(0, 16), // datetime-local 格式
-        // 顯示用欄位
+        status: "OPEN", // 修正為 OPEN 而不是 "上架中"
+        launchTime: new Date().toISOString().slice(0, 16),
         latestNav: 10,
         navDate: new Date().toISOString().split('T')[0],
     };
@@ -540,25 +689,32 @@ const saveFund = async () => {
             buyFee: parseFloat(form.value.buyFee),
             status: form.value.status,
             launchTime: form.value.launchTime,
-            // 必須指定公司帳戶 - 根據您的系統調整這個 ID
-            companyAccount: {
-                accountId: form.value.comAccId // 請確認這個 ID 在您的系統中存在
-            }
+            account: {
+                accountId: parseInt(form.value.comAccId)
+            },
+            // 新增淨值相關資料
+            initialNav: parseFloat(form.value.latestNav),
+            navDate: form.value.navDate
         };
 
         console.log('基金儲存 payload:', payload);
 
         if (isEdit.value) {
+            // 編輯模式：分別調用基金更新和淨值更新 API
             payload.fundId = form.value.fundId;
-            await axios.put(`${apiUrl}/${form.value.fundId}`, payload, {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
+            await axios.put(`${apiUrl}/${form.value.fundId}`, payload);
+
+            // 如果淨值有變更，單獨更新淨值
+            if (form.value.latestNav && form.value.navDate) {
+                await axios.post(`http://localhost:8080/bank/fund/${form.value.fundId}/nav`, {
+                    nav: parseFloat(form.value.latestNav),
+                    navDate: form.value.navDate
+                });
+            }
             alert("基金更新成功");
         } else {
-            await axios.post(apiUrl, payload, {
+            // 新增模式：使用帶淨值的創建端點
+            const response = await axios.post(`${apiUrl}/with-nav`, payload, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -585,7 +741,7 @@ const saveFund = async () => {
             const errorDetail = JSON.stringify(error.response?.data || "");
             if (errorDetail.includes("fund_code")) {
                 errorMessage += "：基金代碼已存在";
-            } else if (errorDetail.includes("companyAccount")) {
+            } else if (errorDetail.includes("account")) {
                 errorMessage += "：公司帳戶設定錯誤";
             } else {
                 errorMessage += "：系統錯誤";
@@ -598,10 +754,26 @@ const saveFund = async () => {
     }
 };
 
-
 onMounted(() => {
     fetchFunds();
 });
+const toggleFundStatus = async (fund) => {
+    try {
+        const newStatus = fund.status === "啟用" ? "停用" : "啟用";
+
+        await axios.put(`http://localhost:8080/fund/${fund.fundCode}/status`, {
+            status: newStatus,
+        });
+
+        // ✅ 更新前端顯示
+        fund.status = newStatus;
+
+        ElMessage.success(`基金狀態已改為「${newStatus}」`);
+    } catch (error) {
+        ElMessage.error("改變狀態失敗");
+        console.error(error);
+    }
+};
 </script>
 
 <style scoped>
@@ -609,6 +781,84 @@ onMounted(() => {
     padding: 24px;
     background: #f8f9fa;
     min-height: 100vh;
+}
+
+/* 一鍵輸入區域樣式 */
+.quick-fill-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
+    border: 2px dashed #dee2e6;
+}
+
+.quick-fill-title {
+    color: #495057;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-fill-title i {
+    color: #667eea;
+}
+
+.quick-fill-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.quick-fill-btn {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+    text-align: left;
+    width: 100%;
+}
+
+.quick-fill-btn:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.template-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.template-info {
+    flex: 1;
+}
+
+.template-name {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.template-desc {
+    font-size: 14px;
+    color: #6c757d;
 }
 
 /* 頁面標題 */
@@ -1258,6 +1508,14 @@ onMounted(() => {
         flex-direction: column;
         gap: 4px;
     }
+
+    .quick-fill-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-fill-section {
+        padding: 16px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1277,6 +1535,20 @@ onMounted(() => {
 
     .stat-content p {
         font-size: 24px;
+    }
+
+    .template-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .template-name {
+        font-size: 14px;
+    }
+
+    .template-desc {
+        font-size: 12px;
     }
 }
 </style>

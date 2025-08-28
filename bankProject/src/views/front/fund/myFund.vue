@@ -112,7 +112,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMemberStore } from '@/stores/MemberStore'
-import axios from 'axios'
+import { request } from '@/utils/FontAxiosUtil'
 
 const router = useRouter()
 const route = useRoute()
@@ -171,67 +171,30 @@ const fetchFundAccount = async () => {
   }
 
   loading.value = true
-
   try {
-    // 正確的 URL 格式，需要包含 http:// 協議
-    const response = await axios.get('http://localhost:8080/bank/fundAccount', {
+    const data = await request({
+      url: `/fundAccount`,
       params: { mId: memberStore.memberInfo.mId },
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
+      method: 'GET',
     })
 
-    console.log('API 回應狀態:', response.status)
-    console.log('API 回應資料:', response.data)
-    console.log('API 回應類型:', typeof response.data)
-
-    // 檢查是否收到 HTML（表示路由錯誤或 404）
-    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-      console.error('API 回傳 HTML 而非 JSON，可能是路由錯誤')
-      throw new Error('API_ROUTE_ERROR')
-    }
-
-    if (response.status === 200 && response.data && typeof response.data === 'object') {
-      fundAccount.value = {
-        fundAccId: response.data.fundAccId || null,
-        riskType: response.data.riskType || '',
-        status: response.data.status || '狀態未知',
-        openTime: response.data.openTime || null
-      }
-      hasFundAccount.value = true
-
-      console.log('解析後的基金帳戶資料:', fundAccount.value)
-    } else {
-      throw new Error('INVALID_RESPONSE_FORMAT')
-    }
-  } catch (error) {
-    console.error('查詢基金帳戶完整錯誤:', error)
-
-    if (error.response?.status === 204) {
-      // 沒有基金帳戶
+    // === 判斷 data ===
+    if (!data) {
+      // 代表後端回傳 null 或 204
       hasFundAccount.value = false
-      console.log('查詢結果: 沒有基金帳戶 (204)')
-    } else if (error.code === 'ERR_NETWORK') {
-      // 網路連線錯誤
-      console.error('無法連接到後端服務，請檢查：')
-      console.error('- 後端服務是否在 http://localhost:8080 運行')
-      console.error('- 網路連線是否正常')
-      console.error('- CORS 設定是否正確')
-
+      console.log('查詢結果: 沒有基金帳戶')
+    } else if (typeof data === 'object') {
+      // 正常有帳戶資料
       fundAccount.value = {
-        fundAccId: null,
-        riskType: '',
-        status: '無法連接後端',
-        openTime: null
+        fundAccId: data.fundAccId || null,
+        riskType: data.riskType || '',
+        status: data.status || '狀態未知',
+        openTime: data.openTime || null
       }
       hasFundAccount.value = true
-    } else if (error.message === 'API_ROUTE_ERROR') {
+      console.log('基金帳戶資料:', fundAccount.value)
+    } else if (typeof data === 'string' && data.includes('<!DOCTYPE html>')) {
       // API 路由錯誤
-      console.error('API 路由可能不正確，請檢查：')
-      console.error('- 後端服務是否啟動')
-      console.error('- API 路徑是否正確: /bank/fundAccount')
-
       fundAccount.value = {
         fundAccId: null,
         riskType: '',
@@ -239,7 +202,8 @@ const fetchFundAccount = async () => {
         openTime: null
       }
       hasFundAccount.value = true
-    } else if (error.message === 'INVALID_RESPONSE_FORMAT') {
+    } else {
+      // 其他未知格式
       fundAccount.value = {
         fundAccId: null,
         riskType: '',
@@ -247,8 +211,21 @@ const fetchFundAccount = async () => {
         openTime: null
       }
       hasFundAccount.value = true
+    }
+  } catch (error) {
+    console.error('查詢基金帳戶錯誤:', error)
+
+    if (error.response?.status === 204) {
+      hasFundAccount.value = false
+    } else if (error.code === 'ERR_NETWORK') {
+      fundAccount.value = {
+        fundAccId: null,
+        riskType: '',
+        status: '無法連接後端',
+        openTime: null
+      }
+      hasFundAccount.value = true
     } else {
-      // 其他錯誤
       fundAccount.value = {
         fundAccId: null,
         riskType: '',
@@ -261,6 +238,7 @@ const fetchFundAccount = async () => {
     loading.value = false
   }
 }
+
 
 // 重新整理帳戶狀態
 const refreshAccountStatus = () => {
@@ -433,16 +411,7 @@ onMounted(async () => {
   // 設置當前標籤
   currentTab.value = getCurrentTab()
 })
-const openTradeDialog = (fund) => {
-  if (!canBuyFund(fund.status)) {
-    alert('此基金目前無法申購');
-    return;
-  }
 
-  selectedFund.value = fund;
-  tradeAmount.value = 1000; // 設定預設金額
-  tradeDialogVisible.value = true;
-};
 </script>
 
 <style scoped>
