@@ -2,15 +2,9 @@
   <section class="hero-section">
     <div class="hero-content">
       <div class="hero-text">
-        <h1 class="hero-title1">讓理財更簡單</h1>
-        <h1 class="hero-title2">讓生活更自在</h1>
-        <p class="hero-subtitle">柚子銀行，你的專業財務夥伴</p>
-        <div class="hero-buttons">
-          <button @click="goToRegister">立即開戶</button>
-        </div>
-      </div>
-      <div class="modal-image">
-        <img src="../../image/indexImage.png" alt="首頁圖" />
+        <h1 class="hero-title1">請更換路由為</h1>
+        <h1 class="hero-title2">/yuzubank/front</h1>
+        <h1 class="hero-title1">此頁面已作廢</h1>
       </div>
     </div>
   </section>
@@ -25,20 +19,15 @@
 
 section {
   background-color: #0D111F;
-  display: flex;
-  flex-flow: column;
-  align-items: center;
-  padding: 100px 320px 0px 320px;
+  padding: 24px 320px 0px 320px;
 }
 
 .hero-section {
   position: relative;
   width: 100%;
   min-height: 880px;
-  /* 可依需求調整 */
   display: flex;
   align-items: center;
-  justify-content: center;
   overflow: hidden;
 }
 
@@ -48,7 +37,7 @@ section {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  gap: 20px;
+  gap: 24px;
 }
 
 .hero-text {
@@ -57,10 +46,16 @@ section {
   font-size: 48px;
 }
 
-.hero-text .hero-title1,
-.hero-text .hero-title2 {
+.hero-text .hero-title1 {
   font-size: 72px;
   font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.hero-text .hero-title2 {
+  font-size: 100px;
+  font-weight: 700;
+  margin-bottom: 24px;
 }
 
 .hero-text h1 {

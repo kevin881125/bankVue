@@ -250,7 +250,6 @@ import router from "@/router";
 import LogoutModal from "@/components/logoutModal.vue";
 
 const memberStore = useMemberStore();
-const route = useRoute();
 const showLogoutModal = ref(false);
 const hoveredCard = ref(null);
 const isAnimating = ref(false);
@@ -318,6 +317,7 @@ const handleMainAction = () => {
 .top-header {
   flex-shrink: 0;
   height: 96px;
+  padding: 0 300px;
   background: rgba(13, 17, 31, 0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -344,9 +344,6 @@ const handleMainAction = () => {
 }
 
 .header-content {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 40px;
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -362,7 +359,7 @@ const handleMainAction = () => {
 .auth-section {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .member-section {
@@ -374,7 +371,7 @@ const handleMainAction = () => {
 .member-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
   height: 36px;
 }
 
@@ -384,6 +381,7 @@ const handleMainAction = () => {
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.3);
+  display: flex;
 }
 
 .welcome-text {
