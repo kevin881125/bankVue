@@ -1,4 +1,5 @@
 <template>
+  <h1>會員管理</h1>
   <div class="search">
     <div class="searchbar">
       <label for="state">身分證</label>
@@ -441,6 +442,9 @@ async function submitForm() {
 * {
   box-sizing: border-box;
   position: relative;
+}
+h1{
+  text-align: center;
 }
 table {
   width: 100%;

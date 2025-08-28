@@ -170,6 +170,7 @@ import { ref, onMounted, watch } from "vue";
 import router from "@/router/index";
 import { useRoute } from "vue-router";
 import { usePermissionStore } from "@/stores/usePermissionStore";
+import { request } from "@/utils/BackAxiosUtil";
 import "@/styles/variables.css";
 
 const workerStore = useWorkerStore();
@@ -177,6 +178,7 @@ const permissionStore = usePermissionStore();
 
 const wName = ref();
 const wAccount = ref();
+const wid = ref();
 const isCollapsed = ref(false);
 const accountDropdownOpen = ref(false);
 
@@ -202,10 +204,19 @@ onMounted(async () => {
   wAccount.value = workerStore.wAccount;
 });
 
-const signOut = () => {
-  workerStore.logout();
-  router.push("/yuzubank/backLogin");
-  permissionStore.emtity();
+const signOut = async () => {
+  try{
+    
+    const data = await request({
+      url: "/auth/backSignOut",
+      method: "POST",
+    });
+    workerStore.logout();
+    router.push("/yuzubank/backLogin");
+    permissionStore.emtity();
+  }catch(error){
+
+  }
 };
 
 const route = useRoute();
