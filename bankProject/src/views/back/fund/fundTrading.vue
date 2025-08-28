@@ -597,13 +597,13 @@ const approveTransaction = async (transaction) => {
             result = await approveSellTransaction(transaction)
         }
 
+        // 移除彈窗，只在審核失敗時才顯示錯誤
         if (!result?.success) {
             // 顯示後端錯誤訊息
             alert(`審核失敗：${result?.message || '未知錯誤'}`)
             console.error('❌ 審核錯誤詳細：', result)
-        } else {
-            alert('✅ 審核成功')
         }
+        // 審核成功時不顯示彈窗，會自動刷新頁面
     }
 }
 
@@ -619,18 +619,23 @@ const approveBuyTransaction = async (transaction) => {
             data: { status: '成功' }
         })
 
-        // 判斷 HTTP status 是否屬於成功範圍
-        if (response?.status >= 200 && response?.status < 300) {
+        debugLog('審核申購回應:', response)
+
+        // 檢查回應是否存在（避免 null/undefined）
+        if (response) {
+            // 自動刷新數據
             await refreshData()
+            debugLog('✅ 申購審核成功，已自動刷新數據')
             return { success: true }
         } else {
             return {
                 success: false,
-                message: `後端回傳異常，狀態碼: ${response?.status}`,
+                message: '後端無回應',
                 rawError: response
             }
         }
     } catch (err) {
+        debugLog('審核申購錯誤:', err)
         return {
             success: false,
             message: err.response?.data?.message || err.message || '審核失敗',
@@ -653,17 +658,23 @@ const approveSellTransaction = async (transaction) => {
             data: { status: '成功' }
         })
 
-        if (response?.status >= 200 && response?.status < 300) {
+        debugLog('審核贖回回應:', response)
+
+        // 檢查回應是否存在（避免 null/undefined）
+        if (response) {
+            // 自動刷新數據
             await refreshData()
+            debugLog('✅ 贖回審核成功，已自動刷新數據')
             return { success: true }
         } else {
             return {
                 success: false,
-                message: `後端回傳異常，狀態碼: ${response?.status}`,
+                message: '後端無回應',
                 rawError: response
             }
         }
     } catch (err) {
+        debugLog('審核贖回錯誤:', err)
         return {
             success: false,
             message: err.response?.data?.message || err.message || '審核失敗',
@@ -673,7 +684,6 @@ const approveSellTransaction = async (transaction) => {
         loading.value = false
     }
 }
-
 
 // 工具方法
 const formatDateTime = (dateTime) => {
@@ -975,6 +985,7 @@ onMounted(async () => {
     // 立即載入資料
     await refreshData()
 })
+
 </script>
 
 <style scoped>

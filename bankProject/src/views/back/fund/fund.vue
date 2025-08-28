@@ -116,9 +116,6 @@
                                     <button class="action-btn edit-btn" @click="openEditDialog(fund)" title="編輯">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="action-btn delete-btn" @click="deleteFund(fund.fundId)" title="刪除">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -165,7 +162,29 @@
                                 <input v-model="form.fundName" type="text" placeholder="輸入基金名稱" required />
                             </div>
                         </div>
-
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-coins"></i>
+                                    幣別 <span class="required">*</span>
+                                </label>
+                                <select v-model="form.currency" required>
+                                    <option value="">請選擇幣別</option>
+                                    <option value="TWD">台幣 (TWD)</option>
+                                    <option value="USD">美金 (USD)</option>
+                                    <option value="CNY">人民幣 (CNY)</option>
+                                    <option value="EUR">歐元 (EUR)</option>
+                                    <option value="JPY">日圓 (JPY)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-coins"></i>
+                                    基金收款帳戶 <span class="required">*</span>
+                                </label>
+                                <input v-model="form.comAccId" type="text" required />
+                            </div>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>
@@ -205,7 +224,6 @@
                                     最新淨值
                                 </label>
                                 <input v-model="form.latestNav" type="number" step="0.0001" placeholder="0.0000" />
-                                <small class="form-help">手動設定初始淨值（可稍後透過淨值更新）</small>
                             </div>
                             <div class="form-group">
                                 <label>
@@ -233,7 +251,6 @@
                                     淨值日期
                                 </label>
                                 <input v-model="form.navDate" type="date" />
-                                <small class="form-help">最新淨值的計價日期</small>
                             </div>
                         </div>
                     </form>
@@ -298,11 +315,17 @@ const filteredFunds = computed(() => {
     );
 });
 
+// 修正後的表單驗證
 const isFormValid = computed(() => {
     return form.value.fundCode.trim() !== '' &&
-        form.value.fundName.trim() !== '';
+        form.value.fundName.trim() !== '' &&
+        form.value.fundType !== '' &&
+        form.value.currency !== '' &&
+        form.value.comAccId.trim() !== '' &&
+        parseFloat(form.value.latestNav || 0) > 0 &&
+        form.value.navDate !== '' &&
+        parseFloat(form.value.buyFee || 0) >= 0;
 });
-
 // 載入基金清單
 const fetchFunds = async () => {
     loading.value = true;
@@ -451,11 +474,17 @@ const openCreateDialog = () => {
         fundCode: "",
         fundName: "",
         fundType: "",
-        riskLevel: 1,
-        latestNav: 10, // 預設初始淨值
-        navDate: new Date().toISOString().split('T')[0], // 今天日期
-        buyFee: 1.5, // 預設手續費
-        status: "OPEN",
+        comAccId: "",
+        riskLevel: 4,
+        currency: "台幣", // 預設台幣
+        size: 1, // 預設 1000 萬
+        minBuy: 1000, // 預設最低申購 1000
+        buyFee: 1.5,
+        status: "上架中",
+        launchTime: new Date().toISOString().slice(0, 16), // datetime-local 格式
+        // 顯示用欄位
+        latestNav: 10,
+        navDate: new Date().toISOString().split('T')[0],
     };
     dialogVisible.value = true;
 };
@@ -463,6 +492,16 @@ const openCreateDialog = () => {
 const openEditDialog = (fund) => {
     isEdit.value = true;
     form.value = { ...fund };
+
+    // 處理 datetime-local 格式
+    if (fund.launchTime) {
+        try {
+            const date = new Date(fund.launchTime);
+            form.value.launchTime = date.toISOString().slice(0, 16);
+        } catch (error) {
+            form.value.launchTime = new Date().toISOString().slice(0, 16);
+        }
+    }
 
     // 格式化日期以符合 date input 格式
     if (fund.navDate) {
@@ -481,25 +520,36 @@ const closeDialog = () => {
     dialogVisible.value = false;
 };
 
-// 儲存基金（新增或編輯）
+// 修正後的儲存函數
 const saveFund = async () => {
     if (!isFormValid.value) {
-        alert('請填寫必填欄位');
+        alert('請填寫所有必填欄位');
         return;
     }
 
     saving.value = true;
     try {
         const payload = {
-            ...form.value,
+            fundCode: form.value.fundCode,
+            fundName: form.value.fundName,
+            fundType: form.value.fundType,
             riskLevel: parseInt(form.value.riskLevel),
-            latestNav: parseFloat(form.value.latestNav || 0),
-            buyFee: parseFloat(form.value.buyFee || 0)
+            currency: form.value.currency,
+            size: parseFloat(1),
+            minBuy: parseFloat(1000),
+            buyFee: parseFloat(form.value.buyFee),
+            status: form.value.status,
+            launchTime: form.value.launchTime,
+            // 必須指定公司帳戶 - 根據您的系統調整這個 ID
+            companyAccount: {
+                accountId: form.value.comAccId // 請確認這個 ID 在您的系統中存在
+            }
         };
 
-        console.log('儲存 payload:', payload);
+        console.log('基金儲存 payload:', payload);
 
         if (isEdit.value) {
+            payload.fundId = form.value.fundId;
             await axios.put(`${apiUrl}/${form.value.fundId}`, payload, {
                 headers: {
                     'Accept': 'application/json',
@@ -516,20 +566,30 @@ const saveFund = async () => {
             });
             alert("基金新增成功");
         }
+
         dialogVisible.value = false;
         await fetchFunds();
     } catch (error) {
         console.error('儲存失敗:', error);
+        console.error('錯誤詳細:', error.response?.data);
+
         let errorMessage = "操作失敗";
 
         if (error.response?.data?.message) {
             errorMessage += "：" + error.response.data.message;
         } else if (error.response?.status === 400) {
-            errorMessage += "：請求參數錯誤";
+            errorMessage += "：資料格式錯誤";
+        } else if (error.response?.status === 409) {
+            errorMessage += "：基金代碼重複";
         } else if (error.response?.status === 500) {
-            errorMessage += "：系統錯誤";
-        } else {
-            errorMessage += "，請稍後再試";
+            const errorDetail = JSON.stringify(error.response?.data || "");
+            if (errorDetail.includes("fund_code")) {
+                errorMessage += "：基金代碼已存在";
+            } else if (errorDetail.includes("companyAccount")) {
+                errorMessage += "：公司帳戶設定錯誤";
+            } else {
+                errorMessage += "：系統錯誤";
+            }
         }
 
         alert(errorMessage);
@@ -538,36 +598,6 @@ const saveFund = async () => {
     }
 };
 
-// 刪除基金
-const deleteFund = async (id) => {
-    if (!confirm("確定要刪除這筆基金嗎？此操作無法復原。")) return;
-
-    loading.value = true;
-    try {
-        await axios.delete(`${apiUrl}/${id}`, {
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-        alert("刪除成功");
-        await fetchFunds();
-    } catch (error) {
-        console.error('刪除失敗:', error);
-        let errorMessage = "刪除失敗";
-
-        if (error.response?.status === 404) {
-            errorMessage += "：基金不存在";
-        } else if (error.response?.status === 409) {
-            errorMessage += "：基金仍有相關資料，無法刪除";
-        } else {
-            errorMessage += "，請稍後再試";
-        }
-
-        alert(errorMessage);
-    } finally {
-        loading.value = false;
-    }
-};
 
 onMounted(() => {
     fetchFunds();
@@ -925,16 +955,6 @@ onMounted(() => {
 
 .edit-btn:hover {
     background: #218838;
-    transform: translateY(-1px);
-}
-
-.delete-btn {
-    background: #dc3545;
-    color: white;
-}
-
-.delete-btn:hover {
-    background: #c82333;
     transform: translateY(-1px);
 }
 
