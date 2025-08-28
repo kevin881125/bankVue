@@ -1,7 +1,7 @@
 <template>
   <v-container class="py-6 mx-auto" style="max-width: 1100px;">
     <!-- ============== 我的交易（新加） ============== -->
-    <v-card class="pa-4 mb-6">
+    <v-card class="pa-4 mb-6 soft-card">
       <v-card-title>我的交易</v-card-title>
 
       <v-row dense class="mt-1">
@@ -43,7 +43,8 @@
         :loading="txLoading"
         item-key="transactionId"
         density="compact"
-        class="mt-2"
+        class="mt-2 my-tx-table"
+        :row-props="() => ({ class: 'my-row' })"
       >
         <template #item.cardMasked="{ item }">
           {{ maskCard(item.cardDetail?.cardCode) }}
@@ -79,7 +80,7 @@
     </v-card>
 
     <!-- ============== PayPal 模擬刷卡（Sandbox / TWD） ============== -->
-    <v-card class="pa-4">
+    <v-card class="pa-4 soft-card">
       <v-card-title>PayPal 模擬刷卡（Sandbox / TWD）</v-card-title>
 
       <v-card-text>
@@ -431,4 +432,34 @@ onMounted(async () => {
 
 <style scoped>
 #paypal-buttons { max-width: 320px; }
+
+:deep(.my-tx-table .my-row) {
+  height: 60px; /* 想更鬆：64/68/72 */
+}
+
+:deep(.my-tx-table .my-row > td) {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  font-size: 15px;             /* 可選 */
+}
+
+/* 表頭也放鬆一點（可選） */
+:deep(.my-tx-table thead th) {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+.soft-card {
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08) !important;
+}
+:deep(.v-input),
+:deep(.v-btn),
+:deep(.v-select) {
+  border-radius: 12px !important;  /* 可選：15px、20px */
+}
+
+/* 讓文字輸入區域也一致圓角 */
+:deep(.v-input .v-field) {
+  border-radius: 12px !important;
+}
 </style>
