@@ -39,10 +39,11 @@
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
 import { useWorkerStore } from "@/stores/Worker";
-import { ref ,onMounted, onBeforeUnmount} from "vue";
+import { ref ,onMounted, onBeforeUnmount,nextTick } from "vue";
 import router from "@/router/index";
 import { usePermissionStore } from "@/stores/usePermissionStore";
 import ErrorMessage from "@/components/ErrorMessage.vue";
+
 
 const permissionStore = usePermissionStore();
 const workerStore = useWorkerStore();
@@ -83,11 +84,14 @@ const doLogin = async () => {
       response.token,
       response.role
     );
-    const response2 = await request({
-      url: "/api/roles/pages",
-      method: "GET",
-    });
-    permissionStore.setPageMap(response2);
+    if(workerStore.isLoggedIn){
+      const response2 = await request({
+        url: "/api/roles/pages",
+        method: "GET",
+      });
+          permissionStore.setPageMap(response2);
+    }
+
 
     
     if (permissionStore.allowedPages.length > 0) {
