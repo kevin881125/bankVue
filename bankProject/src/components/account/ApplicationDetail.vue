@@ -106,15 +106,28 @@
             ></v-select>
           </v-col>
           <v-col cols="12">
+            <!-- 唯讀：只顯示文字 -->
             <v-textarea
-              v-model="note"
+              v-if="props.readonly"
+              :model-value="selectedItem?.rejectionReason ?? '—'"
+              label="備註"
+              auto-grow
+              rows="2"
+              variant="outlined"
+              density="comfortable"
+              readonly
+            />
+
+            <!-- 可編輯：Textarea + v-model -->
+            <v-textarea
+              v-else
+              v-model="selectedMemo"
               label="備註(例如退件原因)"
               auto-grow
               rows="2"
-              dense
-              outlined
-              :readonly="props.readonly"
-            ></v-textarea>
+              variant="outlined"
+              density="comfortable"
+            />
           </v-col>
         </v-row>
 
@@ -141,11 +154,8 @@
     :errorMessage="errorMsg"
     @cancel="showError = false"
   ></ErrorMessage>
-  <SuccessMessage
-    :visible="showSuccess"
-    :errorMessage="successMsg"
-    @cancel="showSuccess = false"
-  ></SuccessMessage>
+
+  <SuccessAnim v-model="showOK" message="successMsg" :duration="1400" />
 </template>
 
 <script setup>
@@ -153,7 +163,8 @@ import { defineProps, defineEmits, ref, watch } from "vue";
 import { useWorkerStore } from "@/stores/Worker";
 import { formatDateOnly } from "@/utils/DataUtil";
 import ErrorMessage from "@/components/ErrorMessage.vue";
-import SuccessMessage from "@/components/SuccessMessage.vue";
+import { request } from "@/utils/BackAxiosUtil";
+import SuccessAnim from "@/components/successAnim.vue";
 const workerStore = useWorkerStore();
 
 const props = defineProps({
@@ -166,7 +177,7 @@ const emit = defineEmits(["update:modelValue", "updated"]);
 const showError = ref(false);
 const errorMsg = ref("");
 
-const showSuccess = ref(false);
+const showOK = ref(false);
 const successMsg = ref("");
 const dialog = ref(false);
 const selectedImage = ref("");
@@ -181,7 +192,7 @@ const statusOptions = ["待補件", "通過", "未通過"];
 
 // 狀態與備註欄位
 const selectedStatus = ref("");
-const note = ref("");
+const selectedMemo = ref("");
 
 // 當selectedItem 變動時，自動設定預設狀態
 watch(
@@ -189,7 +200,7 @@ watch(
   (val) => {
     if (val) {
       selectedStatus.value = val.status || "";
-      note.value = val.note || "";
+      selectedMemo.value = val.memo || "";
     }
   },
   { immediate: true }
@@ -203,7 +214,7 @@ const submitUpdate = async () => {
     return;
   }
 
-  if (selectedStatus.value !== "通過" && !note.value.trim()) {
+  if (selectedStatus.value !== "通過" && !selectedMemo.value.trim()) {
     errorMsg.value = "備註為必填（如退件原因）！";
     showError.value = true;
     return;
@@ -214,7 +225,7 @@ const submitUpdate = async () => {
   const updateBean = {
     status: selectedStatus.value,
     reviewerId: workerId,
-    rejectionReason: note.value,
+    rejectionReason: selectedMemo.value,
     applicationId: props.selectedItem.applicationId,
     mId: props.selectedItem.mId,
   };
@@ -222,19 +233,16 @@ const submitUpdate = async () => {
   console.log(updateBean);
 
   try {
-    const res = await fetch(
-      "http://localhost:8080/bank/account/application/update",
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateBean),
-      }
-    );
+    const res = await request({
+      url: "/account/application/update",
+      method: "PUT",
+      data: updateBean,
+    });
 
-    if (!res.ok) throw new Error("更新失敗");
-
+    if (!res) throw new Error("更新失敗");
     successMsg.value = "狀態更新成功！";
-    showSuccess.value = true;
+    showOK.value = true;
+
     emit("updated"); //通知父元件刷新資料
     emit("update:modelValue", false); // 關閉dialog
   } catch (error) {

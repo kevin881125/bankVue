@@ -3,6 +3,7 @@ export default [
   {
     path: "account",
     component: () => import("@/views/back/account/account.vue"),
+    meta: { pageId: 2 }
   },
 
   // 前台

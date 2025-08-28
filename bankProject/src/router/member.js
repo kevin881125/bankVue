@@ -22,10 +22,11 @@ export default [
   },
     {
      path: "workerManage",
-      component: () => import("@/views/back/member/workerManage.vue")
+      component: () => import("@/views/back/member/workerManage.vue"),meta: { pageId: 6 }
   },
       {
      path: "workLoge",
-      component: () => import("@/views/back/member/workLoge.vue")
+      component: () => import("@/views/back/member/workLoge.vue"),
+      meta: { pageId: 7 }
   }
 ]

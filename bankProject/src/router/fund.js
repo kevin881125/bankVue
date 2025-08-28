@@ -2,7 +2,8 @@ export default [
   // 後台
   {
     path: "fundBack",
-    component: () => import("@/views/back/fund/fundBack.vue")
+    component: () => import("@/views/back/fund/fundBack.vue"),
+    meta: { pageId: 5 }
   },
   {
     path: "fundTrading",

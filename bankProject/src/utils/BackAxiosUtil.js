@@ -51,7 +51,6 @@ apiService.interceptors.response.use(
 
     // 登入失敗或 token 過期
     if (status == 401) {
-      alert(`${data}`);
 
       workerStore.logout();
       return Promise.reject(data);
