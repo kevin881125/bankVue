@@ -33,14 +33,14 @@
       v-else
       v-model="currentIndex"
       show-arrows="hover"
-      class="rounded-2xl elevation-2"
+      class="soft-window"
       continuous
       touch
     >
       <v-window-item v-for="c in cards" :key="c.cardId">
-        <v-card class="rounded-2xl">
+        <v-card class="soft-card">
           <!-- 卡面 -->
-          <div class="pa-6 pb-0 d-flex align-center justify-center">
+          <div class="card-hero d-flex align-center justify-center">
             <v-img
               :src="cardImage(c)"
               :alt="`${c.cardType?.typeName || ''} 卡面`"
@@ -51,7 +51,7 @@
             />
           </div>
 
-          <v-card-text class="pt-4">
+          <v-card-text class="card-body">
             <!-- 標題列 -->
             <div class="d-flex align-center">
               <div class="text-h6">
@@ -95,11 +95,11 @@
                 <div class="text-body-1">{{ money(c.creditLimit) }}</div>
               </v-col>
               <v-col cols="6" sm="3">
-                <div class="text-caption text-medium-emphasis">可用額度</div>
+                <div class="text-caption text-medium-emphasis">已用額度</div>
                 <div class="text-body-1">{{ money(c.currentBalance) }}</div>
               </v-col>
               <v-col cols="6" sm="3">
-                <div class="text-caption text-medium-emphasis">已用額度</div>
+                <div class="text-caption text-medium-emphasis">可用額度</div>
                 <div class="text-body-1">{{ money(available(c)) }}</div>
               </v-col>
               <v-col cols="6" sm="3">
@@ -141,7 +141,7 @@
           <v-divider />
 
           <!-- 動作 -->
-          <v-card-actions class="pa-4">
+          <v-card-actions class="card-actions">
             <v-btn variant="text" prepend-icon="mdi-chevron-left" @click="prev" />
             <v-spacer />
             <template v-if="isInactive(c.status)">
@@ -413,5 +413,45 @@ onMounted(fetchCards)
 </script>
 
 <style scoped>
-/* 可自行微調導覽按鈕與容器寬度 */
+/* 與 myBill 同規格的卡片視覺 */
+:deep(.soft-card) {
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.08) !important;
+  background: #fff;
+  overflow: hidden; /* 讓圓角生效於內部 */
+}
+
+/* v-window 的外框也套同一套（讓整塊有圓角與陰影） */
+:deep(.soft-window) {
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.08) !important;
+  background: transparent; /* 讓內部卡片白底即可 */
+  overflow: hidden;
+  padding: 0; /* 外框不需要內距 */
+}
+
+/* 內容與邊框距離：拉大卡片的內距 */
+:deep(.soft-card .card-hero) {
+  padding: 28px 28px 0 28px; /* 上左右 28、下 0 */
+}
+:deep(.soft-card .card-body) {
+  padding: 20px 60px !important; /* 與卡邊距離更舒適 */
+}
+:deep(.soft-card .card-actions) {
+  padding: 16px 24px !important;
+}
+
+/* 分隔線間距稍微放鬆 */
+:deep(.soft-card .v-divider) {
+  margin: 12px 0 !important;
+}
+
+/* 表頭標題與右上角 chip 的對齊間距（可選） */
+:deep(.soft-card .text-h6) { line-height: 1.4; }
+
+/* 若需要，讓 v-window 的箭頭在圓角內側對齊（可選） */
+:deep(.soft-window .v-window__controls) {
+  padding: 4px;
+}
+
 </style>

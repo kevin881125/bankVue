@@ -10,6 +10,7 @@
 
     <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
+    <v-card class="soft-card pa-4">
     <v-text-field
       v-model="search"
       density="comfortable"
@@ -25,10 +26,11 @@
       :search="search"
       :loading="loading"
       item-key="applicationId"
-      class="rounded-2xl elevation-2"
+      class="my-record-table"
       no-data-text="目前沒有申請紀錄"
       :items-per-page="10"
       density="comfortable"
+      :row-props="() => ({ class: 'my-row' })"
     >
       <template #item.cardType="{ item }">
         <v-chip size="small" variant="flat">{{ cardName(item.cardType) }}</v-chip>
@@ -94,6 +96,7 @@
         <span v-else class="text-medium-emphasis">—</span>
       </template>
     </v-data-table>
+    </v-card>
 
     <v-alert v-if="!loading && rows.length === 0" type="info" variant="tonal" class="mt-4">
       目前沒有申請紀錄。您可以前往
@@ -296,4 +299,53 @@ onMounted(fetchRecords)
   min-width: 44px;          /* 小而清楚 */
   cursor: pointer;
 }
+/* 柔和卡片（與 myBill 同款） */
+:deep(.soft-card) {
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.08) !important;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* 表格：行距更鬆、圓角與陰影由外層卡片負責 */
+:deep(.my-record-table .my-row) {
+  height: 60px; /* 想更鬆可 64/68/72 */
+}
+:deep(.my-record-table .my-row > td) {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  font-size: 15px;
+}
+/* 表頭也微放鬆（可選） */
+:deep(.my-record-table thead th) {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+/* 統一搜尋欄/下拉/按鈕的圓角（與頁面風格一致） */
+:deep(.rounded-input),
+:deep(.v-input .v-field),
+:deep(.v-select .v-field),
+:deep(.v-btn) {
+  border-radius: 12px !important;   /* 想完全呼應卡片可改 20px */
+}
+
+/* 讓 tonal/outlined 欄位邊界更柔和（可選） */
+:deep(.v-field) {
+  border-width: 1px;
+}
+
+/* 檔案 chip 列：單行與間距（沿用你原有設定） */
+.file-line{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.file-chip{
+  padding-inline: 8px;
+  min-width: 44px;
+  cursor: pointer;
+}
+
 </style>

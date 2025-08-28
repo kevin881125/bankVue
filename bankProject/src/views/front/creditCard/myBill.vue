@@ -1,6 +1,6 @@
 <template>
   <v-container class="py-6 mx-auto" style="max-width: 1100px;height: 700px;">
-    <v-card class="pa-4 mb-4">
+    <v-card class="pa-4 mb-4 soft-card">
       <v-card-title>我的信用卡帳單</v-card-title>
 
       <v-data-table
@@ -8,8 +8,9 @@
         :items="bills"
         :loading="loading"
         item-key="creditBillId"
-        density="compact"
-        class="elevation-1"
+        density="comfortable"
+        class="my-bill-table"
+        :row-props="() => ({ class: 'my-row' })"
       >
         <template #item.cardMasked="{ item }">
           {{ maskCardMiddle(item?.cardDetail?.cardCode) }}
@@ -421,3 +422,29 @@ function toNum(v) {
 
 onMounted(fetchBills);
 </script>
+<style scoped>
+.soft-card {
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08) !important;
+}
+
+:deep(.my-bill-table .my-row) {
+  height: 60px;             /* 想更鬆就改 64/68/72 */
+}
+:deep(.my-bill-table .my-row > td) {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+  font-size: 15px;
+}
+
+/* 表頭也可一起放鬆一點（可選） */
+:deep(.my-bill-table thead th) {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+:deep(.v-input),
+:deep(.v-btn),
+:deep(.v-select) {
+  border-radius: 12px !important;  /* 可選：15px、20px */
+}
+</style>
