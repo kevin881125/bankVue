@@ -28,7 +28,6 @@
       class="my-12"
     />
 
-    <!-- 單張顯示/可滑動切換 -->
     <v-window
       v-else
       v-model="currentIndex"
@@ -96,11 +95,11 @@
               </v-col>
               <v-col cols="6" sm="3">
                 <div class="text-caption text-medium-emphasis">已用額度</div>
-                <div class="text-body-1">{{ money(c.currentBalance) }}</div>
+                <div class="text-body-1">{{ money(usedAmount(c)) }}</div>
               </v-col>
               <v-col cols="6" sm="3">
                 <div class="text-caption text-medium-emphasis">可用額度</div>
-                <div class="text-body-1">{{ money(available(c)) }}</div>
+                <div class="text-body-1">{{ money(availableAmount(c)) }}</div>
               </v-col>
               <v-col cols="6" sm="3">
                 <div class="text-caption text-medium-emphasis">卡片安全碼</div>
@@ -140,7 +139,6 @@
 
           <v-divider />
 
-          <!-- 動作 -->
           <v-card-actions class="card-actions">
             <v-btn variant="text" prepend-icon="mdi-chevron-left" @click="prev" />
             <v-spacer />
@@ -166,7 +164,6 @@
       </v-window-item>
     </v-window>
 
-    <!-- 點點導覽 -->
     <div v-if="cards.length" class="d-flex justify-center mt-3">
       <v-btn
         v-for="(c, i) in cards"
@@ -184,7 +181,6 @@
 
     <v-snackbar v-model="toast.open" :timeout="2200">{{ toast.msg }}</v-snackbar>
 
-    <!-- 確認 Dialog -->
     <v-dialog v-model="confirm.open" max-width="420">
       <v-card class="rounded-xl">
         <v-card-title class="text-h6">{{ confirm.title }}</v-card-title>
@@ -205,13 +201,12 @@
 import { ref, onMounted } from 'vue'
 import { useMemberStore } from '@/stores/MemberStore'
 
-/** 後端位址與 context path（依環境調整） */
 const BACKEND_ORIGIN = 'http://localhost:8080'
 const BACKEND_BASE   = '/bank'
 
 const memberStore = useMemberStore()
 
-/* 自動配對卡面圖 */
+/* 卡面圖 */
 const cardImages = import.meta.glob('@/image/creditCard/*', { eager: true, as: 'url' })
 const imgVisa     = new URL('@/image/creditCard/visa.jpg', import.meta.url).href
 const imgJcb      = new URL('@/image/creditCard/jcb.png', import.meta.url).href
@@ -230,7 +225,7 @@ const pageError = ref('')
 const cards     = ref([])
 const actingId  = ref(null)
 const toast     = ref({ open: false, msg: '' })
-const currentIndex = ref(0) // 目前顯示哪一張
+const currentIndex = ref(0)
 
 /* 紅利點數 */
 const points = ref({})
@@ -301,16 +296,17 @@ function pointsText(cardId) {
   return `${p.toLocaleString()} 點`
 }
 
-/* 統一整理後端物件 */
+/* 後端 -> 前端欄位統一 */
 function mapCard(raw) {
+  // 後端 currentBalance = 可用額度；creditLimit = 總額度
   return {
     cardId: raw.cardId ?? raw.cardDetailId ?? raw.id,
     cardCode: raw.cardCode || '',
     cvvCode: raw.cvvCode || '',
     issuedDate: raw.issuedDate || '',
     expirationDate: raw.expirationDate || '',
-    creditLimit: raw.creditLimit ?? 0,
-    currentBalance: raw.currentBalance ?? 0,
+    creditLimit: Number(raw.creditLimit ?? 0),
+    currentBalance: Number(raw.currentBalance ?? 0), // 可用額度（重點！）
     status: raw.status || 'inactive',
     cardType: raw.cardType || null,
   }
@@ -318,27 +314,35 @@ function mapCard(raw) {
 
 /* 顯示工具 */
 function cardImage(c) {
-  const code = (c.cardType?.typeCode || '').toLowerCase().trim();
-  const name = (c.cardType?.typeName || '').trim();
+  const code = (c.cardType?.typeCode || '').toLowerCase().trim()
+  const name = (c.cardType?.typeName || '').trim()
 
-  // 1) 先判斷等級（避免被一般 VISA 蓋掉）
-  if (name.includes('無限')) return imgInfinite;
-  if (code === 'jcb') return imgJcb;
+  if (name.includes('無限')) return imgInfinite
+  if (code === 'jcb') return imgJcb
 
-  // 2) 精確檔名比對（creditCard/<code>.(png|jpg|jpeg|webp)）
   const hit = Object.entries(cardImages).find(([path]) => {
-    const p = path.toLowerCase();
-    const m = p.match(/\/creditcard\/([^/]+)\.(png|jpe?g|webp|bmp)$/i);
-    return m && m[1] === code; // 檔名要跟 typeCode 完全相同
-  });
-  if (hit) return hit[1];
-
-  // 3) 預設
-  return imgVisa;
+    const p = path.toLowerCase()
+    const m = p.match(/\/creditcard\/([^/]+)\.(png|jpe?g|webp|bmp)$/i)
+    return m && m[1] === code
+  })
+  if (hit) return hit[1]
+  return imgVisa
 }
 
-
 const money = v => `NT$${Number(v ?? 0).toLocaleString()}`
+
+// ✅ 已用額度 = 總額度 - 可用額度（後端 currentBalance）
+function usedAmount(c) {
+  const limit = Number(c.creditLimit ?? 0)
+  const avail = Number(c.currentBalance ?? 0)
+  return Math.max(0, limit - avail)
+}
+
+// ✅ 可用額度 = 後端 currentBalance
+function availableAmount(c) {
+  return Math.max(0, Number(c.currentBalance ?? 0))
+}
+
 function fmtDate(v) {
   if (!v) return ''
   const d = new Date(v)
@@ -354,7 +358,6 @@ function fmtYm(v) {
   return `${d.getFullYear()}/${p(d.getMonth() + 1)}`
 }
 const last4 = code => String(code || '').slice(-4).padStart(4, '•')
-const available = c => Math.max(0, Number(c.creditLimit || 0) - Number(c.currentBalance || 0))
 const maskCvv = s => (s ? '•••' : '—')
 
 /* 切換 */
@@ -420,45 +423,31 @@ onMounted(fetchCards)
 </script>
 
 <style scoped>
-/* 與 myBill 同規格的卡片視覺 */
 :deep(.soft-card) {
   border-radius: 20px;
   box-shadow: 0 4px 24px rgba(0,0,0,.08) !important;
   background: #fff;
-  overflow: hidden; /* 讓圓角生效於內部 */
+  overflow: hidden;
 }
-
-/* v-window 的外框也套同一套（讓整塊有圓角與陰影） */
 :deep(.soft-window) {
   border-radius: 20px;
   box-shadow: 0 4px 24px rgba(0,0,0,.08) !important;
-  background: transparent; /* 讓內部卡片白底即可 */
+  background: transparent;
   overflow: hidden;
-  padding: 0; /* 外框不需要內距 */
+  padding: 0;
 }
-
-/* 內容與邊框距離：拉大卡片的內距 */
 :deep(.soft-card .card-hero) {
-  padding: 28px 28px 0 28px; /* 上左右 28、下 0 */
+  padding: 28px 28px 0 28px;
 }
 :deep(.soft-card .card-body) {
-  padding: 20px 60px !important; /* 與卡邊距離更舒適 */
+  padding: 20px 60px !important;
 }
 :deep(.soft-card .card-actions) {
   padding: 16px 24px !important;
 }
-
-/* 分隔線間距稍微放鬆 */
 :deep(.soft-card .v-divider) {
   margin: 12px 0 !important;
 }
-
-/* 表頭標題與右上角 chip 的對齊間距（可選） */
 :deep(.soft-card .text-h6) { line-height: 1.4; }
-
-/* 若需要，讓 v-window 的箭頭在圓角內側對齊（可選） */
-:deep(.soft-window .v-window__controls) {
-  padding: 4px;
-}
-
+:deep(.soft-window .v-window__controls) { padding: 4px; }
 </style>
