@@ -23,7 +23,7 @@
             <tr v-for="record in records" :key="record.reviewId">
               <td>{{ record.reviewTime || "無資料" }}</td>
               <td>{{ record.loanId || "無資料" }}</td>
-              <td>{{ record.reviewerId || "申貸人申請" }}</td>
+              <td>{{ record.reviewerId || "申貸人補件" }}</td>
               <td :class="getDecisionClass(record.decision)">
                 {{ translateDecision(record.decision) }}
               </td>
