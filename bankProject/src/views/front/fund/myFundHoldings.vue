@@ -134,7 +134,7 @@
                     申購
                   </button>
                   <button class="btn-action btn-sell" @click="openTradeDialog(holding, 'sell')"
-                    :disabled="!canBuyFund(holding.status)" title="贖回">
+                    :disabled="!canSellFund(holding)" title="贖回">
                     <i class="fas fa-minus"></i>
                     贖回
                   </button>
@@ -153,7 +153,9 @@
       <div v-if="tradeDialogVisible && selectedFund" class="modal-overlay">
         <div class="modal trade-modal">
           <div class="modal-header">
-            <h3 class="modal-title">基金申購</h3>
+            <h3 class="modal-title">
+              {{ tradeType === 'buy' ? '基金申購' : '基金贖回' }}
+            </h3>
             <button class="modal-close" @click="closeTradeDialog">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -167,41 +169,95 @@
               <p class="fund-details">{{ selectedFund.fundCode }} | {{ getFundTypeLabel(selectedFund.fund_type) }}</p>
               <p class="fund-details">風險等級：{{ selectedFund.risk_level }}</p>
               <p class="nav-info">最新淨值：{{ formatCurrency(selectedFund.latestNav) }}</p>
-              <p class="fee-info">手續費：{{ formatPercentage(selectedFund.buyFee) }}</p>
+
+              <!-- 申購資訊 -->
+              <div v-if="tradeType === 'buy'">
+                <p class="fee-info">申購手續費：{{ formatPercentage(selectedFund.buyFee) }}</p>
+              </div>
+
+              <!-- 贖回資訊 -->
+              <div v-if="tradeType === 'sell'">
+                <p class="holding-info">目前持有：{{ formatNumber(selectedFund.units) }} 單位</p>
+                <p class="fee-info">贖回手續費：{{ formatPercentage(selectedFund.sellFee || 0) }}</p>
+                <p class="market-value-info">目前市值：{{ formatCurrency(calculateMarketValue(selectedFund)) }}</p>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">申購金額 (元) <span class="required">*</span></label>
-              <input type="number" v-model.number="tradeAmount" class="form-input" placeholder="請輸入申購金額" min="1000"
-                step="100" />
-              <p class="form-help">建議最低申購金額：NT$ 1,000</p>
+            <!-- 申購表單 -->
+            <div v-if="tradeType === 'buy'">
+              <div class="form-group">
+                <label class="form-label">申購金額 (元) <span class="required">*</span></label>
+                <input type="number" v-model.number="tradeAmount" class="form-input" placeholder="請輸入申購金額" min="1000"
+                  step="100" />
+                <p class="form-help">建議最低申購金額：NT$ 1,000</p>
+              </div>
+
+              <div class="trade-summary" v-if="tradeAmount > 0">
+                <h5>費用試算</h5>
+                <div class="summary-row">
+                  <span>申購金額：</span>
+                  <span class="amount">{{ formatCurrency(tradeAmount) }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>手續費：</span>
+                  <span class="fee">{{ formatCurrency(calculatedFee) }}</span>
+                </div>
+                <div class="summary-row total">
+                  <span>實際投資金額：</span>
+                  <span class="total-amount">{{ formatCurrency(actualInvestAmount) }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>可購得單位數（概估）：</span>
+                  <span class="units">{{ calculatedUnits.toFixed(2) }} 單位</span>
+                </div>
+              </div>
             </div>
 
-            <div class="trade-summary" v-if="tradeAmount > 0">
-              <h5>費用試算</h5>
-              <div class="summary-row">
-                <span>申購金額：</span>
-                <span class="amount">{{ formatCurrency(tradeAmount) }}</span>
+            <!-- 贖回表單 -->
+            <div v-if="tradeType === 'sell'">
+              <div class="form-group">
+                <label class="form-label">贖回方式 <span class="required">*</span></label>
+                <div class="radio-group">
+                  <label class="radio-item">
+                    <input type="radio" v-model="sellType" value="units" name="sellType">
+                    <span class="radio-label">按單位數贖回</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" v-model="sellType" value="all" name="sellType">
+                    <span class="radio-label">全部贖回</span>
+                  </label>
+                </div>
               </div>
-              <div class="summary-row">
-                <span>手續費：</span>
-                <span class="fee">{{ formatCurrency(calculatedFee) }}</span>
+
+              <!-- 按單位數贖回 -->
+              <div v-if="sellType === 'units'" class="form-group">
+                <label class="form-label">贖回單位數 <span class="required">*</span></label>
+                <input type="number" v-model.number="sellUnits" class="form-input" placeholder="請輸入贖回單位數"
+                  :max="selectedFund.units" min="0.01" step="0.01" />
+                <p class="form-help">可贖回單位數：{{ formatNumber(selectedFund.units) }} 單位</p>
               </div>
-              <div class="summary-row total">
-                <span>實際投資金額：</span>
-                <span class="total-amount">{{ formatCurrency(actualInvestAmount) }}</span>
-              </div>
-              <div class="summary-row">
-                <span>可購得單位數（概估）：</span>
-                <span class="units">{{ calculatedUnits.toFixed(2) }} 單位</span>
+
+              <div class="sell-summary" v-if="(sellType === 'units' && sellUnits > 0) || sellType === 'all'">
+                <h5>贖回試算</h5>
+                <div class="summary-row">
+                  <span>贖回單位數：</span>
+                  <span class="units">{{ formatNumber(calculatedSellUnits) }} 單位</span>
+                </div>
+                <div class="summary-row total">
+                  <span>實際入帳金額：</span>
+                  <span class="total-amount">{{ formatCurrency(calculatedSellAmount) }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>剩餘持有單位：</span>
+                  <span class="remaining-units">{{ formatNumber(remainingUnits) }} 單位</span>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="modal-footer">
             <button class="btn-secondary" @click="closeTradeDialog">取消</button>
-            <button class="btn-primary" @click="executeTrade"
-              :disabled="!tradeAmount || tradeAmount <= 0 || submitting">
+            <button class="btn-primary" @click="executeTrade" :disabled="!isTradeValid || submitting">
               <template v-if="submitting">
                 <span class="loading-spinner-small"></span> 處理中...
               </template>
@@ -209,7 +265,7 @@
                 <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
-                確認申購
+                {{ tradeType === 'buy' ? '確認申購' : '確認贖回' }}
               </template>
             </button>
           </div>
@@ -238,12 +294,51 @@ const refreshing = ref(false)
 
 const tradeDialogVisible = ref(false)
 const selectedFund = ref(null)
+const tradeType = ref('buy') // 'buy' 或 'sell'
 const tradeAmount = ref(1000)
+const sellType = ref('units') // 'units', 'all'
+const sellUnits = ref(0)
 const submitting = ref(false)
 
+// 申購相關計算
 const calculatedFee = computed(() => selectedFund.value ? (tradeAmount.value * (selectedFund.value.buyFee || 0)) / 100 : 0)
 const actualInvestAmount = computed(() => tradeAmount.value - calculatedFee.value)
 const calculatedUnits = computed(() => selectedFund.value?.latestNav ? actualInvestAmount.value / selectedFund.value.latestNav : 0)
+
+// 贖回相關計算
+const calculatedSellUnits = computed(() => {
+  if (!selectedFund.value) return 0
+
+  switch (sellType.value) {
+    case 'units':
+      return sellUnits.value || 0
+    case 'all':
+      return selectedFund.value.units || 0
+    default:
+      return 0
+  }
+})
+
+const calculatedSellAmount = computed(() => {
+  return calculatedSellUnits.value * (selectedFund.value?.latestNav || 0)
+})
+
+const remainingUnits = computed(() => {
+  return (selectedFund.value?.units || 0) - calculatedSellUnits.value
+})
+
+// 交易驗證
+const isTradeValid = computed(() => {
+  if (tradeType.value === 'buy') {
+    return tradeAmount.value > 0 && tradeAmount.value >= 1000
+  } else {
+    if (sellType.value === 'all') return true
+    if (sellType.value === 'units') {
+      return sellUnits.value > 0 && sellUnits.value <= (selectedFund.value?.units || 0)
+    }
+    return false
+  }
+})
 
 const totalValue = computed(() => holdings.value.reduce((sum, h) => sum + calculateMarketValue(h), 0))
 const totalReturn = computed(() => holdings.value.reduce((sum, h) => sum + calculateReturn(h), 0))
@@ -254,24 +349,37 @@ const totalReturnPercentage = computed(() => {
 const totalReturnClass = computed(() => (totalReturn.value >= 0 ? 'profit' : 'loss'))
 
 const canBuyFund = (status) => status === 'OPEN' || status === '上架中'
+const canSellFund = (holding) => (holding.status === 'OPEN' || holding.status === '上架中') && holding.units > 0
 
-const openTradeDialog = (holding) => {
-  if (!canBuyFund(holding.status)) { alert('此基金目前無法申購'); return }
+const openTradeDialog = (holding, type = 'buy') => {
+  if (type === 'buy' && !canBuyFund(holding.status)) {
+    alert('此基金目前無法申購')
+    return
+  }
+  if (type === 'sell' && !canSellFund(holding)) {
+    alert('此基金目前無法贖回或持有單位數為0')
+    return
+  }
+
   selectedFund.value = holding
+  tradeType.value = type
   tradeAmount.value = 1000
+  sellType.value = 'units'
+  sellUnits.value = 0
   tradeDialogVisible.value = true
 }
 
 const closeTradeDialog = () => {
   tradeDialogVisible.value = false
   selectedFund.value = null
+  tradeType.value = 'buy'
   tradeAmount.value = 1000
+  sellType.value = 'units'
+  sellUnits.value = 0
   submitting.value = false
 }
 
 const goToFundList = () => router.push('/yuzubank/fund/list')
-const buyMore = (holding) => openTradeDialog(holding)
-const sell = (holding) => openTradeDialog(holding)
 const viewDetails = (holding) => router.push(`/yuzubank/fund/detail/${holding.fundId}`)
 
 const fetchHoldings = async (fundAccId = null) => {
@@ -333,27 +441,52 @@ const formatDate = (d) => { if (!d) return 'N/A'; try { return new Date(d).toLoc
 const getReturnClass = (v) => v >= 0 ? 'profit' : 'loss'
 const getFundTypeLabel = (t) => ({ 'EQUITY': '股票型', 'BOND': '債券型', 'BALANCED': '平衡型', 'MONEY_MARKET': '貨幣市場型', 'INDEX': '指數型', 'ETF': 'ETF', 'REIT': '不動產型' }[t] || t || 'N/A')
 
-// --- 執行申購 ---
+// 執行交易
 const executeTrade = async () => {
-  if (!selectedFund.value || !tradeAmount.value || tradeAmount.value <= 0) return
+  if (!selectedFund.value || !isTradeValid.value) return
+
   submitting.value = true
   try {
-    await axios.post('http://localhost:8080/bank/fundTransaction/buy', {
-      amount: tradeAmount.value,
-      fundAccount: {
-        fundAccId: props.fundAccId,
-      },
-      fund: {
-        fundId: selectedFund.value.fundId,
-      },
-    })
+    if (tradeType.value === 'buy') {
+      // 執行申購
+      await axios.post('http://localhost:8080/bank/fundTransaction/buy', {
+        amount: tradeAmount.value,
+        fundAccount: {
+          fundAccId: props.fundAccId,
+        },
+        fund: {
+          fundId: selectedFund.value.fundId,
+        },
+      })
+      alert('申購成功')
+    } else {
+      // 執行贖回
+      const sellData = {
+        fundAccount: {
+          fundAccId: props.fundAccId,
+        },
+        fund: {
+          fundId: selectedFund.value.fundId,
+        },
+        sellType: sellType.value,
+      }
 
-    alert('申購成功')
+      // 根據贖回類型添加相應參數
+      if (sellType.value === 'units') {
+        sellData.units = sellUnits.value
+      } else if (sellType.value === 'all') {
+        sellData.units = selectedFund.value.units
+      }
+
+      await axios.post('http://localhost:8080/bank/fundTransaction/sell', sellData)
+      alert('贖回成功')
+    }
+
     closeTradeDialog()
     await fetchHoldings()
   } catch (e) {
     console.error(e)
-    alert('申購失敗')
+    alert(tradeType.value === 'buy' ? '申購失敗' : '贖回失敗')
   } finally {
     submitting.value = false
   }
@@ -690,7 +823,7 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
   color: white;
 }
 
-.btn-buy:hover {
+.btn-buy:hover:not(:disabled) {
   background: #218838;
 }
 
@@ -699,8 +832,14 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
   color: white;
 }
 
-.btn-sell:hover {
+.btn-sell:hover:not(:disabled) {
   background: #c82333;
+}
+
+.btn-action:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .btn-detail {
@@ -891,6 +1030,38 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
   margin-top: 0.25rem;
 }
 
+/* 單選按鈕組 */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.radio-item:hover {
+  background: #f9fafb;
+}
+
+.radio-item input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.radio-label {
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+}
+
 /* 交易資訊 */
 .trade-info {
   background: #f8fafc;
@@ -925,14 +1096,30 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
   font-weight: 500;
 }
 
-.trade-summary {
+.holding-info {
+  color: #3b82f6;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.market-value-info {
+  color: #059669;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.trade-summary,
+.sell-summary {
   background: #f8fafc;
   border-radius: 12px;
   padding: 1.5rem;
   margin-top: 1.5rem;
 }
 
-.trade-summary h5 {
+.trade-summary h5,
+.sell-summary h5 {
   font-size: 1rem;
   font-weight: 600;
   color: #1f2937;
@@ -971,6 +1158,11 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
 
 .units {
   color: #059669;
+  font-weight: 500;
+}
+
+.remaining-units {
+  color: #f59e0b;
   font-weight: 500;
 }
 
