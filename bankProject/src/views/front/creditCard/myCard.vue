@@ -318,18 +318,25 @@ function mapCard(raw) {
 
 /* 顯示工具 */
 function cardImage(c) {
-  const code = (c.cardType?.typeCode || '').toLowerCase().trim()
-  if (code) {
-    const hit = Object.entries(cardImages).find(([path]) =>
-      path.toLowerCase().includes(`/creditcard/${code}.`)
-    )
-    if (hit) return hit[1]
-  }
-  const name = (c.cardType?.typeName || '').trim()
-  if (name.includes('無限')) return imgInfinite
-  if (code === 'jcb') return imgJcb
-  return imgVisa
+  const code = (c.cardType?.typeCode || '').toLowerCase().trim();
+  const name = (c.cardType?.typeName || '').trim();
+
+  // 1) 先判斷等級（避免被一般 VISA 蓋掉）
+  if (name.includes('無限')) return imgInfinite;
+  if (code === 'jcb') return imgJcb;
+
+  // 2) 精確檔名比對（creditCard/<code>.(png|jpg|jpeg|webp)）
+  const hit = Object.entries(cardImages).find(([path]) => {
+    const p = path.toLowerCase();
+    const m = p.match(/\/creditcard\/([^/]+)\.(png|jpe?g|webp|bmp)$/i);
+    return m && m[1] === code; // 檔名要跟 typeCode 完全相同
+  });
+  if (hit) return hit[1];
+
+  // 3) 預設
+  return imgVisa;
 }
+
 
 const money = v => `NT$${Number(v ?? 0).toLocaleString()}`
 function fmtDate(v) {
