@@ -56,7 +56,7 @@
           </div>
           <div class="warningtet">{{ message }}</div>
         </div>
-                <div class="btns">
+        <div class="btns">
           <button class="btn" @click="submit">確認送出</button>
           <button class="btn" @click="inputdate">一鍵輸入</button>
         </div>
@@ -72,7 +72,7 @@ import { useRoute } from "vue-router";
 import { request } from "@/utils/FontAxiosUtil";
 import { ref } from "vue";
 import router from "@/router/index";
-import SuccessAnim from "@/components/member/successAnim.vue";
+import SuccessAnim from "@/components/successAnim.vue";
 
 const showpassword = ref(true);
 const showOK = ref(false);
@@ -85,10 +85,10 @@ const data = ref({
   token: "",
 });
 
-const inputdate = ()=>{
-  password.value.password="ggggggg1111111";
-  password.value.checkpassword="ggggggg1111111";
-}
+const inputdate = () => {
+  password.value.password = "ggggggg1111111";
+  password.value.checkpassword = "ggggggg1111111";
+};
 
 const error = ref(false);
 
@@ -191,10 +191,9 @@ input {
   border: none;
   background: none;
   outline: none;
-    padding: 0;      
+  padding: 0;
   width: 90%;
   height: 100%;
-
 }
 .input {
   display: flex;
@@ -226,7 +225,7 @@ label {
   color: #de5858;
 }
 
-.btns{
+.btns {
   width: 88%;
   display: flex;
   justify-content: space-around;
@@ -270,7 +269,7 @@ label {
   top: 120px;
   left: 1000px;
 }
-button> span{
+button > span {
   font-size: 20px;
   color: #ebb211;
 }

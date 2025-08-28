@@ -2,10 +2,10 @@
   <div :class="['container1']">
     <div class="main">
       <div class="topbar">
-        
         <!-- <img src="../../../image/member/rigster.png" alt="" /> -->
-         
-        <span class="mdi mdi-account-plus"></span><h2>註冊</h2>
+
+        <span class="mdi mdi-account-plus"></span>
+        <h2>註冊</h2>
       </div>
       <div class="form">
         <div class="inputBox" v-for="(item, index) in fields">
@@ -31,11 +31,13 @@
               </option>
             </select>
           </div>
-          <div :class="['error1',{error2:item.error}]">{{ errorMessage[item.name] }}</div>
+          <div :class="['error1', { error2: item.error }]">
+            {{ errorMessage[item.name] }}
+          </div>
         </div>
         <div class="btnArea">
-          <button  @click="submitForm" class="btn">註冊</button>
-          <button  @click="OneClickInput" class="btn">一鍵輸入</button>
+          <button @click="submitForm" class="btn">註冊</button>
+          <button @click="OneClickInput" class="btn">一鍵輸入</button>
         </div>
       </div>
     </div>
@@ -49,22 +51,22 @@
 import { request } from "@/utils/FontAxiosUtil";
 import { ref, onMounted, reactive } from "vue";
 import { validateMember } from "@/utils/CheckMemberInformation";
-import SuccessToast from "@/components/member/successAnim.vue";
+import SuccessToast from "@/components/successAnim.vue";
 
 const emit = defineEmits(["moveslideClick"]);
 const showToast = ref(false);
 
 const moveslide = () => {
   emit("moveslideClick");
-  form.mName="";
-  form.mIdentity="";
-  form.mGender= "";
-  form.mAccount= "";
-  form.mPassword= "";
-  form.mAddress= "";
-  form.mPhone= "";
-  form.mBirthday= null;
-  form.mEmail= "";
+  form.mName = "";
+  form.mIdentity = "";
+  form.mGender = "";
+  form.mAccount = "";
+  form.mPassword = "";
+  form.mAddress = "";
+  form.mPhone = "";
+  form.mBirthday = null;
+  form.mEmail = "";
 };
 
 const filterInput = (field) => {
@@ -106,17 +108,16 @@ const form = reactive({
   mEmail: "",
 });
 
-const OneClickInput = ()=>{
-  form.mName="陳晏慈";
-  form.mIdentity="H287196898";
-   form.mGender="女",
-  form.mAccount="alice9898";
-  form.mPassword="alice9898";
-  form.mAddress="330桃園市桃園區中正路123號";
-  form.mPhone="0901234567";
-  form.mBirthday="2005-08-25";
-  form.mEmail="yuzubank202@gmail.com";
-}
+const OneClickInput = () => {
+  form.mName = "陳晏慈";
+  form.mIdentity = "H287196898";
+  (form.mGender = "女"), (form.mAccount = "alice9898");
+  form.mPassword = "alice9898";
+  form.mAddress = "330桃園市桃園區中正路123號";
+  form.mPhone = "0901234567";
+  form.mBirthday = "2005-08-25";
+  form.mEmail = "yuzubank202@gmail.com";
+};
 
 const errorMessage = reactive({
   mName: "",
@@ -178,35 +179,29 @@ const fields = ref([
   },
 ]);
 
-const clearError = ()=>{
-  for(let i = 0; i<fields.value.length;i++){
+const clearError = () => {
+  for (let i = 0; i < fields.value.length; i++) {
     fields.value[i].error = false;
     fields.value[i].error = false;
     errorMessage[fields.value[i].name] = "";
   }
-}
+};
 
 async function submitForm() {
   clearError();
-  if(validateMember(form, fields,errorMessage)){
-
+  if (validateMember(form, fields, errorMessage)) {
     try {
       const data = await request({
         url: "/member/member",
         method: "POST",
         data: form,
       });
-      if(data){
+      if (data) {
         showToast.value = true;
-      moveslide();
-    
+        moveslide();
       }
-    }catch (error){
-    
-    }
+    } catch (error) {}
   }
-  
-
 }
 </script>
 <style scoped>
@@ -230,13 +225,13 @@ async function submitForm() {
   justify-content: center;
   border-bottom: 5px solid #ebb211;
 }
-.topbar>span{
+.topbar > span {
   font-size: 80px;
   color: #ebb211;
 }
-.topbar>h2{
-font-size: 50px;
-color: #ebb211;
+.topbar > h2 {
+  font-size: 50px;
+  color: #ebb211;
 }
 .form {
   display: flex;
@@ -246,7 +241,7 @@ color: #ebb211;
   width: 50%;
   padding: 10px 20px;
 }
-.inputBox>span {
+.inputBox > span {
   position: absolute;
   left: 8px;
 }
@@ -294,7 +289,7 @@ label {
   font-size: 20px;
   color: #aeaeae;
 }
-.error1{
+.error1 {
   height: 20px;
 }
 .error2 {
@@ -349,7 +344,6 @@ span {
 .register > button:hover {
   color: #f7cc58;
 }
-
 
 /*錯誤動畫*/
 .input.error {

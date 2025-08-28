@@ -106,12 +106,19 @@
   <div class="warm">
     溫馨提醒：若將帳戶提供他人或不法集團使用，須自負相關法律責任，提醒妥善管理帳戶
   </div>
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
+  
 </template>
 
 <script setup>
 import { ref, computed, onUnmounted } from "vue";
 import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 const form = ref({
   idNo: "",
   phone: "",
@@ -121,7 +128,8 @@ const form = ref({
 });
 
 const emit = defineEmits(["next", "prev"]);
-
+const showError = ref(false);
+const errorMsg = ref("");
 /* === SMS 驗證狀態 === */
 const sending = ref(false);
 const verifying = ref(false);
@@ -228,22 +236,26 @@ const nextStep = async () => {
 
   // 基本欄位檢查
   if (!form.value.idNo || !form.value.phone || !form.value.captcha) {
-    alert("請完成所有必填欄位");
+    errorMsg.value = "請完成所有必填欄位";
+    showError.value = true;
     return;
   }
 
   if (mIdentity !== form.value.idNo.trim().toUpperCase()) {
-    alert("身分證字號與會員資料不符，請確認");
+    errorMsg.value = "身分證字號與會員資料不符，請確認";
+    showError.value = true;
     return;
   }
 
   if (!form.value.twTaxResident || !form.value.noUsPerson) {
-    alert("請勾選『我只有中華民國稅務居民身分』與『我沒有美國國籍』");
+    errorMsg.value = "請勾選『我只有中華民國稅務居民身分』與『我沒有美國國籍』";
+    showError.value = true;
     return;
   }
 
   if (!otpPassed.value) {
-    alert("請先完成簡訊驗證");
+    errorMsg.value = "請先完成簡訊驗證";
+    showError.value = true;
     return;
   }
 
@@ -255,7 +267,8 @@ const nextStep = async () => {
 
     if (!passed) {
       submitting.value = false;
-      alert("驗證碼不正確或已失效，請重新輸入");
+      errorMsg.value = "驗證碼不正確或已失效，請重新輸入";
+      showError.value = true;
       return; // 驗證失敗，停止流程
     }
 
@@ -281,7 +294,8 @@ function refreshCaptcha() {
 // 驗證 文字驗證碼
 const verifyCaptcha = async () => {
   if (!form.value.captcha) {
-    alert("請輸入驗證碼");
+    errorMsg.value = "請輸入驗證碼";
+    showError.value = true;
     return false;
   }
   try {
@@ -306,9 +320,10 @@ const verifyCaptcha = async () => {
     captchaError.value = "驗證碼不正確或已失效";
     refreshCaptcha();
     return false;
-  } catch (e) {
+  } catch (error) {
     // CORS 失敗、網路錯誤、或 4xx/5xx 被攔截器拋出
-    console.error("verifyCaptcha error:", e);
+    errorMsg.value = error;
+    showError.value = true;
     captchaError.value = "請求失敗（可能是 CORS / Session 未帶上）";
     refreshCaptcha();
     return false; // 驗證失敗

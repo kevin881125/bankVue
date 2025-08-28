@@ -1,20 +1,28 @@
 <template>
-  <transition name="fade-scale">
-    <div
-      v-if="modelValue"
-      class="success-wrap"
-      role="status"
-      aria-live="polite"
-    >
-      <div class="success-card">
-        <svg class="checkmark" viewBox="0 0 52 52" aria-hidden="true">
-          <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none" />
-          <path class="checkmark-check" fill="none" d="M14 27 l8 8 l16 -16" />
-        </svg>
-        <p class="msg">{{ message }}</p>
+  <teleport to="body">
+    <transition name="fade-scale">
+      <div
+        v-if="modelValue"
+        class="success-wrap"
+        role="status"
+        aria-live="polite"
+      >
+        <div class="success-card">
+          <svg class="checkmark" viewBox="0 0 52 52" aria-hidden="true">
+            <circle
+              class="checkmark-circle"
+              cx="26"
+              cy="26"
+              r="25"
+              fill="none"
+            />
+            <path class="checkmark-check" fill="none" d="M14 27 l8 8 l16 -16" />
+          </svg>
+          <p class="msg">{{ message }}</p>
+        </div>
       </div>
-    </div>
-  </transition>
+    </transition>
+  </teleport>
 </template>
 <script setup>
 import { onMounted, watch, nextTick } from "vue";

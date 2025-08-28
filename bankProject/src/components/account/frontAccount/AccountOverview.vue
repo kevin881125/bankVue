@@ -286,7 +286,9 @@ import { useMemberStore } from "@/stores/MemberStore";
 import AccountDetailDialog from "./AccountDetailDialog.vue";
 import TradeDialog from "./TradeDialog.vue";
 import InsertAccountDialog from "./InsertAccountDialog.vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const memberStore = useMemberStore();
 const mId = memberStore.mId;
 const noteOpen = ref(true);

@@ -264,11 +264,7 @@
     @cancel="showError = false"
   ></ErrorMessage>
 
-  <SuccessMessage
-    :visible="showSuccess"
-    :successMessage="successMsg"
-    @cancel="showSuccess = false"
-  ></SuccessMessage>
+  <SuccessAnim v-model="showOK" message="修改狀態成功" :duration="1400" />
 </template>
 
 <script setup>
@@ -280,7 +276,7 @@ import UpdateAccountDialog from "@/components/account/accountVue/UpdateAccountDi
 import TransactionDetailDialog from "@/components/account/accountVue/TransactionDetailDialog.vue";
 import TradeAccountDialog from "@/components/account/accountVue/TradeAccountDialog.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
-import SuccessMessage from "@/components/SuccessMessage.vue";
+import SuccessAnim from "@/components/successAnim.vue";
 
 const addDialog = ref(false);
 const tradeDialog = ref(false);
@@ -292,7 +288,7 @@ const workerStore = useWorkerStore();
 const workerId = workerStore.wId; // 操作行員ID
 const showError = ref(false);
 const errorMsg = ref("");
-const showSuccess = ref(false);
+const showOK = ref(false);
 const successMsg = ref("");
 
 // 搜尋欄位
@@ -455,8 +451,7 @@ const submitUpdateStatus = async () => {
     headers: { "Content-Type": "application/json" },
   });
 
-  successMsg.value = "修改狀態成功";
-  showSuccess.value = true;
+  showOK.value = true;
 
   updateDialog.value = false;
   fetchAccounts();
