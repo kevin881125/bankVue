@@ -344,7 +344,7 @@ const fundTemplates = ref([
             fundType: "EQUITY",
             riskLevel: 4,
             currency: "TWD",
-            comAccId: "7110000054",
+            comAccId: "7110000065",
             latestNav: 15.2500,
             buyFee: 1.50,
             status: "OPEN",
@@ -363,89 +363,13 @@ const fundTemplates = ref([
             fundType: "EQUITY",
             riskLevel: 5,
             currency: "USD",
-            comAccId: "7110000054",
+            comAccId: "7110000076",
             latestNav: 18.7800,
             buyFee: 2.00,
             status: "OPEN",
             navDate: new Date().toISOString().split('T')[0]
         }
     },
-    {
-        id: 3,
-        name: "債券基金",
-        description: "穩健債券型基金",
-        icon: "fas fa-shield-alt",
-        color: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-        data: {
-            fundCode: "BD001A",
-            fundName: "全球債券基金A類型",
-            fundType: "BOND",
-            riskLevel: 2,
-            currency: "TWD",
-            comAccId: "7110000054",
-            latestNav: 10.5600,
-            buyFee: 1.00,
-            status: "OPEN",
-            navDate: new Date().toISOString().split('T')[0]
-        }
-    },
-    {
-        id: 4,
-        name: "平衡基金",
-        description: "股債平衡配置",
-        icon: "fas fa-balance-scale",
-        color: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-        data: {
-            fundCode: "BL001A",
-            fundName: "環球平衡基金A類型",
-            fundType: "BALANCED",
-            riskLevel: 3,
-            currency: "TWD",
-            comAccId: "7110000054",
-            latestNav: 12.4300,
-            buyFee: 1.25,
-            status: "OPEN",
-            navDate: new Date().toISOString().split('T')[0]
-        }
-    },
-    {
-        id: 5,
-        name: "指數基金",
-        description: "追蹤市場指數",
-        icon: "fas fa-chart-line",
-        color: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
-        data: {
-            fundCode: "IDX001A",
-            fundName: "台灣50指數基金",
-            fundType: "INDEX",
-            riskLevel: 4,
-            currency: "TWD",
-            comAccId: "7110000054",
-            latestNav: 16.8900,
-            buyFee: 0.50,
-            status: "OPEN",
-            navDate: new Date().toISOString().split('T')[0]
-        }
-    },
-    {
-        id: 6,
-        name: "貨幣基金",
-        description: "短期貨幣市場",
-        icon: "fas fa-coins",
-        color: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
-        data: {
-            fundCode: "MM001A",
-            fundName: "台幣貨幣市場基金",
-            fundType: "MONEY_MARKET",
-            riskLevel: 1,
-            currency: "TWD",
-            comAccId: "7110000054",
-            latestNav: 10.0120,
-            buyFee: 0.25,
-            status: "OPEN",
-            navDate: new Date().toISOString().split('T')[0]
-        }
-    }
 ]);
 
 // 計算屬性
