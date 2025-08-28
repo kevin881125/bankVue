@@ -117,9 +117,11 @@
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <!-- ✅ 新增「改變狀態」按鈕 -->
-                                    <button class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
-                                        @click="toggleFundStatus(fund)">
-                                        {{ fund.status === '啟用' ? '停用' : '啟用' }}
+                                    <button
+                                        class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                                        @click="toggleFundStatusWithConfirm(fund)"
+                                        :title="`${getToggleButtonText(fund.status)}基金`">
+                                        {{ getToggleButtonText(fund.status) }}
                                     </button>
                                 </div>
                             </td>
@@ -759,19 +761,64 @@ onMounted(() => {
 });
 const toggleFundStatus = async (fund) => {
     try {
-        const newStatus = fund.status === "啟用" ? "停用" : "啟用";
+        // 根據當前狀態決定新狀態
+        const newStatus = fund.status === 'OPEN' ? 'CLOSED' : 'OPEN';
 
-        await axios.put(`http://localhost:8080/fund/${fund.fundCode}/status`, {
+        // 調用正確的 API 端點
+        const response = await axios.put(`${apiUrl}/${fund.fundId}/status`, {
             status: newStatus,
+        }, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
         });
 
-        // ✅ 更新前端顯示
-        fund.status = newStatus;
+        // 更新本地數據
+        const fundIndex = funds.value.findIndex(f => f.fundId === fund.fundId);
+        if (fundIndex !== -1) {
+            funds.value[fundIndex].status = newStatus;
+        }
 
-        ElMessage.success(`基金狀態已改為「${newStatus}」`);
+        // 顯示成功訊息
+        const statusText = newStatus === 'OPEN' ? '開放' : '關閉';
+        console.log(`基金 ${fund.fundCode} 狀態已改為「${statusText}」`);
+
+        // 如果有使用 UI 提示框架，可以替換為相應的提示方法
+        alert(`基金狀態已改為「${statusText}」`);
+
     } catch (error) {
-        ElMessage.error("改變狀態失敗");
-        console.error(error);
+        console.error('更新基金狀態失敗:', error);
+        console.error('錯誤詳細:', error.response?.data);
+
+        let errorMessage = "更新基金狀態失敗";
+        if (error.response?.data?.message) {
+            errorMessage += "：" + error.response.data.message;
+        } else if (error.response?.status === 404) {
+            errorMessage += "：找不到該基金";
+        } else if (error.response?.status === 400) {
+            errorMessage += "：請求參數錯誤";
+        } else if (error.response?.status === 500) {
+            errorMessage += "：系統錯誤";
+        }
+
+        alert(errorMessage);
+    }
+};
+// 更新模板中的按鈕顯示文字函數
+const getToggleButtonText = (status) => {
+    return status === 'OPEN' ? '停用' : '啟用';
+};
+
+// 如果需要確認對話框的版本
+const toggleFundStatusWithConfirm = async (fund) => {
+    const currentStatusText = fund.status === 'OPEN' ? '開放' : '關閉';
+    const newStatusText = fund.status === 'OPEN' ? '關閉' : '開放';
+
+    const confirmed = confirm(`確定要將基金「${fund.fundName}」的狀態從「${currentStatusText}」改為「${newStatusText}」嗎？`);
+
+    if (confirmed) {
+        await toggleFundStatus(fund);
     }
 };
 </script>
