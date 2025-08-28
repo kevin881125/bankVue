@@ -327,6 +327,11 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 
 <script setup>
@@ -334,6 +339,7 @@ import { ref, watch, defineProps, defineEmits, computed } from "vue";
 import { request } from "@/utils/BackAxiosUtil";
 import AccountSelect from "@/components/account/common/AccountSelect.vue";
 import { useWorkerStore } from "@/stores/Worker";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 /** ========= Props / Emits / Dialog 同步 ========= **/
 const props = defineProps({
   show: Boolean,
@@ -347,6 +353,8 @@ const onWithdrawDialog = ref(false);
 const onTransferAccountsDialog = ref(false);
 const workerStore = useWorkerStore();
 const workerId = workerStore.wId; // 操作行員ID
+const showError = ref(false);
+const errorMsg = ref("");
 watch(
   () => props.show,
   (val) => (internalShow.value = val)
@@ -609,7 +617,9 @@ const submitTransaction = async (type) => {
     if (type === TRANSACTION.TRANSFER) onTransferDialog.value = false;
     internalShow.value = false;
   } else {
-    alert(res?.message || res?.data?.message || "交易失敗，請稍後再試");
+    errorMsg.value =
+      res?.message || res?.data?.message || "交易失敗，請稍後再試";
+    showError.value = true;
   }
 };
 
@@ -633,7 +643,9 @@ function onTabChange(tab) {
   const fromAccountId = form.value.accountId; // ← 就是轉出帳戶
   if (!fromAccountId) {
     // 你也可以換成 snackbar/toast
-    alert("請先選擇「轉出帳戶」再查看最近轉帳");
+
+    errorMsg.value = "請先選擇「轉出帳戶」再查看最近轉帳";
+    showError.value = true;
     return;
   }
   fetchRecentTargets(fromAccountId);

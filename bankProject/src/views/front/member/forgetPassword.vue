@@ -2,7 +2,7 @@
   <div class="container">
     <div class="decorate"></div>
     <div class="dog">
-        <img src="../../../image/logo_white.svg" alt="">
+      <img src="../../../image/logo_white.svg" alt="" />
     </div>
     <div class="title">
       <h1>忘記密碼</h1>
@@ -13,18 +13,18 @@
         <div class="inputbox">
           <span class="must">*</span>
           <label for="mIdentityLogin">輸入email</label>
-          <div  :class="['input',{error:error}]" >
+          <div :class="['input', { error: error }]">
             <input
               type="text"
               id="mIdentityLogin"
-                v-model="forgetPassword.email"
+              v-model="forgetPassword.email"
               required
             />
           </div>
-          <div class="warningtet" >{{errotMessage}}</div>
+          <div class="warningtet">{{ errotMessage }}</div>
         </div>
 
-        <input type="text"  />
+        <input type="text" />
         <div class="btns">
           <button class="btn" @click="submit">送出</button>
           <button class="btn" @click="inputdate">一鍵輸入</button>
@@ -47,31 +47,28 @@ const forgetPassword = ref({
   email: "",
 });
 
-const errotMessage = ref(""
-)
+const errotMessage = ref("");
 const error = ref(false);
 
-const inputdate = ()=>{
-  forgetPassword.value.email="yuzubank202@gmail.com";
-}
+const inputdate = () => {
+  forgetPassword.value.email = "yuzubank202@gmail.com";
+};
 const submit = async () => {
   console.log("我進來了");
   error.value = false;
- 
-    const data = await request({
-      url: "/member/forgot-password",
-      method: "POST",
-      data: forgetPassword.value,
-    });
-    if(data==undefined){
-      error.value = true
-      errotMessage.value ="沒有找到email";
-    }else{
-        showToast.value = true;
-        errotMessage.value ="已發送到email";
-    }
 
-
+  const data = await request({
+    url: "/member/forgot-password",
+    method: "POST",
+    data: forgetPassword.value,
+  });
+  if (data == undefined) {
+    error.value = true;
+    errotMessage.value = "沒有找到email";
+  } else {
+    showToast.value = true;
+    errotMessage.value = "已發送到email";
+  }
 };
 </script>
 <style scoped>
@@ -134,7 +131,6 @@ h3 {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-
 }
 input {
   border: none;
@@ -176,20 +172,18 @@ label {
 .btn {
   margin-top: 20px;
 
-
   height: 60px;
   width: 200px;
-  border: 1px solid #EBB211;
+  border: 1px solid #ebb211;
   border-radius: 50px;
-  color: #EBB211;
+  color: #ebb211;
   background-color: #fff;
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
   font-weight: 700;
   z-index: 10;
-  
 }
 .btn:hover {
-  background-color: #EBB211;
+  background-color: #ebb211;
   color: #fff;
   transition: 0.5s;
 }
@@ -207,19 +201,18 @@ label {
   width: 1200px;
   height: 500px;
 }
-.under{
-    width: 100%;
+.under {
+  width: 100%;
 }
-.dog{
-    position: absolute;
-    top: 80px;
-   left: 1000px;   
+.dog {
+  position: absolute;
+  top: 80px;
+  left: 1000px;
 }
-.dog img{
+.dog img {
   width: 500px;
-  
 }
-.btns{
+.btns {
   width: 88%;
   display: flex;
   justify-content: space-around;

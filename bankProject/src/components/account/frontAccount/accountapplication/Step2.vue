@@ -203,11 +203,17 @@ function onPick(e, which) {
 }
 
 function clearFile(which) {
-  const clear = (fileRef, prevRef, errRef) => {
-    if (prevRef.value) URL.revokeObjectURL(prevRef.value);
+  const clear = (fileRef, prevRef, errRef, inputRef) => {
+    if (prevRef.value) {
+      try {
+        URL.revokeObjectURL(prevRef.value);
+      } catch {}
+    }
     fileRef.value = null;
     prevRef.value = "";
     errRef.value = "";
+    // 「再次選同一檔案」也會觸發 change
+    if (inputRef?.value) inputRef.value.value = "";
   };
   if (which === "front") clear(idFront, frontPreview, errFront);
   if (which === "back") clear(idBack, backPreview, errBack);

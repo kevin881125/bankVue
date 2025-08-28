@@ -47,16 +47,26 @@
       </form>
     </div>
   </dialog>
+  <SuccessAnim v-model="showOK" message="新增成功" :duration="1400" />
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 
 <script setup>
 import { ref, watch, computed } from "vue";
 import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
-
+import SuccessAnim from "@/components/successAnim.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 const memberStore = useMemberStore();
 const mId = memberStore.mId;
-
+const showOK = ref(false);
+const showError = ref(false);
+const errorMsg = ref("");
+const successMsg = ref("");
 /** Props 與 Emits（JS 版） */
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -124,14 +134,14 @@ const submitAddAccount = async () => {
     });
 
     if (res === "新增成功") {
-      alert(res);
+      showOK.value = true;
       emit("submit");
     }
 
     closeAdd();
   } catch (e) {
-    console.error("新增帳戶失敗", e);
-    alert("新增失敗，請稍後再試");
+    errorMsg.value = "新增帳戶失敗";
+    showError.value = true;
   }
 };
 </script>
