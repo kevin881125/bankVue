@@ -87,6 +87,9 @@
                 <div class="btns">
                   <button @click="doLogin" class="btn">登入</button>
                   <button @click="OneClickInput" class="btn">一鍵輸入</button>
+                  <!--
+                    <button @click="OneClickInput2" class="btn">舊會員</button>
+                  -->
                 </div>
               </div>
             </div>
@@ -177,6 +180,12 @@ const OneClickInput = () => {
   mPassword.value = "alice9898";
   mIdentity.value = "H287196898";
 };
+
+// const OneClickInput2 = ()=>{
+//     mAccount.value = "alice9898";
+//   mPassword.value = "alice9898";
+//   mIdentity.value = "H287196898";
+// }
 
 const backindex = ()=>{
   router.push("/yuzubank/front");

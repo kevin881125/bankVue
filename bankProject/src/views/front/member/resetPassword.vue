@@ -86,8 +86,8 @@ const data = ref({
 });
 
 const inputdate = () => {
-  password.value.password = "ggggggg1111111";
-  password.value.checkpassword = "ggggggg1111111";
+  password.value.password = "alice98981";
+  password.value.checkpassword = "alice98981";
 };
 
 const error = ref(false);

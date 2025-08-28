@@ -37,6 +37,7 @@
           v-for="w in workers"
           :worker="w"
           :roledata1="roledata"
+          @notify="getAllworker"
         ></workerRow>
       </table>
     </div>
@@ -138,6 +139,7 @@
     :visible="showError"
     :errorMessage="errorMsg"
     @cancel="showError = false"
+    
   ></ErrorMessage>
 </template>
 <script setup>
@@ -177,6 +179,7 @@ const deleteRole = async () => {
       method: "DELETE",
     });
     getAllRolesWithPage();
+
   }else{
     errorMsg.value="不能刪除此角色還在被使用中"
     showError.value=true;
