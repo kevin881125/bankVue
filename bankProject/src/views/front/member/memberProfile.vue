@@ -1,7 +1,7 @@
 <template>
   <div class="bgc">
     <div class="container">
-      <div class="topbar">
+      <!-- <div class="topbar">
         <div class="Headshot">
           <img :src="topImage" alt="" />
           <button @click="toggleForm">
@@ -43,195 +43,208 @@
             centerText="總計 38"
           />
         </div>
-      </div>
+      </div> -->
 
       <transition name="slide-down" @after-enter="scrollToForm">
         <div class="PersonalInf" ref="formRef" v-if="showForm">
           <form @submit.prevent="submitForm">
-            <h1>個人資料修改</h1>
-            <div class="top">
-              <div class="left">
-                <img :src="memberdetail.mImage" alt="" />
-                <button @click="$refs.fileInput.click()" v-if="!isReadonly">
-                  <span class="mdi mdi-camera"></span>
-                </button>
-                <input
-                  style="display: none"
-                  type="file"
-                  @change="onFileChange"
-                  ref="fileInput"
-                  accept="image/*"
-                />
-              </div>
-              <div class="right">
-                <div class="inputbox">
-                  <div class="text">編號:{{ memberdetail.mId }}</div>
+            <div class="titleArea">
+              <h1>個人資料修改</h1>
+                <div class="btns">
+                                <button
+                type="submit"
+                v-if="!isReadonly"
+                class="btn"
+                @click="editok"
+              >
+                確定修改
+              </button>
+              <button
+                type="submit"
+                v-if="isReadonly"
+                class="btn"
+                @click="isReadonly = false"
+              >
+                編輯
+              </button>
+              <button 
+              v-if="!isReadonly"
+              type="submit" class="btn" @click="toggleForm">
+                取消
+              </button>
 
-                  <div class="text">身分證:{{ memberdetail.mIdentity }}</div>
+              <SuccessAnim
+                v-model="showOK"
+                message="修改成功"
+                :duration="1400"
+              />
+            </div>
+            </div>
+
+            <div class="InfoContainer">
+              <div class="top">
+                <div class="left">
+                  <img :src="memberdetail.mImage" alt="" />
+                  <button @click="$refs.fileInput.click()" v-if="!isReadonly">
+                    <span class="mdi mdi-camera"></span>
+                  </button>
+                  <input
+                    style="display: none"
+                    type="file"
+                    @change="onFileChange"
+                    ref="fileInput"
+                    accept="image/*"
+                  />
+                </div>
+                <div class="right">
+                  <div class="inputbox2">
+                    <div class="text">編號:{{ memberdetail.mId }}</div>
+  
+                    <div class="text">身分證:{{ memberdetail.mIdentity }}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="inputbox">
-              <span class="must">*</span>
-              <label for="mName">姓名</label>
-              <div :class="['input', { error: errors.mName }]">
-                <input
-                  type="text"
-                  id="mName"
-                  v-model="memberdetail.mName"
-                  placeholder="輸入姓名"
-                  maxlength="5"
-                  :readonly="isReadonly"
-                />
+              <div class="inputArear">
+  
+                <div class="inputbox">
+                  <span class="must">*</span>
+                  <label for="mName">姓名</label>
+                  <div :class="['input', { error: errors.mName ,edit:!isReadonly}]">
+                    <input
+                      type="text"
+                      id="mName"
+                      v-model="memberdetail.mName"
+                      placeholder="輸入姓名"
+                      maxlength="5"
+                      :readonly="isReadonly"
+                    />
+                  </div>
+                  <div :class="[{ warningtet: errors.mName,edit:!isReadonly }]">
+                    {{ errorMessage.mName }}
+                  </div>
+                </div>
+    
+                <div class="inputbox">
+                  <span class="must">*</span>
+                  <label for="mAccount">帳號</label>
+                  <div :class="['input', { error: errors.mAccount,edit:!isReadonly }]">
+                    <input
+                      type="text"
+                      id="mAccount"
+                      v-model="memberdetail.mAccount"
+                      placeholder="帳號英文+數字"
+                      :readonly="isReadonly"
+                    />
+                  </div>
+                  <div :class="[{ warningtet: errors.mAccount }]">
+                    {{ errorMessage.mAccount }}
+                  </div>
+                </div>
+                <div class="inputbox">
+                  <span class="must">*</span>
+                  <label for="mPassword">密碼</label>
+                  <div :class="['input', { error: errors.mPassword ,edit:!isReadonly }]">
+                    <input
+                      type="text"
+                      id="mPassword"
+                      v-model="memberdetail.mPassword"
+                      placeholder="帳號英文+數字"
+                      :readonly="isReadonly"
+                    />
+                  </div>
+                  <div :class="[{ warningtet: errors.mPassword }]">
+                    {{ errorMessage.mPassword }}
+                  </div>
+                </div>
+                <div class="inputbox">
+                  <span class="must">*</span>
+                  <label for="mPhone">電話</label>
+                  <div :class="['input', { error: errors.mPhone  ,edit:!isReadonly}]">
+                    <input
+                      type="text"
+                      id="mPhone"
+                      v-model="memberdetail.mPhone"
+                      placeholder="密碼英文+數字"
+                      :readonly="isReadonly"
+                    />
+                  </div>
+                  <div :class="[{ warningtet: errors.mPhone }]">
+                    {{ errorMessage.mPhone }}
+                  </div>
+                </div>
+                <div class="inputbox">
+                  <span class="must">*</span>
+                  <label for="mEmail">信箱</label>
+                  <div :class="['input', { error: errors.mEmail ,edit:!isReadonly }]">
+                    <input
+                      type="text"
+                      id="mEmail"
+                      v-model="memberdetail.mEmail"
+                      placeholder="密碼英文+數字"
+                      :readonly="isReadonly"
+                    />
+                  </div>
+                  <div :class="[{ warningtet: errors.mEmail }]">
+                    {{ errorMessage.mEmail }}
+                  </div>
+                </div>
+                <div class="inputbox">
+                  <span class="must">*</span>
+                  <label for="mAddress">居住地址</label>
+                  <div :class="['input', { error: errors.mAddress  ,edit:!isReadonly}]">
+                    <input
+                      type="text"
+                      id="mAddress"
+                      v-model="memberdetail.mAddress"
+                      placeholder="密碼英文+數字"
+                      :readonly="isReadonly"
+                    />
+                  </div>
+                  <div :class="[{ warningtet: errors.mAddress }]">
+                    {{ errorMessage.mAddress }}
+                  </div>
+                </div>
+                <div class="inputbox">
+                  <span class="must">*</span>
+                  <label for="mBirthday">出生日</label>
+                  <div :class="['input', { error: errors.mBirthday,edit:!isReadonly }]">
+                    <input
+                      type="date"
+                      id="mBirthday"
+                      v-model="memberdetail.mBirthday"
+                      placeholder="密碼英文+數字"
+                      :readonly="isReadonly"
+                    />
+                  </div>
+                  <div :class="[{ warningtet: errors.mBirthday }]">
+                    {{ errorMessage.mBirthday }}
+                  </div>
+                </div>
+    
+                <div class="inputbox">
+                  <span class="must">*</span>
+                  <label for="mGender">性別</label>
+                  <div :class="['input', { error: errors.mGender,edit:!isReadonly }]">
+                    <select
+                      id="mGender"
+                      name="gender"
+                      v-model="memberdetail.mGender"
+                      :readonly="isReadonly"
+                    >
+                      <option value="">請選擇</option>
+                      <option value="男">男</option>
+                      <option value="女">女</option>
+                      <option value="其他">其他</option>
+                    </select>
+                  </div>
+                  <div :class="[{ warningtet: errors.mGender }]">
+                    {{ errorMessage.mGender }}
+                  </div>
+                </div>
               </div>
-              <div :class="[{ warningtet: errors.mName }]">
-                {{ errorMessage.mName }}
-              </div>
+              
             </div>
 
-            <div class="inputbox">
-              <span class="must">*</span>
-              <label for="mAccount">帳號</label>
-              <div :class="['input', { error: errors.mAccount }]">
-                <input
-                  type="text"
-                  id="mAccount"
-                  v-model="memberdetail.mAccount"
-                  placeholder="帳號英文+數字"
-                  :readonly="isReadonly"
-                />
-              </div>
-              <div :class="[{ warningtet: errors.mAccount }]">
-                {{ errorMessage.mAccount }}
-              </div>
-            </div>
-            <div class="inputbox">
-              <span class="must">*</span>
-              <label for="mPassword">密碼</label>
-              <div :class="['input', { error: errors.mPassword }]">
-                <input
-                  type="text"
-                  id="mPassword"
-                  v-model="memberdetail.mPassword"
-                  placeholder="帳號英文+數字"
-                  :readonly="isReadonly"
-                />
-              </div>
-              <div :class="[{ warningtet: errors.mPassword }]">
-                {{ errorMessage.mPassword }}
-              </div>
-            </div>
-            <div class="inputbox">
-              <span class="must">*</span>
-              <label for="mPhone">電話</label>
-              <div :class="['input', { error: errors.mPhone }]">
-                <input
-                  type="text"
-                  id="mPhone"
-                  v-model="memberdetail.mPhone"
-                  placeholder="密碼英文+數字"
-                  :readonly="isReadonly"
-                />
-              </div>
-              <div :class="[{ warningtet: errors.mPhone }]">
-                {{ errorMessage.mPhone }}
-              </div>
-            </div>
-            <div class="inputbox">
-              <span class="must">*</span>
-              <label for="mEmail">信箱</label>
-              <div :class="['input', { error: errors.mEmail }]">
-                <input
-                  type="text"
-                  id="mEmail"
-                  v-model="memberdetail.mEmail"
-                  placeholder="密碼英文+數字"
-                  :readonly="isReadonly"
-                />
-              </div>
-              <div :class="[{ warningtet: errors.mEmail }]">
-                {{ errorMessage.mEmail }}
-              </div>
-            </div>
-            <div class="inputbox">
-              <span class="must">*</span>
-              <label for="mAddress">居住地址</label>
-              <div :class="['input', { error: errors.mAddress }]">
-                <input
-                  type="text"
-                  id="mAddress"
-                  v-model="memberdetail.mAddress"
-                  placeholder="密碼英文+數字"
-                  :readonly="isReadonly"
-                />
-              </div>
-              <div :class="[{ warningtet: errors.mAddress }]">
-                {{ errorMessage.mAddress }}
-              </div>
-            </div>
-            <div class="inputbox">
-              <span class="must">*</span>
-              <label for="mBirthday">出生日</label>
-              <div :class="['input', { error: errors.mBirthday }]">
-                <input
-                  type="date"
-                  id="mBirthday"
-                  v-model="memberdetail.mBirthday"
-                  placeholder="密碼英文+數字"
-                  :readonly="isReadonly"
-                />
-              </div>
-              <div :class="[{ warningtet: errors.mBirthday }]">
-                {{ errorMessage.mBirthday }}
-              </div>
-            </div>
-
-            <div class="inputbox">
-              <span class="must">*</span>
-              <label for="mGender">性別</label>
-              <div :class="['input', { error: errors.mGender }]">
-                <select
-                  id="mGender"
-                  name="gender"
-                  v-model="memberdetail.mGender"
-                  :readonly="isReadonly"
-                >
-                  <option value="">請選擇</option>
-                  <option value="男">男</option>
-                  <option value="女">女</option>
-                  <option value="其他">其他</option>
-                </select>
-              </div>
-              <div :class="[{ warningtet: errors.mGender }]">
-                {{ errorMessage.mGender }}
-              </div>
-              <div class="btns">
-                <button type="submit" class="btn" @click="toggleForm">
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  v-if="!isReadonly"
-                  class="btn"
-                  @click="editok"
-                >
-                  確定修改
-                </button>
-                <button
-                  type="submit"
-                  v-if="isReadonly"
-                  class="btn"
-                  @click="isReadonly = false"
-                >
-                  編輯
-                </button>
-                <SuccessAnim
-                  v-model="showOK"
-                  message="修改成功"
-                  :duration="1400"
-                />
-              </div>
-            </div>
           </form>
         </div>
       </transition>
@@ -363,19 +376,19 @@ const subm = async () => {
   console.log(showpictrue.value);
 };
 /*切換動畫*/
-const showForm = ref(false);
+const showForm = ref(true);
 const formRef = ref(null);
 
 const toggleForm = async () => {
-  showForm.value = !showForm.value;
+  // showForm.value = !showForm.value;
   isReadonly.value = true;
-  if (showForm.value) {
+  //if (showForm.value) {
     // 等表單渲染完成再滾動
-    await nextTick();
-  } else {
+   // await nextTick();
+  //} else {
     // ❗這裡才是真正觸發還原的時機
     await getdata(); // 重新撈取資料 → 蓋掉被更動的 memberdetail
-  }
+  //}
 };
 const scrollToForm = () => {
   const offset = 100;
@@ -394,21 +407,24 @@ const scrollToForm = () => {
 }
 .bgc {
   width: 100%;
-  background-image: url("../../../image/member/f1.jpg"), url();
+  /* background-image: url("../../../image/member/f1.jpg"), url();
   background-position: -210px -380px;
-  background-size: 120%;
+  background-size: 120%; */
   display: flex;
   background-color: #fafafa;
   justify-content: center;
 }
 .container {
-  min-width: 1280px;
-  margin-top: 200px;
+  width: 100%;
+  margin-top: 50px;
+
+  /* display: flex;
+  justify-content: center; */
 }
 
 /*-----------------------上--------------------*/
 .topbar {
-  width: 100%;
+  width: 70%;
   height: 150px;
   background-color: #fff;
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.1);
@@ -417,6 +433,8 @@ const scrollToForm = () => {
   display: flex;
   justify-content: center;
   margin-bottom: 30px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .Headshot {
   width: 30%;
@@ -495,7 +513,7 @@ const scrollToForm = () => {
 /*-----------------------中--------------------*/
 
 .totalAssets {
-  width: 100%;
+  width: 70%;
   height: 350px;
   background-color: #fff;
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.1);
@@ -503,6 +521,8 @@ const scrollToForm = () => {
   border: 1px solid #e0e0e0;
   display: flex;
   justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 .assetGraphics {
   width: 50%;
@@ -528,7 +548,8 @@ const scrollToForm = () => {
 }
 /*-----------------------下--------------------*/
 .PersonalInf {
-  width: 100%;
+  width:70%;
+  height: 550px;
   background-color: #fff;
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
@@ -537,6 +558,19 @@ const scrollToForm = () => {
   display: flex;
   justify-content: center;
   margin-top: 50px;
+  margin-bottom: 200px;
+  margin-right: auto;
+  margin-left: auto;
+}
+.InfoContainer{
+  display: flex;
+  width: 100%;
+  padding-left: 40px;
+}
+.inputArear{
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: 40px;
 }
 input,
 select {
@@ -552,15 +586,20 @@ select {
   align-items: center;
   height: 50px;
   width: 100%;
-  border: 1px solid gray;
-  border-radius: 50px;
-
+  border-radius: 10px;
   overflow: hidden;
+}
+.input.edit{
+    border: 1px solid gray;
+}
+.inputbox2{
+  margin-top: 48px;
 }
 .inputbox {
   margin-top: 20px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 50%;
+  padding-right: 50px;
+
 }
 label {
   display: inline-block;
@@ -575,7 +614,7 @@ label {
   color: #de5858;
 }
 form {
-  width: 70%;
+  width: 100%;
 }
 .form {
   z-index: 1;
@@ -589,29 +628,32 @@ form {
   color: #de5858;
 }
 .left {
-  width: 50%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+  
 }
 .right {
-  width: 50%;
+  width: 100%;
 }
 .left > img {
   width: 250px;
   height: 250px;
   border-radius: 50%;
-  margin-right: 50px;
+
 }
 .top {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 30%;
+
 }
 .left > button {
   position: absolute;
   width: 40px;
   height: 40px;
   top: 85%;
-  left: 48%;
+  left: 85%;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background-color: rgba(211, 211, 211, 0.8);
@@ -620,12 +662,12 @@ form {
   }
 }
 .right label {
-  font-size: 24px;
+  font-size: 16px;
   border-left: 5px solid #ebb211;
   padding-left: 10px;
 }
 .text {
-  font-size: 32px;
+  font-size: 24px;
   border-left: 5px solid #ebb211;
   padding-left: 10px;
 }
@@ -633,20 +675,24 @@ form {
   margin-bottom: 20px;
 }
 .btns {
-  width: 100%;
+  position: absolute;
+  top: 5px;
+  right: 32px ;
+  width: 300px;
   display: flex;
-  justify-content: space-around;
-  margin-top: 40px;
+  justify-content: space-between;
+  z-index: 10;
 }
 .btns > button {
-  width: 300px;
-  height: 80px;
-  font-size: 20px;
+  width: 100px;
+  height: 40px;
+  font-size: 16px;
   font-weight: 700;
   border: 1px solid #ebb211;
   border-radius: 50px;
   color: #ebb211;
   transition: 0.1s;
+
   &:hover {
     background-color: #ebb211;
     color: #fff;
@@ -678,9 +724,12 @@ form {
 }
 h1 {
   text-align: center;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #ebb211;
 }
 .input.error {
   border-color: #de5858;
+  
   animation: shake 0.6s ease-in-out;
 }
 

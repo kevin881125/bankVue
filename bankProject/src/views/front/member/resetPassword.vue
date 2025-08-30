@@ -2,13 +2,13 @@
   <div class="container">
     <div class="decorate"></div>
     <div class="dog">
-      <img src="../../../image/member/img-kv-idpw.png" alt="" />
+      <img src="../../../image/logo_white.svg" alt="" />
     </div>
-    <div class="title">
-      <h1>重設密碼</h1>
+    <div class="title fade-up">
+      <h1 >重設密碼</h1>
       <h3>YuzuBank幫你重新開啟</h3>
     </div>
-    <div class="under">
+    <div class="under fade-up">
       <div class="form">
         <div class="inputbox">
           <span class="must">*</span>
@@ -138,16 +138,16 @@ const submit = async () => {
 }
 .container {
   width: 100%;
-  background-image: url("../../../image/member/bg-productpage-upper-03.png");
+  /* background-image: url("../../../image/member/bg-productpage-upper-03.png");
   background-size: 200%;
-  background-position: -1000px -500px;
+  background-position: -1000px -500px; */
 }
 .decorate {
   width: 1200px;
   height: 800px;
   position: absolute;
   border-radius: 50%;
-  background-color: #13aebd;
+  background-color: #ebb521;
   top: -500px;
   left: -100px;
   background-image: url("../../../image/member/img-banner-star@2x.png");
@@ -236,16 +236,16 @@ label {
   margin-top: 50px;
   height: 60px;
   width: 200px;
-  border: 1px solid #02a9b9;
+  border: 1px solid #ebb211;
   border-radius: 50px;
-  color: #02a9b9;
+  color: #ebb211;
   background-color: #fff;
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
   font-weight: 700;
   z-index: 10;
 }
 .btn:hover {
-  background-color: #02a9b9;
+  background-color: #ebb211;
   color: #fff;
   transition: 0.5s;
 }
@@ -258,7 +258,7 @@ label {
   top: 600px;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #f4fbfc;
+  background-color: #fffaed;
   border-radius: 50%;
   width: 1200px;
   height: 500px;
@@ -268,8 +268,11 @@ label {
 }
 .dog {
   position: absolute;
-  top: 120px;
+  top: 80px;
   left: 1000px;
+}
+.dog img {
+  width: 500px;
 }
 button > span {
   font-size: 20px;
@@ -314,6 +317,20 @@ button > span {
   }
   100% {
     transform: translateX(0);
+  }
+
+  
+}
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px); /* 從底下移動上來 */
+  animation: fadeUp 0.6s ease-out forwards;
+}
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

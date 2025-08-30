@@ -477,7 +477,7 @@ span{
 
 .icon {
   margin-right: 8px;
-  color: #ebb211;
+  color: #ffffff;
 }
 
 .must {

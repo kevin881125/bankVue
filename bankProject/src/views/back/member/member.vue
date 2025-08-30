@@ -468,7 +468,7 @@ th {
 }
 
 .table {
-  height: 85%;
+  height: 80%;
   border-collapse: collapse;
   overflow: auto;
 }
@@ -489,7 +489,6 @@ th {
   align-items: center;
   width: 100%;
   height: calc(7% - 10px);
-  margin-top: 10px;
 }
 label {
   margin-right: 10px;

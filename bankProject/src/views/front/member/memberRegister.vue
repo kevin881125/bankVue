@@ -321,7 +321,7 @@ input[type="date"] {
 }
 label {
   font-size: 20px;
-  color: #aeaeae;
+  color: rgb(255, 255, 255);
 }
 .error1 {
   height: 20px;
@@ -346,16 +346,16 @@ span {
   margin-top: 10px;
   height: 60px;
   width: 40%;
-  border: 1px solid #ebb211;
+  border: 1px solid #fff;
   border-radius: 50px;
-  color: #ebb211;
-  background-color: #fff;
+  color: #fff;
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
   font-weight: 700;
 }
 .btn:hover {
   background-color: #ebb211;
   color: #fff;
+  border: none;
   transition: 0.5s;
 }
 .btnArea {
