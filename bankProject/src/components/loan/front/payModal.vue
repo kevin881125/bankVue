@@ -146,7 +146,12 @@ const props = defineProps({
   loanId: { type: String, default: null },
 });
 
-const emit = defineEmits(["update:modelValue", "success", "updateSchedule", "refreshLoans"]);
+const emit = defineEmits([
+  "update:modelValue",
+  "success",
+  "updateSchedule",
+  "refreshLoans",
+]);
 
 const innerVisible = ref(props.modelValue);
 watch(
@@ -192,7 +197,6 @@ const loadMemberAccounts = async () => {
     });
     accounts.value = Array.isArray(res.data) ? res.data : res;
     console.log(res);
-    
   } catch (err) {
     console.error("取得會員帳戶失敗", err);
     accounts.value = [];
@@ -251,7 +255,7 @@ async function submitPayment() {
       emit("success", paymentRes);
       innerVisible.value = false;
       emit("updateSchedule"); // 讓父組件更新排程
-      emit("refreshLoans");   // 新增：更新個人貸款資訊
+      emit("refreshLoans"); // 新增：更新個人貸款資訊
     } catch (err) {
       console.error("繳費失敗:", err);
       alert("繳費失敗，請稍後再試");

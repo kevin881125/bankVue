@@ -375,7 +375,7 @@
             <v-icon size="28" color="#fff">mdi-file-search</v-icon>
           </div>
           <h3 class="step-title">案件審核</h3>
-          <p class="step-desc">送出申請後<br />隨時可追蹤案件狀態</p>
+          <p class="step-desc">送出申貸後，隨時可追蹤申貸狀態</p>
         </div>
 
         <v-icon size="28" color="#ebb211">mdi-chevron-right</v-icon>
@@ -403,6 +403,13 @@
       <router-view></router-view>
     </div>
   </div>
+  <SuccessAnim v-model="showOK" :message="successMsg" :duration="1400" />
+
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 
 <script setup>
@@ -414,12 +421,18 @@ import { useMemberStore } from "@/stores/MemberStore";
 import { translateStatus } from "@/components/loan/utils/statusHelper";
 import loanMemberDetail from "@/components/loan/front/loanMemberDetail.vue";
 import payModal from "@/components/loan/front/payModal.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import SuccessAnim from "@/components/successAnim.vue";
 
 const memberStore = useMemberStore();
 const memberId = memberStore.mId;
 const showPayModal = ref(false);
 const selectedLoanId = ref(null);
 const processSection = ref(null);
+const showOK = ref(false);
+const successMsg = ref("");
+const showError = ref(false);
+const errorMsg = ref("");
 
 const openPayModal = async (loanId) => {
   selectedLoanId.value = loanId;
@@ -542,7 +555,8 @@ const statusClass = (status) => {
 const onUploadSupplement = async () => {
   const loanId = currentLoan.value.loanId;
   if (!loanId) {
-    alert("找不到貸款資料");
+    errorMsg.value = "找不到貸款資料";
+    showError.value = true;
     return;
   }
 
@@ -564,11 +578,13 @@ const onUploadSupplement = async () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("補件上傳成功");
+      successMsg.value = "補件上傳成功";
+      showOK.value = true;
       await fetchMemberLoans();
     } catch (err) {
+      errorMsg.value = "補件上傳失敗，請稍後再試" + err;
+      showError.value = true;
       console.error("上傳失敗:", err);
-      alert("補件上傳失敗，請稍後再試");
     }
   };
   fileInput.click();
@@ -600,7 +616,8 @@ const onDownloadContract = async () => {
     window.URL.revokeObjectURL(url);
   } catch (err) {
     console.error("下載失敗:", err);
-    alert("下載失敗，請稍後再試");
+    errorMsg.value = "下載失敗，請稍後再試" + err;
+    showError.value = true;
   }
 };
 
@@ -1817,8 +1834,8 @@ input[type="number"]::-webkit-outer-spin-button {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 32px;
-  margin-bottom: 40px;
+  gap: 64px;
+  margin-bottom: 64px;
   flex-wrap: wrap;
 }
 
@@ -1868,7 +1885,6 @@ input[type="number"]::-webkit-outer-spin-button {
   background: #d49d0f;
   box-shadow: 0 6px 18px rgba(235, 178, 17, 0.3);
 }
-
 
 /* 響應式設計 */
 @media (max-width: 1024px) {

@@ -24,8 +24,8 @@
                 v-model="form.loanAmount"
                 id="loanAmount"
                 min="1"
-                max="500"
-                placeholder="最多 500 萬元"
+                max="1000"
+                placeholder="最多 1000 萬元"
                 required
               />
               <span>萬</span>
@@ -139,6 +139,14 @@
       </form>
     </section>
   </div>
+
+  <SuccessAnim v-model="showOK" :message="successMsg" :duration="1400" />
+
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 
 <script setup>
@@ -146,6 +154,13 @@ import { ref, watch, onMounted } from "vue";
 import { useMemberStore } from "@/stores/MemberStore";
 import { request } from "@/utils/FontAxiosUtil";
 import router from "@/router";
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import SuccessAnim from "@/components/successAnim.vue";
+
+const showOK = ref(false);
+const successMsg = ref("");
+const showError = ref(false);
+const errorMsg = ref("");
 
 const memberStore = useMemberStore();
 const form = ref({
@@ -405,17 +420,20 @@ const handleFileChange = (e) => {
 // 表單送出
 const handleSubmit = async () => {
   if (!file.value) {
-    alert("請選擇收入證明檔案");
+    errorMsg.value = "請選擇收入證明檔案";
+    showError.value = true;
     return;
   }
 
   if (!form.value.loanTerm) {
-    alert("請選擇貸款期數");
+    errorMsg.value = "請選擇貸款期數";
+    showError.value = true;
     return;
   }
 
   if (!form.value.accountId) {
-    alert("請選擇還款帳戶");
+    errorMsg.value = "請選擇還款帳戶";
+    showError.value = true;
     return;
   }
 
@@ -464,8 +482,8 @@ const handleSubmit = async () => {
         loanId = res.loanId || "申請成功";
       }
     }
-
-    alert("申請成功！案件編號：" + loanId);
+    successMsg.value = "申請成功！案件編號：" + loanId;
+    showOK.value = true;
 
     // 清空表單
     form.value = {
@@ -518,8 +536,8 @@ const handleSubmit = async () => {
     } else if (err.message) {
       errorMessage = err.message;
     }
-
-    alert(errorMessage);
+    errorMsg.value = errorMessage;
+    showError.value = true;
   }
 };
 </script>

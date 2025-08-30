@@ -1,133 +1,210 @@
 <template>
   <div
-    class="modal"
+    class="modal-overlay"
     v-if="show && data && Object.keys(data).length > 0"
     @click="handleOverlayClick"
   >
-    <div class="loan-card" @click.stop>
-      <!-- 審核狀態與關閉按鈕 -->
-      <div class="loan-header">
-        <div class="loan-header-left">
-          <span
-            class="loan-status"
+    <div class="modal-container" @click.stop>
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="header-left">
+          <h3>貸款代號：{{ data.loanId }}</h3>
+          <div
+            class="loan-status-badge"
             :class="getStatusClass(data.approvalStatusName)"
           >
             {{ data.approvalStatusName || "待審核" }}
-          </span>
-          <h3>貸款代號：{{ data.loanId }}</h3>
+          </div>
         </div>
-        <button class="close-btn" @click="emit('close')">✕</button>
+        <button class="close-btn" @click="emit('close')">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path
+              d="M15 5L5 15M5 5L15 15"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
       </div>
 
-      <!-- 左右區塊 -->
-      <div class="split-layout">
-        <!-- 左欄：個人資料 + 財力證明 -->
-        <div class="left-cols">
-          <div class="info-group">
-            <h4>個人基本資料</h4>
-            <hr />
-            <div class="personal-two-cols">
-              <div class="personal-left">
-                <p><strong>申請人：</strong>{{ data.mname }}</p>
-                <p><strong>身份證字號：</strong>{{ data.midentity }}</p>
-                <p><strong>電話：</strong>{{ data.mphone }}</p>
-                <p><strong>Email：</strong>{{ data.memail }}</p>
-                <p><strong>地址：</strong>{{ data.maddress }}</p>
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- 上半部：個人資料與貸款內容 -->
+        <div class="top-section">
+          <!-- 左欄：個人基本資料 -->
+          <div class="left-column">
+            <div class="section">
+              <div class="section-header">
+                <h4>個人基本資料</h4>
               </div>
-              <div class="personal-right">
-                <p><strong>工作單位：</strong>{{ data.employerName }}</p>
-                <p><strong>職業類型：</strong>{{ data.occupationType }}</p>
-                <p><strong>年資：</strong>{{ data.yearsOfService }} 年</p>
-                <p>
-                  <strong>月收入：</strong>NT$
-                  {{ Number(data.monthlyIncome).toLocaleString() }}
-                </p>
-                <p>
-                  <strong>月負債：</strong>NT$
-                  {{ Number(data.monthlyDebt).toLocaleString() }}
-                </p>
+              <div class="section-content">
+                <div class="info-grid">
+                  <div class="info-item">
+                    <label>申請人</label>
+                    <span class="value">{{ data.mname }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>身份證字號</label>
+                    <span class="value">{{ data.midentity }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>電話</label>
+                    <span class="value">{{ data.mphone }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>Email</label>
+                    <span class="value">{{ data.memail }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>地址</label>
+                    <span class="value">{{ data.maddress }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>工作單位</label>
+                    <span class="value">{{ data.employerName }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>職業類型</label>
+                    <span class="value">{{ data.occupationType }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>年資</label>
+                    <span class="value">{{ data.yearsOfService }} 年</span>
+                  </div>
+                  <div class="info-item">
+                    <label>月收入</label>
+                    <span class="value amount"
+                      >NT$
+                      {{ Number(data.monthlyIncome).toLocaleString() }}</span
+                    >
+                  </div>
+                  <div class="info-item">
+                    <label>月負債</label>
+                    <span class="value amount"
+                      >NT$ {{ Number(data.monthlyDebt).toLocaleString() }}</span
+                    >
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- 財力證明預覽 -->
-          <div class="info-group" v-if="data.proofDocumentUrl">
-            <div class="title-with-icon">
-              <h4>財力證明</h4>
-              <button
-                class="icon-button"
-                @click="downloadFile"
-                aria-label="下載財力證明"
-                title="下載財力證明"
-              >
-                <v-icon size="20">mdi-download</v-icon>
-              </button>
+          <!-- 右欄：貸款內容 -->
+          <div class="right-column">
+            <div class="section">
+              <div class="section-header">
+                <h4>貸款內容</h4>
+              </div>
+              <div class="section-content">
+                <div class="info-grid">
+                  <div class="info-item">
+                    <label>貸款類型</label>
+                    <span class="value">{{ data.loanTypeName }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>期數類型</label>
+                    <span class="value">{{ data.loanTermName }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>貸款期數</label>
+                    <span class="value">{{ data.loanTerm }} 月</span>
+                  </div>
+                  <div class="info-item">
+                    <label>貸款金額</label>
+                    <span class="value amount primary"
+                      >NT$ {{ Number(data.loanAmount).toLocaleString() }}</span
+                    >
+                  </div>
+                  <div class="info-item">
+                    <label>利率</label>
+                    <span class="value rate"
+                      >{{ (data.interestRate * 100).toFixed(2) }}%</span
+                    >
+                  </div>
+                  <div class="info-item">
+                    <label>申請日期</label>
+                    <span class="value">{{ data.createdAt }}</span>
+                  </div>
+                  <div class="info-item">
+                    <label>還款帳戶</label>
+                    <span class="value">{{ data.repayAccountId }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <iframe
-              v-if="isPdf"
-              :src="previewUrl"
-              width="100%"
-              height="300px"
-              frameborder="0"
-            ></iframe>
-            <img
-              v-else
-              :src="previewUrl"
-              alt="預覽圖片"
-              style="max-width: 100%; max-height: 400px; object-fit: contain"
-            />
           </div>
         </div>
 
-        <!-- 右欄：貸款內容 + 信用評估 -->
-        <div class="right-col">
-          <div class="info-group">
-            <h4>貸款內容</h4>
-            <hr />
-            <p><strong>貸款類型：</strong>{{ data.loanTypeName }}</p>
-            <p><strong>期數：</strong>{{ data.loanTermName }}</p>
-            <p><strong>貸款期數：</strong>{{ data.loanTerm }} 月</p>
-            <p>
-              <strong>貸款金額：</strong>NT$
-              {{ Number(data.loanAmount).toLocaleString() }}
-            </p>
-            <p>
-              <strong>利率：</strong>{{ (data.interestRate * 100).toFixed(2) }}%
-            </p>
-            <p><strong>申請日期：</strong>{{ data.createdAt }}</p>
-            <p><strong>還款帳戶：</strong>{{ data.repayAccountId }}</p>
+        <!-- 下半部：財力證明與信用評估 -->
+        <div class="bottom-section">
+          <!-- 財力證明 -->
+          <div class="section" v-if="data.proofDocumentUrl">
+            <div class="section-header">
+              <div class="header-title">
+                <h4>財力證明</h4>
+              </div>
+              <button
+                class="download-btn"
+                @click="downloadFile"
+                title="下載財力證明"
+              >
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 10.5L5.5 8L6.5 7L7.5 8V3H8.5V8L9.5 7L10.5 8L8 10.5Z"
+                    fill="currentColor"
+                  />
+                  <path d="M3 11H13V12H3V11Z" fill="currentColor" />
+                </svg>
+              </button>
+            </div>
+            <div class="section-content">
+              <div class="document-preview">
+                <iframe
+                  v-if="isPdf"
+                  :src="previewUrl"
+                  width="100%"
+                  height="180px"
+                  frameborder="0"
+                  class="pdf-preview"
+                ></iframe>
+                <img
+                  v-else
+                  :src="previewUrl"
+                  alt="財力證明預覽"
+                  class="image-preview"
+                />
+              </div>
+            </div>
           </div>
 
-          <div class="info-group">
-            <h4>信用分數評估</h4>
-            <hr />
-            <p>
-              <strong>審核人員 ID：</strong>{{ data.mid || "（尚未審核）" }}
-            </p>
-            <p>
-              <strong>審核時間：</strong>{{ data.reviewTime || "（尚未審核）" }}
-            </p>
-            <p>
-              <strong>審核信用評分：</strong
-              >{{ data.baseCreditScore ?? "（尚未評分）" }}
-            </p>
-            <p>
-              <strong>審核狀態：</strong>{{ translateStatus(data.decision) }}
-            </p>
-            <p><strong>備註：</strong>{{ data.notes }}</p>
-            <hr />
-            <div class="side-by-side">
-              <div class="vertical-group">
-                <p>
-                  <strong>DTI 比率：</strong
-                  >{{ (data.dtiRatio * 100).toFixed(2) }}%
-                </p>
-                <DtiChart :dtiRatio="data.dtiRatio" />
+          <!-- 信用評估 -->
+          <div class="section">
+            <div class="section-header">
+              <div class="header-title">
+                <h4>信用評估</h4>
               </div>
-              <div class="vertical-group">
-                <p><strong>原始信用評分：</strong>{{ data.baseCreditScore }}</p>
-                <PieChart :score="data.baseCreditScore" label="信用評分" />
+              <div class="risk-summary" :class="riskLevel.class">
+                <span class="risk-indicator">{{ riskLevel.message }}</span>
+              </div>
+            </div>
+            <div class="section-content">
+              <!-- 圖表區域 -->
+              <div class="charts">
+                <div class="chart-item">
+                  <h5>信用分數</h5>
+                  <PieChart :score="data.baseCreditScore" label="信用分數" />
+                </div>
+
+                <div class="chart-item">
+                  <h5>DTI 比率</h5>
+                  <DtiChart :dtiRatio="data.dtiRatio" />
+                </div>
+
+                <div class="chart-item">
+                  <h5>DBR 倍數</h5>
+                  <DbrChart :dbrValue="dbrValue" />
+                </div>
               </div>
             </div>
           </div>
@@ -140,7 +217,7 @@
 <script setup>
 import PieChart from "@/components/loan/chart/pieChart.vue";
 import DtiChart from "@/components/loan/chart/dtiChart.vue";
-import { translateStatus } from "@/components/loan/utils/statusHelper";
+import DbrChart from "@/components/loan/chart/dbrChart.vue";
 import { defineProps, defineEmits, computed } from "vue";
 
 const props = defineProps({
@@ -151,7 +228,7 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 
 const handleOverlayClick = (event) => {
-  if (event.target.classList.contains("modal")) {
+  if (event.target.classList.contains("modal-overlay")) {
     emit("close");
   }
 };
@@ -170,14 +247,15 @@ const getStatusClass = (status) => {
   }
 };
 
-const previewUrl = computed(() => {
-  if (!fileName.value) return "";
-  return `http://localhost:8080/bank/uploadImg/loanImg/${fileName.value}`;
-});
-
+// 文件處理
 const fileName = computed(() => {
   if (!props.data?.proofDocumentUrl) return "";
   return props.data.proofDocumentUrl.split("/").pop();
+});
+
+const previewUrl = computed(() => {
+  if (!fileName.value) return "";
+  return `http://localhost:8080/bank/uploadImg/loanImg/${fileName.value}`;
 });
 
 const fileUrl = computed(() => {
@@ -192,193 +270,476 @@ const isPdf = computed(() => {
 const downloadFile = () => {
   const link = document.createElement("a");
   link.href = fileUrl.value;
-
-  // 指定下載檔名
   link.download = fileName.value || "proof-file";
-
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 };
+
+// DBR 計算
+const dbrValue = computed(() => {
+  if (!props.data?.loanAmount || !props.data?.monthlyIncome) return 0;
+  return props.data.loanAmount / props.data.monthlyIncome;
+});
+
+// 風險評估
+const riskLevel = computed(() => {
+  const score = props.data?.baseCreditScore || 0;
+  const dti = props.data?.dtiRatio || 0;
+  const dbr = dbrValue.value;
+
+  if (dbr > 22 || dti > 0.4 || score < 650) {
+    return { class: "risk-high", message: "❌ 高風險，建議拒絕" };
+  }
+  if (dbr > 15 || dti > 0.3 || score < 750) {
+    return { class: "risk-medium", message: "⚠️ 中度風險，需人工確認" };
+  }
+  return { class: "risk-low", message: "✅ 低風險，可通過" };
+});
+
+const getDtiClass = (dti) => {
+  if (dti > 0.4) return "ratio-high";
+  if (dti > 0.3) return "ratio-medium";
+  return "ratio-good";
+};
+
+const getDbrClass = (dbr) => {
+  if (dbr > 22) return "ratio-high";
+  if (dbr > 15) return "ratio-medium";
+  return "ratio-good";
+};
 </script>
 
 <style scoped>
-.modal {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(34, 38, 38, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.modal-container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(34, 38, 38, 0.15);
+  animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  border-bottom: 1px solid #f1f3f4;
+  background: #fafbfc;
+  border-radius: 16px 16px 0 0;
+}
+
+.header-left {
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.loan-card {
-  width: 75vw;
-  max-width: 95%;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  font-family: "Noto Sans TC", sans-serif;
-  line-height: 2;
-  padding: 24px 32px;
-  box-sizing: border-box;
+.modal-header h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #222626;
+  letter-spacing: -0.5px;
 }
 
-.loan-status {
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 16px;
-  margin-bottom: 12px;
-  display: inline-block;
+.loan-status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
   color: white;
-  margin-top: 10px;
 }
 
 .status-approved {
   background-color: #ebb211;
 }
+
 .status-rejected {
   background-color: #222626;
 }
+
 .status-pending-docs {
   background-color: #ce1465;
 }
+
 .status-reviewing {
-  background-color: #444b4b;
-}
-
-.loan-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 12px;
-  margin-bottom: 20px;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.loan-header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.loan-header h3 {
-  margin: 0;
-  font-weight: 700;
-  font-size: 30px;
-}
-
-.loan-card p {
-  margin: 10px;
-  line-height: 1.2;
+  background-color: #6b7280;
 }
 
 .close-btn {
-  background: transparent;
   border: none;
-  font-size: 24px;
+  background: none;
+  padding: 8px;
+  border-radius: 8px;
   cursor: pointer;
-  color: #aaa;
-  transition: color 0.2s;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .close-btn:hover {
-  color: #000;
+  background: #f3f4f6;
+  color: #222626;
 }
 
-.split-layout {
-  display: flex;
-  gap: 32px;
-  margin-bottom: 24px;
-}
-
-.left-cols {
-  flex: 1;
+.modal-body {
+  padding: 16px 32px 32px 32px;
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-.right-col {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  overflow-y: auto;
 }
 
-.info-group {
-  padding: 0px 20px;
-  font-size: 15px;
-  color: #333;
-  word-break: break-word;
-}
-.info-group h4 {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #444;
-}
-
-.side-by-side {
-  display: flex;
-  gap: 48px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.personal-two-cols {
+.top-section {
   display: flex;
   gap: 32px;
-  flex-wrap: wrap;
 }
-.personal-left,
-.personal-right {
+
+.bottom-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.left-column,
+.right-column {
   flex: 1;
-  min-width: 220px;
 }
 
-.vertical-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.title-with-icon {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.title-with-icon h4 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: bold;
-  color: #444;
-}
-
-.icon-button {
+.section {
+  width: 554.5px;
   background: transparent;
   border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  transition: color 0.3s ease;
-  color: #7f7f7f;
-  border-radius: 6px;
-  margin-top: 6px;
+  border-radius: 0;
+  overflow: visible;
+  height: fit-content;
 }
 
-.icon-button:hover {
-  color: #d6a70f;
+.section-header {
+  background: transparent;
+  padding: 0 0 12px 0;
+  border-bottom: 1px solid #f1f3f4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #222626;
+  position: relative;
+  padding-left: 12px;
+}
+
+.section-header h4::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  background: #ebb211;
+  border-radius: 2px;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.download-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.download-btn:hover {
+  background: #ebb211;
+  border-color: #ebb211;
+  color: white;
+}
+
+.section-content {
+  padding: 0;
+}
+
+.risk-summary {
+  background: #f8f9fa;
+  border-radius: 8px;
+  /* padding: 8px 12px; */
+  display: inline-block;
+}
+
+.charts {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  gap: 20px;
+  margin-top: 0;
+  flex-wrap: wrap;
+}
+
+.chart-item {
+  flex: 1;
+  min-width: 120px;
+  max-width: 150px;
+  text-align: center;
+}
+
+.chart-item h5 {
+  margin: 14px 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222626;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 24px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  letter-spacing: 0.2px;
+}
+
+.info-item .value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #222626;
+  letter-spacing: -0.2px;
+  line-height: 1.4;
+}
+
+.info-item .value.amount {
+  font-weight: 600;
+  color: #222626;
+}
+
+.info-item .value.amount.primary {
+  color: #ebb211;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.info-item .value.rate {
+  color: #ce1465;
+  font-weight: 600;
+}
+
+.risk-summary {
+  background: #f8f9fa;
+  padding: 2px 16px;
+}
+
+.risk-summary.risk-low {
+  background: rgba(5, 150, 105, 0.05);
+}
+
+.risk-summary.risk-medium {
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.risk-summary.risk-high {
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.risk-indicator {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222626;
+}
+
+.assessment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.assessment-item {
+  text-align: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #fafbfc 0%, #f8f9fa 100%);
+  border-radius: 8px;
+  border: 1px solid #f1f3f4;
+}
+
+.assessment-item label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.score-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+}
+
+.score-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ebb211;
+}
+
+.score-max {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.ratio-display {
+  display: flex;
+  justify-content: center;
+}
+
+.ratio-value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.ratio-value.ratio-good {
+  color: #059669;
+}
+
+.ratio-value.ratio-medium {
+  color: #f59e0b;
+}
+
+.ratio-value.ratio-high {
+  color: #ef4444;
+}
+
+.document-preview {
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.pdf-preview,
+.image-preview {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.image-preview {
+  max-height: 270px;
+  object-fit: contain;
+  display: block;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .top-section,
+  .bottom-section {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .assessment-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-container {
+    max-width: 100%;
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .header-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .modal-body {
+    padding: 24px;
+    gap: 20px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .assessment-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .section-content {
+    padding: 20px;
+  }
 }
 </style>
