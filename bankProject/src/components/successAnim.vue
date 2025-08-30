@@ -24,6 +24,7 @@
     </transition>
   </teleport>
 </template>
+
 <script setup>
 import { onMounted, watch, nextTick } from "vue";
 
@@ -66,6 +67,7 @@ watch(
   }
 );
 </script>
+
 <style scoped>
 .success-wrap {
   position: fixed;
@@ -80,11 +82,14 @@ watch(
   pointer-events: auto;
   background: rgba(255, 255, 255, 0.96);
   border-radius: 16px;
-  padding: 16px 20px;
+  width: 200px;   /* ✅ 固定卡片寬 */
+  height: 200px;  /* ✅ 固定卡片高 */
+  padding: 20px;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
   display: grid;
   justify-items: center;
-  gap: 8px;
+  align-content: center; /* 垂直置中 */
+  gap: 16px;
   transform: translateZ(0);
 }
 
@@ -99,7 +104,7 @@ watch(
   transform: scale(0.95);
 }
 
-/* SVG 尺寸 */
+/* SVG 尺寸 (維持原本 64x64) */
 .checkmark {
   width: 64px;
   height: 64px;
@@ -131,11 +136,12 @@ watch(
   animation: pop 0.4s 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* 文字 */
+/* 文字 (放大) */
 .msg {
   margin: 0;
-  font-size: 14px;
+  font-size: 20px; /* ✅ 放大文字 */
   color: #0a0a0a;
+  text-align: center;
 }
 
 /* Keyframes */
