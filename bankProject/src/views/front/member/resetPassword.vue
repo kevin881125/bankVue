@@ -123,7 +123,7 @@ const submit = async () => {
       router.push("/yuzubank/frontLogin");
     }, 2000);
   } catch (err) {
-    message.value = "重設失敗，請確認連結是否有效或已過期";
+    message.value = err;
     error.value = true;
   }
 };

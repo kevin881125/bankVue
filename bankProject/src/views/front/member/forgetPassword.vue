@@ -23,8 +23,6 @@
           </div>
           <div class="warningtet">{{ errotMessage }}</div>
         </div>
-
-        <input type="text" />
         <div class="btns">
           <button class="btn" @click="submit">送出</button>
           <button class="btn" @click="inputdate">一鍵輸入</button>
@@ -56,19 +54,26 @@ const inputdate = () => {
 const submit = async () => {
   console.log("我進來了");
   error.value = false;
+  try{
 
-  const data = await request({
-    url: "/member/forgot-password",
-    method: "POST",
-    data: forgetPassword.value,
-  });
-  if (data == undefined) {
-    error.value = true;
-    errotMessage.value = "沒有找到email";
-  } else {
+    const data = await request({
+      url: "/member/forgot-password",
+      method: "POST",
+      data: forgetPassword.value,
+    });
     showToast.value = true;
     errotMessage.value = "已發送到email";
+  }catch(errorm){
+    error.value = true;
+  errotMessage.value = errorm;
   }
+  // if (data == undefined) {
+  //   error.value = true;
+  //   errotMessage.value = "沒有找到email";
+  // } else {
+  //   showToast.value = true;
+  //   errotMessage.value = "已發送到email";
+  // }
 };
 </script>
 <style scoped>
@@ -150,12 +155,14 @@ input {
   margin-left: auto;
   margin-right: auto;
   overflow: hidden;
+  
 }
 .inputbox {
   margin-top: 50px;
   margin-left: auto;
   margin-right: auto;
   width: 80%;
+  margin-bottom: 40px;
 }
 
 label {
