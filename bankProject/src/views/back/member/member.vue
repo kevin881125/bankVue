@@ -1,4 +1,5 @@
 <template>
+  <h1>會員管理</h1>
   <div class="search">
     <div class="searchbar">
       <label for="state">身分證</label>
@@ -442,6 +443,9 @@ async function submitForm() {
   box-sizing: border-box;
   position: relative;
 }
+h1{
+  text-align: center;
+}
 table {
   width: 100%;
   background-color: rgb(255, 255, 255);
@@ -464,7 +468,7 @@ th {
 }
 
 .table {
-  height: 85%;
+  height: 80%;
   border-collapse: collapse;
   overflow: auto;
 }
@@ -485,7 +489,6 @@ th {
   align-items: center;
   width: 100%;
   height: calc(7% - 10px);
-  margin-top: 10px;
 }
 label {
   margin-right: 10px;

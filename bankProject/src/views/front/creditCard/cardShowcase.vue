@@ -6,7 +6,7 @@
 
     <v-row justify="center" class="ga-6">
       <v-col v-for="card in cards" :key="card.cardTypeId" cols="12" sm="6" md="3">
-        <v-card class="rounded-2xl" elevation="6">
+        <v-card class="soft-card card-tile" elevation="6">
           <v-img :src="card.img" height="160" contain class="rounded-t-2xl bg-grey-lighten-4" />
           <v-card-item>
             <div class="d-flex align-center justify-space-between">
@@ -26,13 +26,13 @@
       </v-col>
     </v-row>
 
-    <div class="mt-10 text-caption text-medium-emphasis">
+    <div class="mt-10 text-caption text-medium-emphasis" style="display: flex;justify-content: center;">
       ※ 圖片僅示意，實際卡面以核發為準。
     </div>
 
     <!-- 申請對話框 -->
     <v-dialog v-model="applyOpen" max-width="720">
-      <v-card>
+      <v-card class="soft-card card-tile">
         <v-card-title class="d-flex align-center">
           <v-img v-if="selected.img" :src="selected.img" height="56" width="96" contain class="mr-4" />
           <div>
@@ -113,9 +113,9 @@ const imgInfinite = new URL('@/image/creditCard/infiniteVisa.jpg', import.meta.u
 
 // 展示資料（先前端常數）
 const cards = ref([
-  { cardTypeId: 1, name: '白金卡', tag: '人氣入門', img: imgVisa,     highlights: ['日常回饋', '基本權益完整', '核卡門檻友善'] },
-  { cardTypeId: 2, name: '御璽卡', tag: '旅遊首選', img: imgJcb,      highlights: ['旅遊/海外通路加碼', '機場接送/保險', '權益均衡升級'] },
-  { cardTypeId: 3, name: '無限卡', tag: '高端尊榮', img: imgInfinite,  highlights: ['高額度/高回饋', '機場貴賓/頂級禮遇', '高端權益最完整'] },
+  { cardTypeId: 1, name: '白金卡', tag: '人氣入門', img: imgVisa,     highlights: ['日常回饋', '基本權益完整', '核卡門檻友善','基本回饋1.5%','🍽 餐飲消費加碼3%','⛽ 加油消費加碼2%'] },
+  { cardTypeId: 2, name: '御璽卡', tag: '旅遊首選', img: imgJcb,      highlights: ['旅遊/海外通路加碼', '機場接送/保險', '權益均衡升級','基本回饋2%','🍽 餐飲消費加碼3%','⛽ 加油消費加碼2%'] },
+  { cardTypeId: 3, name: '無限卡', tag: '高端尊榮', img: imgInfinite,  highlights: ['高額度/高回饋', '機場貴賓/頂級禮遇', '高端權益最完整','基本回饋2.5%','🍽 餐飲消費加碼3%','⛽ 加油消費加碼2%'] },
 ])
 
 const pageError = ref('')
@@ -207,4 +207,49 @@ async function onSubmit() {
 
 <style scoped>
 ul { margin: 0; }
+
+/* 柔和卡片（與 myBill 同款） */
+:deep(.soft-card){
+  border-radius:20px;
+  box-shadow:0 4px 24px rgba(0,0,0,.08)!important;
+  background:#fff;
+  overflow:hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+   
+}
+
+/* 精選卡片：內距、間距、列表、按鈕 */
+:deep(.card-tile .card-head){ padding:24px 24px 8px; }
+:deep(.card-tile .card-body){ padding:16px 24px 20px; }
+
+:deep(.card-bullets){       /* 點列清單更舒服 */
+  margin:8px 0 0;
+  padding-left:20px;
+  line-height:1.8;
+}
+:deep(.card-bullets li){ margin:2px 0; }
+
+:deep(.card-cta){           /* 底部行動區 */
+  margin-top:12px;
+  display:flex;
+  justify-content:flex-end;
+}
+
+/* 統一輸入/按鈕圓角（如果頁面上有搜尋欄或按鈕） */
+:deep(.rounded-input),
+:deep(.v-input .v-field),
+:deep(.v-select .v-field),
+:deep(.v-btn){
+  border-radius:12px!important; /* 想完全呼應卡片就改 20px */
+}
+
+/* 卡片 hover 微浮效果（可選） */
+@media (hover:hover){
+  :deep(.card-tile){ transition: box-shadow .2s, transform .2s; }
+  :deep(.card-tile:hover){
+    box-shadow:0 10px 36px rgba(0,0,0,.12)!important;
+    transform: translateY(-2px);
+  }
+}
+
 </style>

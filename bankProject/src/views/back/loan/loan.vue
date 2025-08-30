@@ -157,7 +157,7 @@ const workerStore = useWorkerStore();
 const workerId = workerStore.wId;
 
 // 總貸款門檻
-const totalThreshold = ref(10000000);
+const totalThreshold = ref(32000000);
 
 // 成功狀態視窗
 const showOK = ref(false);
@@ -178,8 +178,8 @@ const totalAmount = computed(() => {
 // 分類貸款資料與門檻設定（示範車貸、房貸、學貸）
 const categorizedLoans = computed(() => {
   const thresholds = {
-    車貸: 5000000,
-    房貸: 5000000,
+    車貸: 20000000,
+    房貸: 20000000,
     學貸: 20000000,
   };
 

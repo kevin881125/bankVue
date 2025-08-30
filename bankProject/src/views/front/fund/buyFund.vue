@@ -291,7 +291,7 @@ const processFundData = (fund) => {
     fundCode: fund.fundCode || 'N/A',
     fundName: fund.fundName || '未知基金',
     latestNav: parseFloat(fund.latestNav || 0),
-    navDate: fund.navDate,
+    navDate: fund.latestNavDate,
     fundType: fund.fundType,
     riskLevel: fund.riskLevel || 1,
     buyFee: parseFloat(fund.buyFee || 0),

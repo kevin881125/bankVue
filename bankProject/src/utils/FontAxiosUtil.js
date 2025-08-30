@@ -49,7 +49,7 @@ apiService.interceptors.response.use(
 
     // 參數錯誤
     if (status == 400) {
-      alert(`請求參數錯誤:${data}`);
+      //alert(`請求參數錯誤:${data}`);
       return Promise.reject(data);
     }
 

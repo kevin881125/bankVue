@@ -4,7 +4,7 @@
       <v-col cols="12" md="4" sm="6">
         <v-text-field
           v-model="searchName"
-          label="會員姓名（模糊搜尋）"
+          label="會員姓名"
           clearable
           outlined
           dense
@@ -54,9 +54,9 @@
       <template #header.transactionCode>
         <span class="text-center">交易碼</span>
       </template>
-      <template #header.cardId>
+      <!-- <template #header.cardId>
         <span class="text-center">卡片ID</span>
-      </template>
+      </template> -->
       <template #header.memberName>
         <span class="text-center">會員姓名</span>
       </template>
@@ -163,7 +163,7 @@ const transactions = ref([]);
 const headers = [
   { text: "交易ID", value: "transactionId", align: "center" },
   { text: "交易碼", value: "transactionCode", align: "center" },
-  { text: "卡片ID", value: "cardId", align: "center" },
+  // { text: "卡片ID", value: "cardId", align: "center" },
   { text: "會員姓名", value: "memberName", align: "center" },
   { text: "消費金額", value: "amount", align: "center" },
   { text: "回饋金額", value: "cashback", align: "center" },

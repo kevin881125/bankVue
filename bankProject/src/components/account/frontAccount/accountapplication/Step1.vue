@@ -60,7 +60,9 @@
       </button>
     </div>
     <div class="hint error" v-if="otpError">{{ otpError }}</div>
-    <div class="hint success" v-if="otpPassed">驗證成功</div>
+    <div class="hint success" v-if="otpPassed">
+      <span class="mdi mdi-checkbox-marked-circle-outline"></span> 驗證成功
+    </div>
   </div>
 
   <!-- 驗證碼 -->
@@ -111,7 +113,6 @@
     :errorMessage="errorMsg"
     @cancel="showError = false"
   ></ErrorMessage>
-  
 </template>
 
 <script setup>

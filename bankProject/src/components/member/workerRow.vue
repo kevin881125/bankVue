@@ -42,6 +42,8 @@ import { request } from "@/utils/BackAxiosUtil";
 
 const show = ref(true);
 
+const emit = defineEmits(['notify'])
+
 const viewEdit = () => {
   show.value = !show.value;
 };
@@ -56,6 +58,7 @@ const conmit = async () => {
     method: "PUT",
     data: localWorker.value,
   });
+  emit('notify');
 
   console.log(data);
   localWorker.value = data;

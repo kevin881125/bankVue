@@ -37,6 +37,7 @@
           v-for="w in workers"
           :worker="w"
           :roledata1="roledata"
+          @notify="getAllworker"
         ></workerRow>
       </table>
     </div>
@@ -134,17 +135,26 @@
         <button @click="cancelDelete">取消</button>
       </div>
     </div>
+     <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+    
+  ></ErrorMessage>
 </template>
 <script setup>
 import { request } from "@/utils/BackAxiosUtil";
 import { ref, onMounted, reactive } from "vue";
 import workerRow from "@/components/member/workerRow.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 
 const workers = ref({});
 const roledata = ref({});
 const roleWithPageDatas = ref({});
 const pageAll = ref({});
 const roleEdit = ref(true);
+const showError = ref(false);
+const errorMsg = ref("");
 
 
 
@@ -169,8 +179,10 @@ const deleteRole = async () => {
       method: "DELETE",
     });
     getAllRolesWithPage();
+
   }else{
-    window.alert("不能刪除此角色還在被使用中")
+    errorMsg.value="不能刪除此角色還在被使用中"
+    showError.value=true;
   }
   getAllrole();
   cancelDelete()
@@ -187,29 +199,37 @@ const worker = ref({
 });
 const checkWorlerNew = ()=>{
 let check = true;
-
+let message = "";
 if(worker.value.wName ===""){
-  window.alert("名稱沒有填寫")
+  message=message+"名稱沒有填寫,"
   check=false;
+
 }
 if(worker.value.wAccount ===""){
-  window.alert("帳號沒有填寫")
+   message=message+"帳號沒有填寫,";
   check=false;
 }
 if(worker.value.wPassword ===""){
-  window.alert("密碼沒有填寫")
+  
+  message=message+"密碼沒有填寫,";
   check=false;
 }
 if(worker.value.role.roleId === null){
-  window.alert("角色沒有選擇")
+
+   message=message+"角色沒有選擇,";
   check=false;
 }
   workers.value.forEach((oworker) => {
     if (oworker.wAccount === worker.value.wAccount) {
-      window.alert("此帳號已存在請更換")
+      message=message+"此帳號已存在請更換,";
       check = false;
     }
   });
+
+  if(!check){
+     errorMsg.value=message;
+    showError.value=true;
+  }
 return check;
 }
 

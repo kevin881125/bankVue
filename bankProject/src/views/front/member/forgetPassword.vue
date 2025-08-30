@@ -4,11 +4,11 @@
     <div class="dog">
       <img src="../../../image/logo_white.svg" alt="" />
     </div>
-    <div class="title">
+    <div class="title fade-up">
       <h1>忘記密碼</h1>
       <h3>YuzuBank幫你找回</h3>
     </div>
-    <div class="under">
+    <div class="under fade-up">
       <div class="form">
         <div class="inputbox">
           <span class="must">*</span>
@@ -256,6 +256,17 @@ label {
   }
   100% {
     transform: translateX(0);
+  }
+}
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px); /* 從底下移動上來 */
+  animation: fadeUp 0.6s ease-out forwards;
+}
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>
