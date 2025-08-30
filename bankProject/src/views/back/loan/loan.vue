@@ -99,6 +99,13 @@
       @cancel="onCancelSave"
     />
   </div>
+  <SuccessAnim v-model="showOK" :message="successMsg" :duration="1400" />
+
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 
 <script setup>
@@ -113,6 +120,8 @@ import LoanReviewLogsModal from "@/components/loan/loanReview/loanReviewLogsModa
 import RepaymentDetilModal from "@/components/loan/loanDetail/RepaymentDetilModal.vue";
 import ConfirmModal from "@/components/loan/confirm/confirmModal.vue";
 import LoanSummaryDoughnuts from "@/components/loan/chart/loanSummaryDoughnuts.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import SuccessAnim from "@/components/successAnim.vue";
 
 // 全部貸款資料
 const allLoans = ref([]);
@@ -150,6 +159,14 @@ const workerId = workerStore.wId;
 // 總貸款門檻
 const totalThreshold = ref(32000000);
 
+// 成功狀態視窗
+const showOK = ref(false);
+const successMsg = ref("");
+
+// 失敗狀態視窗
+const showError = ref(false);
+const errorMsg = ref("");
+
 // 總貸款金額計算（所有貸款金額加總）
 const totalAmount = computed(() => {
   return allLoans.value.reduce(
@@ -185,10 +202,16 @@ const categorizedLoans = computed(() => {
 async function loadLoans() {
   try {
     const data = await request({ url: "/loans", method: "GET" });
-    allLoans.value = data;
-    filterLoans(); // 初次載入後直接篩選一次，預設全部
+
+    // 依 createdAt 由新到舊排序
+    allLoans.value = data.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    filterLoans(); // 初次載入後直接篩選一次
   } catch (error) {
-    alert("取得貸款資料失敗");
+    errorMsg.value = "取得貸款資料失敗";
+    showError.value = true;
     console.error(error);
   }
 }
@@ -226,7 +249,8 @@ async function openAuditRecord() {
     );
     isAuditModalVisible.value = true;
   } catch (error) {
-    alert("取得審核紀錄失敗");
+    errorMsg.value = "取得審核紀錄失敗";
+    showError.value = true;
     console.error(error);
   }
 }
@@ -241,7 +265,8 @@ async function handleOpenDetail(loanId) {
     loanDetail.value = res;
     showDetailModal.value = true;
   } catch (error) {
-    alert("取得詳細資料失敗");
+    errorMsg.value = "取得詳細資料失敗";
+    showError.value = true;
     console.error(error);
   }
 }
@@ -267,7 +292,8 @@ async function openReviewModal(loanId) {
 
     isReviewModalVisible.value = true;
   } catch (error) {
-    alert("無法取得審核資料");
+    errorMsg.value = "無法取得審核資料";
+    showError.value = true;
     console.error(error);
   }
 }
@@ -288,7 +314,8 @@ async function saveReviewSimple({ loanId, reviewerId, decision, notes }) {
     console.log(`貸款 ${loanId} 狀態更新成功：${decision}`);
   } catch (error) {
     console.error("狀態更新失敗:", error);
-    alert("送出審核失敗");
+    errorMsg.value = "送出審核失敗";
+    showError.value = true;
     throw error;
   }
 }
@@ -305,7 +332,8 @@ async function saveReviewWithContract(contractFile, loanId) {
       data: formData,
     });
   } catch (error) {
-    alert("合約檔案上傳失敗");
+    errorMsg.value = "合約檔案上傳失敗";
+    showError.value = true;
     throw error;
   }
 }
@@ -321,7 +349,8 @@ async function openRepaymentDetail(loanId) {
     repaymentPayments.value = data;
     isRepaymentModalVisible.value = true;
   } catch (error) {
-    alert("取得繳款明細失敗");
+    errorMsg.value = "取得繳款明細失敗";
+    showError.value = true;
     console.error(error);
   }
 }
@@ -360,7 +389,8 @@ async function onConfirmSave() {
     await loadLoans();
 
     // 5. 顯示成功訊息（包含郵件通知）
-    alert("審核結果已儲存，系統已自動發送通知郵件給客戶");
+    successMsg.value = "已發送通知信件給客戶。";
+    showOK.value = true;
   } catch (error) {
     console.error("儲存審核結果失敗:", error);
     // 錯誤已在 saveReviewSimple 中提示
