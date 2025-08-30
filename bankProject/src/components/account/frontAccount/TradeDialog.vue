@@ -213,6 +213,35 @@
             確認轉帳資訊
           </button>
         </div>
+        <!-- 說明 -->
+        <section class="note-card">
+          <div class="note-header">
+            <span class="note-title">說明</span>
+            <button class="note-toggle" @click="noteOpen = !noteOpen">
+              {{ noteOpen ? "—" : "+" }}
+            </button>
+          </div>
+
+          <div v-show="noteOpen" class="note-body">
+            <ol class="note-list">
+              <li> 約定轉帳交易限額：(1)跨行轉帳：每一帳戶限額為單筆新臺幣200萬元，單日新臺幣300萬元。但此限額須與實體ATM、網路銀行、網路銀行App、電話銀行等所有自動化設備轉帳限額合併計算。(2)自行轉帳：本行臺幣帳戶間互轉並無最高金額限制。</li>
+              <li>
+                非約定戶轉帳交易限額：(1) 每筆新臺幣5萬元/每日新臺幣10萬元/每月新臺幣20萬元。(2) 自訂限額(限臨櫃申請)：每筆/每日新臺幣1~50萬元、每月新臺幣1~100萬。自訂限額須以萬元為單位。(3) 此限額不與網路銀行(含App)之繳費、繳稅合併計算。
+              </li>
+              <li>
+                「預約轉帳」執行時，若約轉/非約轉累計額度超過交易日/月限額，轉帳交易將失敗。
+              </li>
+              <li>
+                請於預約轉帳交易前一日確保轉出帳戶可用餘額足夠，避免預約交易執行時因餘額不足，導致交易失敗。
+              </li>
+              <li>轉帳手續費： (1)轉帳金額為新臺幣500元(含)以下者：每帳戶每日第一筆免收手續費。(2)轉帳金額新臺幣501元至1,000元(含)，或金額為500元(含)以下、但超過當日優惠次數者：每筆手續費新臺幣10元。(3)轉帳金額超過新臺幣1,001元者：每筆手續費新臺幣15元。</li>
+              <li>若您於本行持有兩個以上之臺幣帳戶，可至「轉帳功能設定」申請本人帳戶互轉。</li>
+              <li>網路銀行預約「每週」、「每月一次」之轉帳頻率者，轉帳起始日需符合次日起至6個月內，始得預約。</li>
+              <li>  本行存摺備註僅列印前6個字，跨行轉帳備註顯示與否將依對方銀行規定為準。</li>
+
+            </ol>
+          </div>
+        </section>
       </section>
 
       <!-- STEP 2：確認頁 -->
@@ -256,7 +285,7 @@
 <script setup>
 import { ref, watch, computed } from "vue";
 import { request } from "@/utils/FontAxiosUtil";
-import { formatDateOnly, formatDateTime } from "@/utils/DataUtil";
+import { formatDateTime } from "@/utils/DataUtil";
 
 /** Props 與 Emits（JS 版） */
 const props = defineProps({
@@ -269,6 +298,7 @@ const emit = defineEmits(["update:modelValue", "submit"]);
 const step = ref(1);
 const sending = ref(false);
 const dlg = ref(null);
+const noteOpen = ref(true);
 
 watch(
   () => props.modelValue,
@@ -808,5 +838,51 @@ async function onSubmit() {
   color: #525763;
   border: 1px solid var(--line, #e5e7eb);
   margin-right: 10px;
+}
+.note-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  margin-bottom: 16px;
+  margin-top: 20px;
+}
+.note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.note-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #111827;
+}
+.note-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 600;
+  cursor: pointer;
+}
+.note-toggle:hover {
+  color: #111827;
+}
+
+.note-body {
+  padding: 16px;
+}
+.note-list {
+  margin: 0;
+  padding-left: 20px; /* 編號縮排 */
+  color: #374151; /* 次要灰 */
+  line-height: 1.9; /* 與截圖相近的行高 */
+  font-size: 14px;
+}
+.note-list li {
+  margin: 4px 0;
 }
 </style>

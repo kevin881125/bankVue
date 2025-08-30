@@ -228,7 +228,7 @@
       </div>
     </section>
 
-    <!-- 說明（與截圖一致） -->
+    <!-- 說明 -->
     <section class="note-card">
       <div class="note-header">
         <span class="note-title">說明</span>

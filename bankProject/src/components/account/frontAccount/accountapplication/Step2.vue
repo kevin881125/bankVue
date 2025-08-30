@@ -72,9 +72,9 @@
       </div>
     </div>
 
-    <!-- 第二證件（選填） -->
+    <!-- 第二證件 -->
     <div class="form-group">
-      <label class="field-label">第二證件（選填：健保卡/駕照）</label>
+      <label class="field-label">*第二證件（必填:健保卡/駕照）</label>
       <div class="uploader-row">
         <input
           id="secondInput"
@@ -157,6 +157,7 @@ const canNext = computed(
   () =>
     !!idFront.value &&
     !!idBack.value &&
+    !!secondId.value &&
     !errFront.value &&
     !errBack.value &&
     !errSecond.value
