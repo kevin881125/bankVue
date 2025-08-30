@@ -389,7 +389,7 @@ async function onConfirmSave() {
     await loadLoans();
 
     // 5. 顯示成功訊息（包含郵件通知）
-    successMsg.value = "審核結果已儲存，系統已自動發送通知郵件給客戶";
+    successMsg.value = "已發送通知信件給客戶。";
     showOK.value = true;
   } catch (error) {
     console.error("儲存審核結果失敗:", error);
