@@ -131,6 +131,13 @@
     @confirm="handleConfirm"
     @cancel="handleCancel"
   />
+  <SuccessAnim v-model="showOK" :message="successMsg" :duration="1400" />
+
+  <ErrorMessage
+    :visible="showError"
+    :errorMessage="errorMsg"
+    @cancel="showError = false"
+  ></ErrorMessage>
 </template>
 
 <script setup>
@@ -138,8 +145,14 @@ import { ref, watch, onMounted } from "vue";
 import { request } from "@/utils/FontAxiosUtil";
 import { useMemberStore } from "@/stores/MemberStore";
 import ConfirmModal from "@/components/logoutModal.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import SuccessAnim from "@/components/successAnim.vue";
 
 const memberStore = useMemberStore();
+const showOK = ref(false);
+const successMsg = ref("");
+const showError = ref(false);
+const errorMsg = ref("");
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
@@ -252,13 +265,16 @@ async function submitPayment() {
         data: paymentRequest,
       });
 
+      successMsg.value = "帳戶繳費成功";
+      showOK.value = true;
       emit("success", paymentRes);
       innerVisible.value = false;
       emit("updateSchedule"); // 讓父組件更新排程
       emit("refreshLoans"); // 新增：更新個人貸款資訊
     } catch (err) {
       console.error("繳費失敗:", err);
-      alert("繳費失敗，請稍後再試");
+      errorMsg.value = "繳費失敗，請稍後再試";
+      showError.value = true;
     }
   } else if (selectedMethod.value === "linepay") {
     if (!props.loanId) return;
