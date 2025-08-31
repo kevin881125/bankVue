@@ -35,7 +35,7 @@
             </li>
 
             <li><router-link to="/yuzubank/loanHome">貸款</router-link></li>
-            <li><router-link to="/yuzubank/myFund/myFundHoldings">基金</router-link></li>
+            <li><router-link to="/yuzubank/fund/index">基金</router-link></li>
           </ul>
 
           <!-- 未登入 -->

@@ -3,14 +3,11 @@
     <div class="sidebar" :class="{ collapsed: isCollapsed }">
       <!-- 收合按鈕 -->
       <button class="collapse-btn" @click="toggleSidebar">
-        <span
-          class="material-symbols-outlined"
-          style="
+        <span class="material-symbols-outlined" style="
             font-variation-settings: 'wght' 200;
             font-size: 28px;
             color: #fff;
-          "
-        >
+          ">
           {{ isCollapsed ? "menu" : "menu_open" }}
         </span>
       </button>
@@ -18,12 +15,7 @@
       <!-- Logo 區域 -->
       <div class="logo-section">
         <div class="logo-container">
-          <img
-            v-if="!isCollapsed"
-            class="logo-expanded"
-            src="../../image/logo_horizontal.png"
-            alt="YuzuBank"
-          />
+          <img v-if="!isCollapsed" class="logo-expanded" src="../../image/logo_horizontal.png" alt="YuzuBank" />
         </div>
       </div>
 
@@ -38,44 +30,22 @@
           </li>
 
           <!-- 帳戶管理下拉選單 -->
-          <li
-            v-if="hasAccess(2)"
-            class="nav-item dropdown"
-            :class="{ active: accountDropdownOpen }"
-          >
-            <div
-              class="nav-link dropdown-toggle"
-              @click="toggleAccountDropdown"
-            >
+          <li v-if="hasAccess(2)" class="nav-item dropdown" :class="{ active: accountDropdownOpen }">
+            <div class="nav-link dropdown-toggle" @click="toggleAccountDropdown">
               <span class="mdi mdi-piggy-bank nav-icon"></span>
               <span v-if="!isCollapsed" class="nav-text">帳戶管理</span>
-              <span
-                v-if="!isCollapsed"
-                class="mdi dropdown-arrow"
-                :class="
-                  accountDropdownOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'
-                "
-              ></span>
+              <span v-if="!isCollapsed" class="mdi dropdown-arrow" :class="accountDropdownOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'
+                "></span>
             </div>
-            <ul
-              v-if="!isCollapsed"
-              class="dropdown-menu"
-              :class="{ show: accountDropdownOpen }"
-            >
+            <ul v-if="!isCollapsed" class="dropdown-menu" :class="{ show: accountDropdownOpen }">
               <li>
-                <router-link
-                  to="/yuzubank/backmain/account"
-                  class="dropdown-link"
-                >
+                <router-link to="/yuzubank/backmain/account" class="dropdown-link">
                   <span class="mdi mdi-bank nav-icon"></span>
                   帳戶交易
                 </router-link>
               </li>
               <li>
-                <router-link
-                  to="/yuzubank/backmain/accountapplication"
-                  class="dropdown-link"
-                >
+                <router-link to="/yuzubank/backmain/accountapplication" class="dropdown-link">
                   <span class="mdi mdi-hand-coin nav-icon"></span>
                   帳戶申請
                 </router-link>
@@ -98,7 +68,7 @@
           </li>
 
           <li v-if="hasAccess(5)" class="nav-item">
-            <router-link to="/yuzubank/backmain/fundBack" class="nav-link">
+            <router-link to="/yuzubank/backmain/fund/dashboard" class="nav-link">
               <span class="mdi mdi-trending-up nav-icon"></span>
               <span v-if="!isCollapsed" class="nav-text">基金管理</span>
             </router-link>
@@ -146,12 +116,7 @@
         </div>
 
         <!-- 收合狀態的登出按鈕 -->
-        <button
-          v-else
-          class="logout-btn collapsed"
-          @click="signOut"
-          title="登出"
-        >
+        <button v-else class="logout-btn collapsed" @click="signOut" title="登出">
           <span class="mdi mdi-logout"></span>
         </button>
       </div>
@@ -580,6 +545,7 @@ watch(
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -593,21 +559,27 @@ watch(
 .nav-item:nth-child(1) {
   animation-delay: 0.1s;
 }
+
 .nav-item:nth-child(2) {
   animation-delay: 0.15s;
 }
+
 .nav-item:nth-child(3) {
   animation-delay: 0.2s;
 }
+
 .nav-item:nth-child(4) {
   animation-delay: 0.25s;
 }
+
 .nav-item:nth-child(5) {
   animation-delay: 0.3s;
 }
+
 .nav-item:nth-child(6) {
   animation-delay: 0.35s;
 }
+
 .nav-item:nth-child(7) {
   animation-delay: 0.4s;
 }

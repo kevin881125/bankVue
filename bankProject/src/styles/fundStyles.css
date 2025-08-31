@@ -1,0 +1,738 @@
+/* 基金系統統一樣式 */
+
+/* ===== CSS 變數定義 ===== */
+:root {
+    /* 主色調 */
+    --fund-primary: #ffffff;
+    /* 主白色 */
+    --fund-primary-dark: #f8fafc;
+    /* 深白色 */
+    --fund-primary-light: #ffffff;
+    /* 淺白色 */
+    --fund-accent: #ef4444;
+    /* 紅色（盈利） */
+    --fund-danger: #10b981;
+    /* 綠色（虧損） */
+    --fund-warning: #f59e0b;
+    /* 橙色（警告） */
+    --fund-secondary: #6b7280;
+    /* 灰色 */
+
+    /* 背景色 */
+    --fund-bg-primary: #ffffff;
+    /* 主背景 */
+    --fund-bg-secondary: #f8fafc;
+    /* 次背景 */
+    --fund-bg-card: #ffffff;
+    /* 卡片背景 */
+    --fund-bg-hover: #f1f5f9;
+    /* 懸停背景 */
+    --fund-bg-active: #e2e8f0;
+    /* 激活背景 */
+
+    /* 文字色 */
+    --fund-text-primary: #1f2937;
+    /* 主要文字 */
+    --fund-text-secondary: #6b7280;
+    /* 次要文字 */
+    --fund-text-light: #9ca3af;
+    /* 淺色文字 */
+    --fund-text-white: #ffffff;
+    /* 白色文字 */
+
+    /* 邊框色 */
+    --fund-border-light: #e5e7eb;
+    /* 淺邊框 */
+    --fund-border-medium: #d1d5db;
+    /* 中邊框 */
+    --fund-border-dark: #9ca3af;
+    /* 深邊框 */
+
+    /* 陰影 */
+    --fund-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --fund-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --fund-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --fund-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+    /* 圓角 */
+    --fund-radius-sm: 4px;
+    --fund-radius-md: 8px;
+    --fund-radius-lg: 12px;
+    --fund-radius-xl: 16px;
+
+    /* 間距 */
+    --fund-space-xs: 4px;
+    --fund-space-sm: 8px;
+    --fund-space-md: 16px;
+    --fund-space-lg: 24px;
+    --fund-space-xl: 32px;
+
+    /* 字體 */
+    --fund-font-sm: 12px;
+    --fund-font-base: 14px;
+    --fund-font-lg: 16px;
+    --fund-font-xl: 18px;
+    --fund-font-2xl: 24px;
+    --fund-font-3xl: 32px;
+}
+
+/* ===== 基礎重置 ===== */
+.fund-container * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ===== 基本佈局類 ===== */
+.fund-container {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--fund-bg-secondary);
+    color: var(--fund-text-primary);
+    font-family: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    line-height: 1.6;
+}
+
+.fund-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--fund-space-lg);
+}
+
+.fund-header {
+    background: var(--fund-bg-primary);
+    border-bottom: 1px solid var(--fund-border-light);
+    padding: var(--fund-space-lg) 0;
+    margin-bottom: var(--fund-space-xl);
+}
+
+.fund-title {
+    font-size: var(--fund-font-2xl);
+    font-weight: 600;
+    color: var(--fund-text-primary);
+    margin-bottom: var(--fund-space-sm);
+}
+
+.fund-subtitle {
+    font-size: var(--fund-font-lg);
+    color: var(--fund-text-secondary);
+}
+
+/* ===== 卡片系統 ===== */
+.fund-card {
+    background: var(--fund-bg-card);
+    border: 1px solid var(--fund-border-light);
+    border-radius: var(--fund-radius-lg);
+    box-shadow: var(--fund-shadow-sm);
+    padding: var(--fund-space-lg);
+    margin-bottom: var(--fund-space-lg);
+    transition: all 0.2s ease;
+}
+
+.fund-card:hover {
+    box-shadow: var(--fund-shadow-md);
+    transform: translateY(-2px);
+}
+
+.fund-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--fund-space-md);
+    padding-bottom: var(--fund-space-md);
+    border-bottom: 1px solid var(--fund-border-light);
+}
+
+.fund-card-title {
+    font-size: var(--fund-font-xl);
+    font-weight: 600;
+    color: var(--fund-text-primary);
+}
+
+.fund-card-body {
+    flex: 1;
+}
+
+.fund-card-footer {
+    margin-top: var(--fund-space-md);
+    padding-top: var(--fund-space-md);
+    border-top: 1px solid var(--fund-border-light);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--fund-space-sm);
+}
+
+/* ===== 按鈕系統 ===== */
+.fund-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--fund-space-sm) var(--fund-space-md);
+    font-size: var(--fund-font-base);
+    font-weight: 500;
+    border-radius: var(--fund-radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    gap: var(--fund-space-xs);
+    min-height: 40px;
+}
+
+.fund-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 主要按鈕 */
+.fund-btn-primary {
+    background: #f8fafc;
+    color: var(--fund-text-primary);
+    border-color: var(--fund-border-medium);
+}
+
+.fund-btn-primary:hover:not(:disabled) {
+    background: var(--fund-bg-hover);
+    border-color: var(--fund-border-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--fund-shadow-md);
+}
+
+/* 次要按鈕 */
+.fund-btn-secondary {
+    background: var(--fund-bg-primary);
+    color: var(--fund-text-primary);
+    border-color: var(--fund-border-medium);
+}
+
+.fund-btn-secondary:hover:not(:disabled) {
+    background: var(--fund-bg-hover);
+    border-color: var(--fund-border-dark);
+}
+
+/* 成功按鈕 */
+.fund-btn-success {
+    background: var(--fund-accent);
+    color: var(--fund-text-white);
+    border-color: var(--fund-accent);
+}
+
+.fund-btn-success:hover:not(:disabled) {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+/* 危險按鈕 */
+.fund-btn-danger {
+    background: var(--fund-danger);
+    color: var(--fund-text-white);
+    border-color: var(--fund-danger);
+}
+
+.fund-btn-danger:hover:not(:disabled) {
+    background: #059669;
+    border-color: #059669;
+}
+
+/* 按鈕尺寸 */
+.fund-btn-sm {
+    padding: var(--fund-space-xs) var(--fund-space-sm);
+    font-size: var(--fund-font-sm);
+    min-height: 32px;
+}
+
+.fund-btn-lg {
+    padding: var(--fund-space-md) var(--fund-space-lg);
+    font-size: var(--fund-font-lg);
+    min-height: 48px;
+}
+
+/* ===== 表單元素 ===== */
+.fund-form-group {
+    margin-bottom: var(--fund-space-md);
+}
+
+.fund-label {
+    display: block;
+    font-size: var(--fund-font-base);
+    font-weight: 500;
+    color: var(--fund-text-primary);
+    margin-bottom: var(--fund-space-xs);
+}
+
+.fund-input {
+    width: 100%;
+    padding: var(--fund-space-sm) var(--fund-space-md);
+    font-size: var(--fund-font-base);
+    border: 1px solid var(--fund-border-medium);
+    border-radius: var(--fund-radius-md);
+    background: var(--fund-bg-primary);
+    color: var(--fund-text-primary);
+    transition: all 0.2s ease;
+    min-height: 40px;
+}
+
+.fund-input:focus {
+    outline: none;
+    border-color: var(--fund-border-dark);
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1);
+}
+
+.fund-input:invalid {
+    border-color: var(--fund-danger);
+}
+
+.fund-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 8px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* ===== 表格系統 ===== */
+.fund-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--fund-bg-card);
+    border-radius: var(--fund-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--fund-shadow-sm);
+}
+
+.fund-table th {
+    background: var(--fund-bg-secondary);
+    padding: var(--fund-space-md);
+    text-align: left;
+    font-weight: 600;
+    color: var(--fund-text-primary);
+    border-bottom: 1px solid var(--fund-border-light);
+}
+
+.fund-table td {
+    padding: var(--fund-space-md);
+    border-bottom: 1px solid var(--fund-border-light);
+    color: var(--fund-text-primary);
+}
+
+.fund-table tr:last-child td {
+    border-bottom: none;
+}
+
+.fund-table tr:hover {
+    background: var(--fund-bg-hover);
+}
+
+/* ===== 數值顯示 ===== */
+.fund-value {
+    font-weight: 600;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.fund-value-positive {
+    color: var(--fund-accent);
+    /* 紅色表示盈利 */
+}
+
+.fund-value-negative {
+    color: var(--fund-danger);
+    /* 綠色表示虧損 */
+}
+
+.fund-value-neutral {
+    color: var(--fund-text-primary);
+}
+
+.fund-percentage {
+    font-size: var(--fund-font-sm);
+    padding: 2px 6px;
+    border-radius: var(--fund-radius-sm);
+    font-weight: 600;
+}
+
+.fund-percentage-positive {
+    background: rgba(239, 68, 68, 0.1);
+    /* 紅色背景表示盈利 */
+    color: var(--fund-accent);
+}
+
+.fund-percentage-negative {
+    background: rgba(16, 185, 129, 0.1);
+    /* 綠色背景表示虧損 */
+    color: var(--fund-danger);
+}
+
+/* ===== 標籤和徽章 ===== */
+.fund-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--fund-space-xs) var(--fund-space-sm);
+    font-size: var(--fund-font-sm);
+    font-weight: 500;
+    border-radius: var(--fund-radius-sm);
+    border: 1px solid;
+}
+
+.fund-badge-primary {
+    background: rgba(248, 250, 252, 1);
+    color: var(--fund-text-primary);
+    border-color: var(--fund-border-medium);
+}
+
+.fund-badge-success {
+    background: rgba(239, 68, 68, 0.1);
+    /* 紅色背景表示盈利 */
+    color: var(--fund-accent);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.fund-badge-danger {
+    background: rgba(16, 185, 129, 0.1);
+    /* 綠色背景表示虧損 */
+    color: var(--fund-danger);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.fund-badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--fund-warning);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.fund-badge-secondary {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--fund-secondary);
+    border-color: rgba(107, 114, 128, 0.2);
+}
+
+/* ===== Tab 標籤系統 ===== */
+.fund-tabs {
+    border-bottom: 1px solid var(--fund-border-light);
+    margin-bottom: var(--fund-space-lg);
+}
+
+.fund-tab-list {
+    display: flex;
+    gap: var(--fund-space-md);
+}
+
+.fund-tab-item {
+    padding: var(--fund-space-md) var(--fund-space-lg);
+    font-size: var(--fund-font-base);
+    font-weight: 500;
+    color: var(--fund-text-secondary);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.fund-tab-item:hover {
+    color: var(--fund-text-primary);
+}
+
+.fund-tab-item.active {
+    color: var(--fund-text-primary);
+    border-bottom-color: var(--fund-text-primary);
+}
+
+.fund-tab-content {
+    padding: var(--fund-space-lg) 0;
+}
+
+/* ===== 載入和狀態 ===== */
+.fund-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--fund-space-xl);
+    color: var(--fund-text-secondary);
+}
+
+.fund-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--fund-border-light);
+    border-top-color: var(--fund-text-primary);
+    border-radius: 50%;
+    animation: fund-spin 1s linear infinite;
+    margin-right: var(--fund-space-sm);
+}
+
+@keyframes fund-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fund-empty {
+    text-align: center;
+    padding: var(--fund-space-xl);
+    color: var(--fund-text-secondary);
+}
+
+.fund-empty-icon {
+    font-size: 48px;
+    margin-bottom: var(--fund-space-md);
+    opacity: 0.5;
+}
+
+/* ===== 響應式設計 ===== */
+@media (max-width: 768px) {
+    .fund-main {
+        padding: var(--fund-space-md);
+    }
+
+    .fund-card {
+        padding: var(--fund-space-md);
+    }
+
+    .fund-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--fund-space-sm);
+    }
+
+    .fund-card-footer {
+        flex-direction: column;
+        gap: var(--fund-space-sm);
+    }
+
+    .fund-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .fund-table {
+        font-size: var(--fund-font-sm);
+    }
+
+    .fund-tab-list {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .fund-title {
+        font-size: var(--fund-font-xl);
+    }
+
+    .fund-card-title {
+        font-size: var(--fund-font-lg);
+    }
+
+    .fund-table th,
+    .fund-table td {
+        padding: var(--fund-space-sm);
+    }
+}
+
+/* ===== 工具類 ===== */
+.fund-text-center {
+    text-align: center;
+}
+
+.fund-text-right {
+    text-align: right;
+}
+
+.fund-text-left {
+    text-align: left;
+}
+
+.fund-flex {
+    display: flex;
+}
+
+.fund-flex-col {
+    flex-direction: column;
+}
+
+.fund-flex-between {
+    justify-content: space-between;
+}
+
+.fund-flex-center {
+    justify-content: center;
+}
+
+.fund-flex-end {
+    justify-content: flex-end;
+}
+
+.fund-items-center {
+    align-items: center;
+}
+
+.fund-items-end {
+    align-items: flex-end;
+}
+
+.fund-gap-sm {
+    gap: var(--fund-space-sm);
+}
+
+.fund-gap-md {
+    gap: var(--fund-space-md);
+}
+
+.fund-gap-lg {
+    gap: var(--fund-space-lg);
+}
+
+.fund-mt-sm {
+    margin-top: var(--fund-space-sm);
+}
+
+.fund-mt-md {
+    margin-top: var(--fund-space-md);
+}
+
+.fund-mt-lg {
+    margin-top: var(--fund-space-lg);
+}
+
+.fund-mb-sm {
+    margin-bottom: var(--fund-space-sm);
+}
+
+.fund-mb-md {
+    margin-bottom: var(--fund-space-md);
+}
+
+.fund-mb-lg {
+    margin-bottom: var(--fund-space-lg);
+}
+
+.fund-hidden {
+    display: none;
+}
+
+.fund-visible {
+    display: block;
+}
+
+.fund-card-clickable {
+    cursor: pointer;
+}
+
+.fund-card-clickable:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--fund-shadow-lg);
+}
+
+.fund-badges {
+    display: flex;
+    gap: var(--fund-space-xs);
+    flex-wrap: wrap;
+}
+
+.fund-nav-info {
+    border-bottom: 1px solid var(--fund-border-light);
+    padding-bottom: var(--fund-space-md);
+}
+
+.fund-investment-info {
+    padding-top: var(--fund-space-md);
+}
+
+.fund-filter-actions {
+    display: flex;
+    gap: var(--fund-space-sm);
+}
+
+.fund-filter-actions select {
+    min-width: 120px;
+}
+
+.fund-transaction-item {
+    border: 1px solid var(--fund-border-light);
+    border-radius: var(--fund-radius-md);
+    padding: var(--fund-space-md);
+    margin-bottom: var(--fund-space-md);
+}
+
+.fund-transaction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--fund-space-md);
+    gap: var(--fund-space-sm);
+}
+
+.fund-transaction-details>div {
+    margin-bottom: var(--fund-space-xs);
+}
+
+.fund-holding-info {
+    background: var(--fund-bg-secondary);
+    padding: var(--fund-space-md);
+    border-radius: var(--fund-radius-md);
+}
+
+.fund-holding-info>div {
+    margin-bottom: var(--fund-space-sm);
+}
+
+.fund-holding-info>div:last-child {
+    margin-bottom: 0;
+}
+
+.fund-radio-group {
+    display: flex;
+    gap: var(--fund-space-lg);
+    margin-top: var(--fund-space-xs);
+}
+
+.fund-radio-item {
+    display: flex;
+    align-items: center;
+    gap: var(--fund-space-xs);
+    cursor: pointer;
+    font-size: var(--fund-font-base);
+}
+
+.fund-radio-item input[type="radio"] {
+    margin: 0;
+}
+
+.fund-input-readonly {
+    padding: var(--fund-space-sm) var(--fund-space-md);
+    background: var(--fund-bg-secondary);
+    border: 1px solid var(--fund-border-light);
+    border-radius: var(--fund-radius-md);
+    color: var(--fund-text-primary);
+    font-weight: 600;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .fund-filter-actions {
+        flex-direction: column;
+    }
+
+    .fund-filter-actions select {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .fund-radio-group {
+        flex-direction: column;
+        gap: var(--fund-space-sm);
+    }
+
+    .fund-transaction-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .fund-badges {
+        margin-top: var(--fund-space-sm);
+    }
+}
