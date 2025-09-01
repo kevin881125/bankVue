@@ -482,7 +482,7 @@ const handleSubmit = async () => {
         loanId = res.loanId || "申請成功";
       }
     }
-    successMsg.value = "申請成功！案件編號：" + loanId;
+    successMsg.value = "貸款申請成功！";
     showOK.value = true;
 
     // 清空表單
@@ -500,15 +500,16 @@ const handleSubmit = async () => {
     fileName.value = "";
     interestRateDisplay.value = "--.-%";
     monthlyPayment.value = 0;
-    router.push("/yuzubank/loanHome").then(() => {
-      // 等 router-view render 完成後刷新貸款資料
-      const loanHomeComponent =
-        router.currentRoute.value.matched[0].instances.default;
-      if (loanHomeComponent && loanHomeComponent.fetchMemberLoans) {
-        loanHomeComponent.fetchMemberLoans();
-      }
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
+    setTimeout(() => {
+      router.push("/yuzubank/loanHome").then(() => {
+        const loanHomeComponent =
+          router.currentRoute.value.matched[0].instances.default;
+        if (loanHomeComponent && loanHomeComponent.fetchMemberLoans) {
+          loanHomeComponent.fetchMemberLoans();
+        }
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }, 500);
   } catch (err) {
     console.error("貸款申請失敗:", err);
     console.error("錯誤詳情:", err.response);
