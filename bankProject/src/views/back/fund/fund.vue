@@ -10,11 +10,99 @@
                 <p class="page-subtitle">管理所有基金產品的資訊與設定</p>
             </div>
 
-            <!-- 新增基金按鈕 -->
-            <button class="add-fund-btn" @click="openCreateDialog">
-                <i class="fas fa-plus"></i>
-                新增基金
-            </button>
+            <!-- 在表格標題區域新增批量更新淨值按鈕 -->
+            <!-- 原本的 table-actions 區域修改為： -->
+            <div class="table-actions">
+                <!-- 新增基金按鈕 -->
+                <button class="add-fund-btn" @click="openCreateDialog">
+                    <i class="fas fa-plus"></i>
+                    新增基金
+                </button>
+                <button class="refresh-btn" @click="fetchFunds" :disabled="loading">
+                    <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
+                    重新整理
+                </button>
+                <!-- 🆕 新增批量更新淨值按鈕 -->
+                <button class="batch-nav-btn" @click="openBatchNavDialog" :disabled="loading || batchUpdating">
+                    <i class="fas fa-calculator" :class="{ 'fa-spin': batchUpdating }"></i>
+                    {{ batchUpdating ? '更新中...' : '批量更新淨值' }}
+                </button>
+                <!-- 🆕 系統統計按鈕（可選） -->
+                <button class="system-info-btn" @click="getNavSystemInfo" :disabled="loading">
+                    <i class="fas fa-chart-bar"></i>
+                    系統統計
+                </button>
+            </div>
+
+            <!-- 🆕 批量更新淨值彈窗 - 在主要彈窗後面新增 -->
+            <!-- 批量更新淨值彈窗 -->
+            <div v-if="showBatchNavDialog" class="modal-overlay" @click="closeBatchNavDialog">
+                <div class="modal-container batch-nav-modal" @click.stop>
+                    <div class="modal-header">
+                        <h3>
+                            <i class="fas fa-calculator"></i>
+                            批量更新基金淨值
+                        </h3>
+                        <button class="close-btn" @click="closeBatchNavDialog">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="batch-nav-info">
+                            <div class="info-section">
+                                <h4>
+                                    <i class="fas fa-info-circle"></i>
+                                    功能說明
+                                </h4>
+                                <ul class="info-list">
+                                    <li>此功能將為所有<strong>開放狀態</strong>的基金生成指定日期的淨值</li>
+                                    <li>如果基金在該日期已有淨值記錄，將會跳過更新</li>
+                                    <li>系統會自動計算新的淨值（基於歷史淨值和風險等級）</li>
+                                    <li>更新完成後會顯示詳細的執行結果</li>
+                                </ul>
+                            </div>
+
+                            <div class="date-selection">
+                                <div class="form-group">
+                                    <label>
+                                        <i class="fas fa-calendar-alt"></i>
+                                        淨值日期 <span class="required">*</span>
+                                    </label>
+                                    <input v-model="batchNavDate" type="date" required
+                                        :max="new Date().toISOString().split('T')[0]" />
+                                    <div class="form-help">
+                                        選擇要更新淨值的日期（不能超過今天）
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <div class="warning-content">
+                                    <i class="fas fa-exclamation-triangle warning-icon"></i>
+                                    <div>
+                                        <strong>注意事項：</strong>
+                                        <p>此操作將影響所有活躍基金，請確認日期正確後再執行。建議在非營業時間執行批量操作以避免影響系統效能。</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn-cancel" @click="closeBatchNavDialog" :disabled="batchUpdating">
+                            <i class="fas fa-times"></i>
+                            取消
+                        </button>
+                        <button class="btn-execute" @click="batchUpdateNav" :disabled="!batchNavDate || batchUpdating">
+                            <i class="fas fa-spinner fa-spin" v-if="batchUpdating"></i>
+                            <i class="fas fa-play" v-else></i>
+                            {{ batchUpdating ? '執行中...' : '開始批量更新' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- 統計卡片 -->
@@ -63,12 +151,6 @@
                     <i class="fas fa-list"></i>
                     基金清單
                 </h3>
-                <div class="table-actions">
-                    <button class="refresh-btn" @click="fetchFunds" :disabled="loading">
-                        <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
-                        重新整理
-                    </button>
-                </div>
             </div>
 
             <div class="table-wrapper">
@@ -743,6 +825,120 @@ const toggleFundStatusWithConfirm = async (fund) => {
 
     if (confirmed) {
         await toggleFundStatus(fund);
+    }
+};
+// 在 <script setup> 中新增的 JavaScript 部分
+
+// 新增批量更新淨值相關的響應式數據
+const batchUpdating = ref(false);
+const showBatchNavDialog = ref(false);
+const batchNavDate = ref(new Date().toISOString().split('T')[0]);
+
+// 新增批量更新淨值的函數
+const batchUpdateNav = async () => {
+    if (!batchNavDate.value) {
+        alert('請選擇淨值日期');
+        return;
+    }
+
+    const confirmed = confirm(
+        `確定要批量更新所有活躍基金在 ${batchNavDate.value} 的淨值嗎？\n` +
+        `這個操作將為所有開放狀態的基金生成新的淨值記錄。`
+    );
+
+    if (!confirmed) return;
+
+    batchUpdating.value = true;
+
+    try {
+        const response = await axios.post(
+            'http://localhost:8080/bank/fundNav/batch-update-all',
+            {},
+            {
+                params: {
+                    navDate: batchNavDate.value
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        console.log('批量更新淨值回應:', response.data);
+
+        if (response.data.success) {
+            const result = response.data;
+            let message = `批量更新完成！\n`;
+            message += `總計基金數: ${result.totalCount}\n`;
+            message += `成功更新: ${result.successCount}\n`;
+            message += `跳過更新: ${result.skippedCount}\n`;
+            message += `更新失敗: ${result.errorCount}\n`;
+            message += `成功率: ${result.successRate}`;
+
+            alert(message);
+
+            // 關閉彈窗並重新載入基金清單
+            showBatchNavDialog.value = false;
+            await fetchFunds();
+        } else {
+            alert('批量更新失敗: ' + (response.data.message || '未知錯誤'));
+        }
+
+    } catch (error) {
+        console.error('批量更新淨值失敗:', error);
+
+        let errorMessage = "批量更新淨值失敗";
+        if (error.response?.data?.message) {
+            errorMessage += "：" + error.response.data.message;
+        } else if (error.response?.status === 400) {
+            errorMessage += "：請求參數錯誤";
+        } else if (error.response?.status === 500) {
+            errorMessage += "：系統錯誤";
+        }
+
+        alert(errorMessage);
+    } finally {
+        batchUpdating.value = false;
+    }
+};
+
+// 開啟批量更新淨值彈窗
+const openBatchNavDialog = () => {
+    batchNavDate.value = new Date().toISOString().split('T')[0];
+    showBatchNavDialog.value = true;
+};
+
+// 關閉批量更新淨值彈窗
+const closeBatchNavDialog = () => {
+    showBatchNavDialog.value = false;
+};
+
+// 獲取系統統計資訊（可選功能）
+const getNavSystemInfo = async () => {
+    try {
+        const response = await axios.get('http://localhost:8080/bank/fundNav/system-info', {
+            params: {
+                navDate: batchNavDate.value
+            },
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (response.data.success) {
+            const info = response.data;
+            let message = `系統淨值統計 (${info.queryDate}):\n`;
+            message += `活躍基金數: ${info.activeFundCount}\n`;
+            message += `已更新淨值: ${info.completedNavCount}\n`;
+            message += `待更新淨值: ${info.pendingNavCount}\n`;
+            message += `完成率: ${info.completionRate}`;
+
+            alert(message);
+        }
+    } catch (error) {
+        console.error('獲取系統資訊失敗:', error);
+        alert('獲取系統資訊失敗');
     }
 };
 </script>
@@ -1520,6 +1716,252 @@ const toggleFundStatusWithConfirm = async (fund) => {
 
     .template-desc {
         font-size: 12px;
+    }
+}
+
+/* 批量更新淨值按鈕樣式 */
+.batch-nav-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.batch-nav-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #218838 0%, #1abc9c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.batch-nav-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 系統統計按鈕樣式 */
+.system-info-btn {
+    background: #17a2b8;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.system-info-btn:hover:not(:disabled) {
+    background: #138496;
+    transform: translateY(-1px);
+}
+
+.system-info-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 批量更新淨值彈窗樣式 */
+.batch-nav-modal {
+    max-width: 600px;
+}
+
+.batch-nav-info {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.info-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #28a745;
+}
+
+.info-section h4 {
+    color: #28a745;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-list {
+    margin: 0;
+    padding-left: 20px;
+    color: #495057;
+}
+
+.info-list li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.info-list li:last-child {
+    margin-bottom: 0;
+}
+
+.info-list strong {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.date-selection {
+    background: white;
+    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 2px solid #ffeaa7;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.warning-content {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.warning-icon {
+    color: #856404;
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.warning-content div {
+    flex: 1;
+}
+
+.warning-content strong {
+    color: #856404;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.warning-content p {
+    color: #6c757d;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* 執行按鈕樣式 */
+.btn-execute {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-execute:hover:not(:disabled) {
+    background: linear-gradient(135deg, #218838 0%, #1abc9c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.btn-execute:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 表格操作區域調整 */
+.table-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .table-actions {
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .batch-nav-btn,
+    .system-info-btn,
+    .refresh-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    .batch-nav-modal {
+        width: 95%;
+        max-width: none;
+    }
+
+    .warning-content {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .info-section,
+    .date-selection,
+    .warning-box {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .table-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .batch-nav-btn,
+    .system-info-btn,
+    .refresh-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .batch-nav-info {
+        gap: 16px;
+    }
+
+    .info-list {
+        font-size: 14px;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-cancel,
+    .btn-execute {
+        width: 100%;
+        justify-content: center;
     }
 }
 </style>
