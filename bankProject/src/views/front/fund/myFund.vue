@@ -146,11 +146,6 @@ const tabs = ref([
     name: '交易紀錄',
     icon: 'fas fa-list-alt'
   },
-  {
-    path: 'myFundSip',
-    name: '定期定額',
-    icon: 'fas fa-calendar-check'
-  }
 ])
 
 // 當前活動標籤

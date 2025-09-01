@@ -12,10 +12,6 @@
         <i class="fas fa-chart-pie no-holdings-icon"></i>
         <h3>目前沒有持有基金</h3>
         <p>開始您的第一筆基金投資吧！</p>
-        <button @click="goToFundList" class="btn-start-investing">
-          <i class="fas fa-plus"></i>
-          開始投資
-        </button>
       </div>
     </div>
 
