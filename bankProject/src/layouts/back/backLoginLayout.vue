@@ -25,7 +25,11 @@
             required
           />
         </div>
-        <button  @click="doLogin" class="login-button">登入</button>
+        <div class="btns">
+          <button  @click="doLogin" class="login-button">登入</button>
+          <button  @click="insertdata" class="login-button">一鍵登入</button>
+
+        </div>
  
 
     </div>
@@ -65,6 +69,11 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleGlobalEnter);
 });
+
+const insertdata=()=>{
+  wAccount.value = "w1111"
+  wPassword.value = "w123456"
+}
 
 const doLogin = async () => {
   try {
@@ -122,6 +131,7 @@ const doLogin = async () => {
   display: flex;
   justify-content: center;
   padding-top: 200px;
+
 }
 
 .login-container {
@@ -133,19 +143,19 @@ const doLogin = async () => {
   flex-direction: column;
   align-items: center;
   border-radius: 30px;
-  background-color: #c4c4c417;
-
+  background-color: #ffffff17;
+box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 
 }
 
 .login-container h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   color: #333;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 label {
@@ -165,13 +175,13 @@ input[type="password"] {
 }
 
 .login-button {
-  width: 300px;
+  width: 120px;
   padding: 12px;
   background-color: #f8c22c;
   color: rgb(0, 0, 0);
   border: none;
   font-size: 16px;
-  border-radius: 5px;
+  border-radius: 50px;
   cursor: pointer;
   margin-top: 20px;
 }
@@ -179,11 +189,20 @@ input[type="password"] {
 .login-button:hover {
   background-color: #e0aa14;
 }
+.btns{
+  width: 300px;
+  margin-right: auto;
+  margin-left: auto;
+  display: flex;
+  justify-content: space-between;
 
+
+}
 
 img{
 width: 300px; 
 height: auto;
+margin-top: 28px;
 
 }
 h2{

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useWorkerStore } from "@/stores/Worker";
 const workerStore = useWorkerStore();
+import router from "@/router/index";
 
 // === 建立 apiService 物件，設定基礎屬性 ===
 const apiService = axios.create({
@@ -53,6 +54,7 @@ apiService.interceptors.response.use(
     if (status == 401) {
 
       workerStore.logout();
+      router.push("/yuzubank/backLogin") ;
       return Promise.reject(data);
     }
   }

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useMemberStore } from "@/stores/MemberStore";
 const memberStore = useMemberStore();
+import router from "@/router/index";
 
 // === 建立 apiService 物件，設定基礎屬性 ===
 const apiService = axios.create({
@@ -56,7 +57,8 @@ apiService.interceptors.response.use(
     // 登入失敗或 token 過期
     if (status == 401) {
       // alert(`${data}`);
-
+   
+      router.push("/yuzubank/frontLogin") ;
       memberStore.logout();
       return Promise.reject(data);
     }

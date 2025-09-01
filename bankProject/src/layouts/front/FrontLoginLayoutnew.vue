@@ -460,7 +460,7 @@ span{
 
 .form {
   position: absolute;
-  left: 980px;
+  left: 1015px;
   top: 0px;
   z-index: 1;
   overflow: hidden;
@@ -518,7 +518,7 @@ span{
 .title{
   position: absolute;
   top: 180px;
-  left: 150px;
+  left: 210px;
   text-align: center;
   
 }

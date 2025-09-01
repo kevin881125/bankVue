@@ -406,7 +406,7 @@ th {
 
 .worker > table {
   width: 100%;
-  height: 80%;
+  /* height: 80%; */
   background-color: #fff;
   border-radius: 10px;
 }
