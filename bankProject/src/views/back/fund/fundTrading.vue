@@ -1,3 +1,4 @@
+<!--基金交易管理 fundTrading.vue - 完整版-->
 <template>
     <div class="fund-transaction-container">
         <!-- 載入遮罩 -->
@@ -8,115 +9,14 @@
             </div>
         </div>
 
-        <!-- 錯誤提示 -->
-        <div v-if="error" class="error-message">
-            <span class="mdi mdi-alert-circle"></span>
-            <div>
-                <h3>載入失敗</h3>
-                <p>{{ error }}</p>
-                <div class="error-actions">
-                    <button class="btn btn-primary" @click="refreshData">重新載入</button>
-                </div>
-                <div class="error-debug" v-if="debugMode">
-                    <h4>除錯資訊：</h4>
-                    <p><strong>API 端點：</strong> {{ currentApiEndpoint }}</p>
-                    <p><strong>完整URL：</strong> {{ fullApiUrl }}</p>
-                    <p><strong>請求方式：</strong> {{ requestMethodUsed }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 頁面標題和操作區 -->
-        <div class="header-section">
-            <div class="title-area">
-                <h1 class="page-title">基金交易管理</h1>
+        <!-- 頁面標題 -->
+        <div class="page-header">
+            <div class="header-content">
+                <h2 class="page-title">
+                    <i class="fas fa-chart-pie"></i>
+                    基金交易管理
+                </h2>
                 <p class="page-subtitle">管理基金申購、贖回交易記錄</p>
-            </div>
-            <div class="action-buttons">
-                <button class="btn btn-primary" @click="openNewTransactionModal">
-                    <span class="mdi mdi-plus"></span>
-                    新增交易
-                </button>
-                <button class="btn btn-secondary" @click="exportTransactions" :disabled="loading">
-                    <span class="mdi mdi-download"></span>
-                    匯出記錄
-                </button>
-                <button class="btn btn-outline" @click="refreshData" :disabled="loading">
-                    <span class="mdi mdi-refresh" :class="{ 'mdi-spin': loading }"></span>
-                    重新整理
-                </button>
-            </div>
-        </div>
-
-        <!-- 統計卡片區 -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-header">
-                    <span class="mdi mdi-trending-up stat-icon green"></span>
-                    <div class="stat-info">
-                        <h3>今日申購</h3>
-                        <p class="stat-value">
-                            <template v-if="statsLoading">
-                                <span class="loading-text">載入中...</span>
-                            </template>
-                            <template v-else>
-                                NT$ {{ formatNumber(stats.todayPurchase || 0) }}
-                            </template>
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <span class="mdi mdi-trending-down stat-icon red"></span>
-                    <div class="stat-info">
-                        <h3>今日贖回</h3>
-                        <p class="stat-value">
-                            <template v-if="statsLoading">
-                                <span class="loading-text">載入中...</span>
-                            </template>
-                            <template v-else>
-                                NT$ {{ formatNumber(stats.todayRedemption || 0) }}
-                            </template>
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <span class="mdi mdi-account-multiple stat-icon blue"></span>
-                    <div class="stat-info">
-                        <h3>今日交易筆數</h3>
-                        <p class="stat-value">
-                            <template v-if="statsLoading">
-                                <span class="loading-text">載入中...</span>
-                            </template>
-                            <template v-else>
-                                {{ stats.todayTransactionCount || 0 }}
-                            </template>
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <span class="mdi mdi-clock stat-icon orange"></span>
-                    <div class="stat-info">
-                        <h3>待處理交易</h3>
-                        <p class="stat-value">
-                            <template v-if="statsLoading">
-                                <span class="loading-text">載入中...</span>
-                            </template>
-                            <template v-else>
-                                {{ stats.pendingTransactionCount || 0 }}
-                            </template>
-                        </p>
-                        <span class="stat-change">需審核</span>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -160,10 +60,6 @@
             <table class="transaction-table">
                 <thead>
                     <tr>
-                        <th @click="sortBy('fundTranId')">
-                            交易編號
-                            <span class="mdi mdi-sort sort-icon" :class="getSortIcon('fundTranId')"></span>
-                        </th>
                         <th @click="sortBy('tranTime')">
                             交易日期
                             <span class="mdi mdi-sort sort-icon" :class="getSortIcon('tranTime')"></span>
@@ -179,28 +75,33 @@
                             <span class="mdi mdi-sort sort-icon" :class="getSortIcon('amount')"></span>
                         </th>
                         <th>手續費</th>
-                        <th>單位數量</th>
-                        <th>淨值</th>
-                        <th>狀態</th>
+                        <th @click="sortBy('nav')">
+                            淨值
+                            <span class="mdi mdi-sort sort-icon" :class="getSortIcon('nav')"></span>
+                        </th>
+                        <th @click="sortBy('units')">
+                            單位數
+                            <span class="mdi mdi-sort sort-icon" :class="getSortIcon('units')"></span>
+                        </th>
+                        <th class="status-column">狀態</th>
                         <th>備註</th>
                         <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="tableLoading">
-                        <td colspan="12" class="loading-row">
+                        <td colspan="11" class="loading-row">
                             <span class="mdi mdi-loading mdi-spin"></span>
                             載入交易記錄中...
                         </td>
                     </tr>
                     <tr v-else-if="transactions.length === 0">
-                        <td colspan="12" class="empty-row">
+                        <td colspan="11" class="empty-row">
                             <span class="mdi mdi-information-outline"></span>
                             暫無交易記錄
                         </td>
                     </tr>
                     <tr v-else v-for="transaction in transactions" :key="transaction.fundTranId">
-                        <td class="transaction-id">{{ transaction.fundTranId }}</td>
                         <td>{{ formatDateTime(transaction.tranTime) }}</td>
                         <td>
                             <div class="customer-info">
@@ -219,27 +120,28 @@
                                 {{ transaction.tranType }}
                             </span>
                         </td>
-                        <td class="amount">NT$ {{ formatNumber(transaction.amount) }}</td>
-                        <td class="fee">NT$ {{ formatNumber(transaction.fee) }}</td>
-                        <td>{{ formatNumber(transaction.units, 4) }}</td>
-                        <td>NT$ {{ formatNumber(transaction.nav, 4) }}</td>
+                        <td :class="['amount', getAmountColorClass(transaction.tranType)]">
+                            {{ formatCurrencyWithColor(transaction.amount) }}
+                        </td>
+                        <td class="fee">{{ formatCurrencyWithColor(transaction.fee) }}</td>
+                        <td class="nav">{{ formatNavWithColor(transaction.nav) }}</td>
+                        <td :class="['units', getUnitsColorClass(transaction.tranType)]">
+                            {{ formatUnitsWithColor(transaction.units) }}
+                        </td>
                         <td>
                             <span :class="['status-badge', getStatusClass(transaction.status)]">
-                                <span :class="['mdi', getStatusIcon(transaction.status)]"></span>
+                                <span :class="['status-icon', getStatusIcon(transaction.status)]"></span>
                                 {{ transaction.status }}
                             </span>
                         </td>
-                        <td class="memo">{{ transaction.memo || '-' }}</td>
+                        <td class="memo">{{ transaction.memo || '---' }}</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn-icon" @click="viewTransaction(transaction)" title="查看詳情">
-                                    <span class="mdi mdi-eye"></span>
-                                </button>
-                                <button class="btn-icon" @click="approveTransaction(transaction)" title="審核通過"
-                                    v-if="transaction.status === '待審核'">
+                                <button class="btn-icon btn-approve" @click="approveTransaction(transaction)"
+                                    title="審核通過" v-if="transaction.status === '待審核'">
                                     <span class="mdi mdi-check"></span>
                                 </button>
-                                <button class="btn-icon danger" @click="rejectTransaction(transaction)" title="審核拒絕"
+                                <button class="btn-icon btn-reject" @click="rejectTransaction(transaction)" title="審核拒絕"
                                     v-if="transaction.status === '待審核'">
                                     <span class="mdi mdi-close"></span>
                                 </button>
@@ -288,7 +190,7 @@ const error = ref('')
 const transactions = ref([])
 const stats = ref({})
 const totalTransactions = ref(0)
-const currentPage = ref(0) // Spring Boot 分頁從 0 開始
+const currentPage = ref(0)
 const pageSize = ref(20)
 
 // 篩選條件
@@ -314,15 +216,14 @@ const debugLog = (message, data = null) => {
     }
 }
 
-// API 路徑 - 根據你的 Controller
+// API 路徑
 const API_BASE = '/fundTransaction'
 
-// 防抖搜尋 - 修正為前端篩選
+// 防抖搜尋
 let searchTimeout = null
 const debouncedSearch = () => {
     clearTimeout(searchTimeout)
     searchTimeout = setTimeout(() => {
-        // 前端搜尋篩選，不重新呼叫 API
         applyClientSideFilters()
     }, 500)
 }
@@ -355,7 +256,7 @@ const applyClientSideFilters = () => {
         debugLog('📋 類型篩選後:', filtered.length, '筆')
     }
 
-    // 狀態篩選 (前端篩選，避免後端 500 錯誤)
+    // 狀態篩選
     if (selectedStatus.value) {
         filtered = filtered.filter(t => t.status === selectedStatus.value)
         debugLog('📊 狀態篩選後:', filtered.length, '筆')
@@ -395,8 +296,6 @@ const fetchStats = async () => {
         debugLog('=== 開始獲取統計資料 ===')
         statsLoading.value = true
 
-        // 由於你的 Controller 目前沒有統計端點，且狀態篩選會產生 500 錯誤
-        // 暫時跳過統計功能，直接設定預設值
         debugLog('⚠️ 跳過統計資料獲取（後端尚未支援）')
 
         stats.value = {
@@ -424,7 +323,6 @@ const fetchTransactions = async () => {
         tableLoading.value = true
         error.value = ''
 
-        // 先嘗試最基本的獲取所有交易記錄，不帶任何參數
         currentApiEndpoint.value = API_BASE
         fullApiUrl.value = currentApiEndpoint.value
         requestMethodUsed.value = 'GET'
@@ -434,27 +332,17 @@ const fetchTransactions = async () => {
             method: 'GET'
         })
 
-        // 詳細分析回應
         debugLog('📡 完整回應物件:', response)
         debugLog('📡 回應狀態碼:', response?.status)
         debugLog('📡 回應標頭:', response?.headers)
         debugLog('📡 回應數據:', response?.data)
-        debugLog('📡 回應數據類型:', response?.data === null ? 'null' : response?.data === undefined ? 'undefined' : Array.isArray(response?.data) ? '陣列' : typeof response?.data)
 
-        if (response?.data !== null && response?.data !== undefined) {
-            debugLog('📡 回應數據長度:', response?.data?.length)
-            debugLog('📡 回應數據內容預覽:', JSON.stringify(response?.data).substring(0, 200) + '...')
-        }
-
-        // 處理 axios 攔截器的情況
         let responseData = response?.data || response;
 
         debugLog('📡 處理後的數據:', responseData)
         debugLog('📡 數據類型:', Array.isArray(responseData) ? '陣列' : typeof responseData)
 
-        // 處理不同的回應格式
         if (Array.isArray(responseData)) {
-            // 儲存原始資料
             allTransactions.value = responseData
             transactions.value = responseData
             totalTransactions.value = responseData.length
@@ -468,23 +356,10 @@ const fetchTransactions = async () => {
                 debugLog('⚠️ 資料庫中沒有交易記錄')
                 error.value = '資料庫中沒有交易記錄，請先新增一些測試資料'
             } else {
-                // 顯示成功載入的訊息
                 debugLog('🎉 成功載入交易記錄！')
-                debugLog('📊 第一筆記錄詳情:', {
-                    fundTranId: transactions.value[0]?.fundTranId,
-                    customerName: getCustomerName(transactions.value[0]),
-                    fundName: getFundName(transactions.value[0]),
-                    tranType: transactions.value[0]?.tranType,
-                    amount: transactions.value[0]?.amount,
-                    status: transactions.value[0]?.status
-                })
-
-                // 應用任何現有的篩選條件
                 applyClientSideFilters()
             }
         } else if (responseData && responseData.content) {
-        } else if (responseData && responseData.content) {
-            // Spring Boot Page 格式
             transactions.value = responseData.content
             totalTransactions.value = responseData.totalElements || responseData.content.length
             debugLog('✅ 交易資料載入成功 (Page格式)', {
@@ -492,7 +367,6 @@ const fetchTransactions = async () => {
                 total: totalTransactions.value
             })
         } else if (responseData && responseData.data) {
-            // 包裝在 data 屬性中
             const dataContent = responseData.data
             if (Array.isArray(dataContent)) {
                 transactions.value = dataContent
@@ -505,51 +379,14 @@ const fetchTransactions = async () => {
                 debugLog('❌ data 屬性不是陣列格式:', dataContent)
                 error.value = 'API 回應 data 屬性格式異常'
             }
-        } else if (responseData === null || responseData === undefined) {
-            // 空回應
-            debugLog('⚠️ API 回應為 null 或 undefined')
-            debugLog('🔍 這可能是因為 axios 回應處理的問題')
-            debugLog('🔍 請檢查 BackAxiosUtil.js 中的回應攔截器')
-
-            transactions.value = []
-            totalTransactions.value = 0
-            error.value = '後端回應為空，可能原因：\n1. axios 回應攔截器問題\n2. 後端返回格式異常\n3. CORS 政策問題'
         } else {
-            // 其他格式
             debugLog('❌ API 回應格式無法識別')
-            debugLog('回應類型:', typeof response?.data)
-            debugLog('回應內容:', response?.data)
-
             error.value = `API 回應格式異常: 收到 ${typeof response?.data} 類型，預期陣列格式`
-
-            // 嘗試看是否是字串格式的JSON
-            if (typeof response?.data === 'string') {
-                try {
-                    const parsed = JSON.parse(response.data)
-                    if (Array.isArray(parsed)) {
-                        transactions.value = parsed
-                        totalTransactions.value = parsed.length
-                        debugLog('✅ 成功解析字串格式的JSON')
-                        error.value = ''
-                    }
-                } catch (parseErr) {
-                    debugLog('❌ JSON 解析失敗:', parseErr)
-                }
-            }
         }
 
     } catch (err) {
         const errorMessage = `獲取交易記錄錯誤: ${err.message || err}`
         debugLog('❌ ' + errorMessage, err)
-        debugLog('錯誤詳情:', {
-            name: err.name,
-            message: err.message,
-            status: err.response?.status,
-            statusText: err.response?.statusText,
-            data: err.response?.data,
-            config: err.config
-        })
-
         console.error('交易記錄載入失敗:', err)
 
         if (err.response?.status === 500) {
@@ -594,13 +431,10 @@ const approveTransaction = async (transaction) => {
             result = await approveSellTransaction(transaction)
         }
 
-        // 移除彈窗，只在審核失敗時才顯示錯誤
         if (!result?.success) {
-            // 顯示後端錯誤訊息
             alert(`審核失敗：${result?.message || '未知錯誤'}`)
             console.error('❌ 審核錯誤詳細：', result)
         }
-        // 審核成功時不顯示彈窗，會自動刷新頁面
     }
 }
 
@@ -618,9 +452,7 @@ const approveBuyTransaction = async (transaction) => {
 
         debugLog('審核申購回應:', response)
 
-        // 檢查回應是否存在（避免 null/undefined）
         if (response) {
-            // 自動刷新數據
             await refreshData()
             debugLog('✅ 申購審核成功，已自動刷新數據')
             return { success: true }
@@ -657,9 +489,7 @@ const approveSellTransaction = async (transaction) => {
 
         debugLog('審核贖回回應:', response)
 
-        // 檢查回應是否存在（避免 null/undefined）
         if (response) {
-            // 自動刷新數據
             await refreshData()
             debugLog('✅ 贖回審核成功，已自動刷新數據')
             return { success: true }
@@ -684,25 +514,64 @@ const approveSellTransaction = async (transaction) => {
 
 // 工具方法
 const formatDateTime = (dateTime) => {
-    if (!dateTime) return '-'
+    if (!dateTime) return '---'
     return new Date(dateTime).toLocaleString('zh-TW')
 }
 
 const formatNumber = (number, decimals = 0) => {
-    if (number === null || number === undefined) return '0'
+    if (number === null || number === undefined || number === 0) return '---'
     return new Intl.NumberFormat('zh-TW', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals
     }).format(number)
 }
 
+// 格式化貨幣並添加顏色邏輯
+const formatCurrencyWithColor = (amount) => {
+    if (!amount || amount === 0 || isNaN(amount)) return '---'
+    return 'NT$ ' + Number(amount).toLocaleString('zh-TW', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    })
+}
+
+// 格式化淨值並添加顏色邏輯
+const formatNavWithColor = (nav) => {
+    if (!nav || nav === 0 || isNaN(nav)) return '---'
+    return 'NT$ ' + Number(nav).toLocaleString('zh-TW', {
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4
+    })
+}
+
+// 格式化單位數並添加顏色邏輯
+const formatUnitsWithColor = (units) => {
+    if (!units || units === 0 || isNaN(units)) return '---'
+    return Number(units).toLocaleString('zh-TW', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4
+    })
+}
+
+// 獲取金額顏色類別
+const getAmountColorClass = (tranType) => {
+    if (tranType === '申購') return 'amount-negative'
+    if (tranType === '贖回') return 'amount-positive'
+    return ''
+}
+
+// 獲取單位數顏色類別
+const getUnitsColorClass = (tranType) => {
+    if (tranType === '申購') return 'units-positive'
+    if (tranType === '贖回') return 'units-negative'
+    return ''
+}
+
 const getCustomerName = (transaction) => {
-    // 根據實際 API 回應結構調整
     return transaction.fundAccount?.member?.mName || '未知客戶'
 }
 
 const getCustomerId = (transaction) => {
-    // 根據實際 API 回應結構調整
     return transaction.fundAccount?.account?.accountId ||
         transaction.fundAccount?.member?.mAccount ||
         ''
@@ -728,22 +597,24 @@ const getTransactionTypeClass = (type) => {
 
 const getStatusClass = (status) => {
     const classMap = {
-        '成功': 'success',
-        '處理中': 'processing',
-        '失敗': 'failed',
-        '待審核': 'pending'
+        '成功': 'status-success',
+        '交易成功': 'status-success',
+        '處理中': 'status-processing',
+        '失敗': 'status-failed',
+        '待審核': 'status-pending'
     }
     return classMap[status] || ''
 }
 
 const getStatusIcon = (status) => {
     const iconMap = {
-        '成功': 'mdi-check-circle',
-        '處理中': 'mdi-clock',
-        '失敗': 'mdi-alert-circle',
-        '待審核': 'mdi-help-circle'
+        '成功': 'mdi mdi-check-circle',
+        '交易成功': 'mdi mdi-check-circle',
+        '處理中': 'mdi mdi-clock',
+        '失敗': 'mdi mdi-alert-circle',
+        '待審核': 'mdi mdi-help-circle'
     }
-    return iconMap[status] || 'mdi-help-circle'
+    return iconMap[status] || 'mdi mdi-help-circle'
 }
 
 const getFundCode = (transaction) => {
@@ -761,12 +632,10 @@ const sortBy = (field) => {
         sortDirection.value = 'asc'
     }
 
-    // 前端排序
     const sorted = [...transactions.value].sort((a, b) => {
         let aVal = a[field]
         let bVal = b[field]
 
-        // 特殊欄位處理
         if (field === 'customerName') {
             aVal = getCustomerName(a)
             bVal = getCustomerName(b)
@@ -775,13 +644,11 @@ const sortBy = (field) => {
             bVal = getFundName(b)
         }
 
-        // 數字類型排序
         if (field === 'amount' || field === 'fee' || field === 'units' || field === 'nav' || field === 'fundTranId') {
             aVal = parseFloat(aVal) || 0
             bVal = parseFloat(bVal) || 0
         }
 
-        // 日期類型排序
         if (field === 'tranTime') {
             aVal = new Date(aVal).getTime()
             bVal = new Date(bVal).getTime()
@@ -806,22 +673,10 @@ const clearFilters = () => {
     startDate.value = ''
     endDate.value = ''
 
-    // 重置為原始資料
     transactions.value = allTransactions.value
     totalTransactions.value = allTransactions.value.length
 
     debugLog('✅ 篩選已清除，顯示全部', totalTransactions.value, '筆記錄')
-}
-
-// 狀態篩選處理（暫時停用，因為會產生 500 錯誤）
-const handleStatusFilter = () => {
-    debugLog('⚠️ 狀態篩選暫時停用 - 後端回傳 500 錯誤')
-    console.warn('狀態篩選功能暫時停用，因為後端 Controller 不支援 status 參數')
-
-    // 重置狀態篩選
-    selectedStatus.value = ''
-
-    alert('狀態篩選功能暫時停用\n原因：後端 Controller 的 status 參數會產生 500 錯誤\n請聯繫後端開發者修正此問題')
 }
 
 const refreshData = async () => {
@@ -830,7 +685,6 @@ const refreshData = async () => {
         loading.value = true
         error.value = ''
 
-        // 並行載入統計和交易記錄
         await Promise.all([
             fetchStats(),
             fetchTransactions()
@@ -846,118 +700,6 @@ const refreshData = async () => {
     }
 }
 
-// 操作方法
-const openNewTransactionModal = () => {
-    debugLog('➕ 開啟新增交易對話框')
-
-    // 簡單的新增交易功能演示
-    const tranType = prompt('請選擇交易類型 (申購/贖回):')
-
-    if (!tranType || !['申購', '贖回'].includes(tranType)) {
-        alert('請輸入有效的交易類型 (申購 或 贖回)')
-        return
-    }
-
-    const amount = prompt('請輸入交易金額:')
-
-    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-        alert('請輸入有效的交易金額')
-        return
-    }
-
-    if (tranType === '申購') {
-        createBuyTransaction({
-            fundAccId: 2, // 使用現有的基金帳戶
-            fundId: 1,    // 使用現有的基金
-            amount: parseFloat(amount)
-        })
-    } else {
-        createSellTransaction({
-            fundAccId: 2,
-            fundId: 1,
-            amount: parseFloat(amount)
-        })
-    }
-}
-
-const createBuyTransaction = async (data) => {
-    debugLog('📈 創建申購交易:', data)
-
-    const result = await buyFund(data)
-
-    if (result.success) {
-        alert('申購交易創建成功！')
-    } else {
-        alert(`申購交易創建失敗: ${result.message}`)
-    }
-}
-
-const createSellTransaction = async (data) => {
-    debugLog('📉 創建贖回交易:', data)
-
-    const result = await sellFund(data)
-
-    if (result.success) {
-        alert('贖回交易創建成功！')
-    } else {
-        alert(`贖回交易創建失敗: ${result.message}`)
-    }
-}
-
-const exportTransactions = async () => {
-    debugLog('📤 開始匯出交易記錄')
-
-    // 前端匯出為 CSV 格式
-    try {
-        const headers = [
-            '交易編號', '交易日期', '客戶姓名', '帳戶ID', '基金名稱', '基金代碼',
-            '交易類型', '交易金額', '手續費', '單位數量', '淨值', '狀態', '備註'
-        ]
-
-        const csvData = transactions.value.map(t => [
-            t.fundTranId,
-            formatDateTime(t.tranTime),
-            getCustomerName(t),
-            getCustomerId(t),
-            getFundName(t),
-            getFundCode(t),
-            t.tranType,
-            t.amount,
-            t.fee,
-            t.units,
-            t.nav,
-            t.status,
-            t.memo || ''
-        ])
-
-        // 組合 CSV 內容
-        const csvContent = [
-            headers.join(','),
-            ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
-        ].join('\n')
-
-        // 創建下載
-        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' })
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = `基金交易記錄_${new Date().toISOString().split('T')[0]}.csv`
-        link.click()
-        window.URL.revokeObjectURL(url)
-
-        debugLog('✅ 匯出完成')
-
-    } catch (err) {
-        debugLog('❌ 匯出失敗:', err)
-        alert('匯出失敗: ' + err.message)
-    }
-}
-
-const viewTransaction = (transaction) => {
-    debugLog('👁️ 查看交易詳情:', transaction.fundTranId)
-    console.log('查看交易詳情:', transaction)
-}
-
 const rejectTransaction = async (transaction) => {
     debugLog('❌ 拒絕交易:', transaction.fundTranId)
     console.log('拒絕交易功能需要後端新增對應端點')
@@ -966,7 +708,7 @@ const rejectTransaction = async (transaction) => {
 
 // 監聽器
 watch([selectedTransactionType, selectedStatus, startDate, endDate], () => {
-    currentPage.value = 0 // 篩選條件改變時回到第一頁
+    currentPage.value = 0
 })
 
 // 生命週期
@@ -976,16 +718,42 @@ onMounted(async () => {
     debugLog('=== 頁面初始化 ===')
     debugLog('API Base:', API_BASE)
 
-    console.log('📡 將直接連接後端資料庫')
-    console.log('🔗 API 端點:', API_BASE)
-
-    // 立即載入資料
     await refreshData()
 })
-
 </script>
 
 <style scoped>
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+.header-content h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-content i {
+    color: #667eea;
+}
+
+.page-subtitle {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin: 0;
+}
+
 .fund-transaction-container {
     padding: 24px;
     background-color: #f8f9fa;
@@ -1037,97 +805,6 @@ onMounted(async () => {
     margin-right: 0.5rem;
 }
 
-/* 錯誤訊息樣式 */
-.error-message {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    border: 1px solid #fca5a5;
-    color: #991b1b;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
-}
-
-.error-message .mdi {
-    font-size: 1.5rem;
-    margin-top: 2px;
-    flex-shrink: 0;
-}
-
-.error-message h3 {
-    margin: 0 0 8px 0;
-    font-size: 1.125rem;
-    font-weight: 600;
-}
-
-.error-message p {
-    margin: 0 0 12px 0;
-    font-size: 0.875rem;
-    line-height: 1.5;
-}
-
-.error-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-}
-
-.error-actions .btn {
-    font-size: 0.875rem;
-    padding: 8px 16px;
-}
-
-.error-debug {
-    background: rgba(0, 0, 0, 0.1);
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    margin-top: 8px;
-}
-
-.error-debug h4 {
-    margin: 0 0 8px 0;
-    font-size: 0.875rem;
-}
-
-.error-debug p {
-    margin: 4px 0;
-    font-family: monospace;
-}
-
-/* 標題區域 */
-.header-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 32px;
-}
-
-.title-area {
-    flex: 1;
-}
-
-.page-title {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #1f2937;
-    margin-bottom: 8px;
-}
-
-.page-subtitle {
-    color: #6b7280;
-    font-size: 1rem;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 12px;
-}
-
 /* 按鈕樣式 */
 .btn {
     padding: 10px 20px;
@@ -1177,87 +854,36 @@ onMounted(async () => {
 .btn-icon {
     padding: 8px;
     border: none;
-    background: none;
     cursor: pointer;
     border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.btn-icon:hover {
-    background-color: #f3f4f6;
-}
-
-.btn-icon.danger:hover {
-    background-color: #fef2f2;
-    color: #dc2626;
-}
-
-/* 統計卡片 */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
-}
-
-.stat-card {
-    background: white;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.stat-header {
+    transition: all 0.2s;
     display: flex;
     align-items: center;
-    gap: 16px;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
 }
 
-.stat-icon {
-    font-size: 2.5rem;
-    padding: 12px;
-    border-radius: 12px;
-    background-color: #f3f4f6;
+.btn-approve {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
-.stat-icon.green {
-    color: #10b981;
-    background-color: #d1fae5;
+.btn-approve:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
 }
 
-.stat-icon.red {
-    color: #ef4444;
-    background-color: #fee2e2;
+.btn-reject {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
-.stat-icon.blue {
-    color: #3b82f6;
-    background-color: #dbeafe;
-}
-
-.stat-icon.orange {
-    color: #f59e0b;
-    background-color: #fef3c7;
-}
-
-.stat-info h3 {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin-bottom: 4px;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #1f2937;
-    margin-bottom: 4px;
-}
-
-.stat-change {
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    color: #6b7280;
+.btn-reject:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
 }
 
 /* 篩選區域 */
@@ -1352,6 +978,11 @@ onMounted(async () => {
     background-color: #f3f4f6;
 }
 
+.transaction-table th.status-column {
+    min-width: 140px;
+    width: 140px;
+}
+
 .transaction-table td {
     padding: 16px;
     border-bottom: 1px solid #f3f4f6;
@@ -1366,12 +997,6 @@ onMounted(async () => {
     margin-left: 4px;
     font-size: 0.75rem;
     opacity: 0.5;
-}
-
-.transaction-id {
-    font-family: monospace;
-    font-weight: 600;
-    color: #3b82f6;
 }
 
 .customer-info,
@@ -1399,8 +1024,8 @@ onMounted(async () => {
 }
 
 .transaction-type.purchase {
-    background-color: #d1fae5;
-    color: #065f46;
+    background: #e3f2fd;
+    color: #1976d2;
 }
 
 .transaction-type.redemption {
@@ -1413,10 +1038,29 @@ onMounted(async () => {
     color: #1e40af;
 }
 
+/* 金額和單位數顏色樣式 */
 .amount,
-.fee {
+.fee,
+.nav,
+.units {
     font-weight: 600;
     text-align: right;
+}
+
+.amount-positive {
+    color: #dc3545 !important;
+}
+
+.amount-negative {
+    color: #28a745 !important;
+}
+
+.units-positive {
+    color: #dc3545 !important;
+}
+
+.units-negative {
+    color: #28a745 !important;
 }
 
 .memo {
@@ -1428,6 +1072,7 @@ onMounted(async () => {
     color: #6b7280;
 }
 
+/* 狀態樣式 - 參考會員交易紀錄 */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -1436,26 +1081,32 @@ onMounted(async () => {
     border-radius: 16px;
     font-size: 0.75rem;
     font-weight: 500;
+    min-width: 80px;
+    justify-content: center;
 }
 
-.status-badge.success {
+.status-badge.status-success {
     background-color: #d1fae5;
     color: #065f46;
 }
 
-.status-badge.processing {
-    background-color: #fef3c7;
-    color: #92400e;
+.status-badge.status-processing {
+    background-color: #cce5ff;
+    color: #004085;
 }
 
-.status-badge.failed {
+.status-badge.status-failed {
     background-color: #fee2e2;
     color: #991b1b;
 }
 
-.status-badge.pending {
-    background-color: #e0e7ff;
-    color: #3730a3;
+.status-badge.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-icon {
+    font-size: 0.875rem;
 }
 
 .action-buttons {
@@ -1485,79 +1136,8 @@ onMounted(async () => {
     gap: 8px;
 }
 
-/* 動畫效果 */
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.mdi-spin {
-    animation: spin 1s linear infinite;
-}
-
-/* 響應式設計 */
-@media (max-width: 1024px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .filter-controls {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .filter-select,
-    .filter-date {
-        width: 100%;
-    }
-}
-
-@media (max-width: 768px) {
-    .fund-transaction-container {
-        padding: 16px;
-    }
-
-    .header-section {
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .action-buttons {
-        width: 100%;
-        flex-direction: column;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    .transaction-table {
-        min-width: 1000px;
-    }
-
-    .pagination-container {
-        flex-direction: column;
-        gap: 12px;
-    }
-}
-
 /* 表格行hover效果 */
 .transaction-table tbody tr {
     transition: background-color 0.2s;
-}
-
-/* 操作按鈕群組 */
-.action-buttons {
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.transaction-table tbody tr:hover .action-buttons {
-    opacity: 1;
 }
 </style>

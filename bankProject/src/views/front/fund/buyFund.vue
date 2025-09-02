@@ -1,3 +1,4 @@
+<!-- 基金申購 buyFund.vue -->
 <template>
   <div class="fund-management-page">
 
@@ -9,47 +10,6 @@
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input v-model="searchKeyword" type="text" placeholder="搜尋基金名稱或代碼..." class="search-input" />
-      </div>
-    </div>
-
-    <!-- 統計卡片 -->
-    <div class="stats-grid">
-      <div class="stat-card stat-card-primary">
-        <div class="stat-icon">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">可申購基金</div>
-          <div class="stat-value">{{ availableFundsCount }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-card-success">
-        <div class="stat-icon">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-          </svg>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">總基金檔數</div>
-          <div class="stat-value">{{ funds.length }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-card-warning">
-        <div class="stat-icon">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-          </svg>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">平均手續費</div>
-          <div class="stat-value">{{ averageBuyFee }}%</div>
-        </div>
       </div>
     </div>
 
@@ -146,7 +106,7 @@
             <label class="form-label">申購金額 (元) <span class="required">*</span></label>
             <input type="number" v-model.number="tradeAmount" class="form-input" placeholder="請輸入申購金額" min="1000"
               step="100" />
-            <p class="form-help">建議最低申購金額：NT$ 1,000</p>
+            <p class="form-help">最低申購金額：NT$ 1,000</p>
           </div>
 
           <!-- 費用試算 -->
@@ -475,7 +435,7 @@ onMounted(() => {
 /* 基礎樣式 */
 .fund-management-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f5f7fa;
   padding: 2rem;
 }
 
@@ -1074,78 +1034,6 @@ onMounted(() => {
   border-top: 2px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-}
-
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .fund-management-page {
-    padding: 1rem;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .action-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-box {
-    max-width: none;
-  }
-
-  .modal {
-    max-width: none;
-    margin: 0;
-    border-radius: 0;
-    height: 100vh;
-  }
-
-  .fund-table th,
-  .fund-table td {
-    padding: 0.5rem;
-    font-size: 0.75rem;
-  }
-
-  .fund-name {
-    max-width: 150px;
-  }
-}
-
-@media (max-width: 640px) {
-  .stat-value {
-    font-size: 1.5rem;
-  }
-
-  .table-wrapper {
-    font-size: 0.75rem;
-  }
-
-  .modal-header {
-    padding: 1rem;
-  }
-
-  .modal-body {
-    padding: 1rem;
-  }
-
-  .modal-footer {
-    padding: 1rem;
-  }
-}
-
-/* 動畫效果 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .fund-table tbody tr {

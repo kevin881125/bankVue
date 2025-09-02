@@ -1,3 +1,4 @@
+<!-- 會員持有基金 myFundHoldings.vue - 更新後的樣式-->
 <template>
   <div class="fund-holdings-container">
     <!-- 載入中狀態 -->
@@ -17,81 +18,37 @@
 
     <!-- 有持有基金 -->
     <div v-else class="holdings-content">
-      <!-- 總覽卡片 -->
-      <div class="overview-cards">
-        <div class="overview-card total-value">
-          <div class="card-icon">
-            <i class="fas fa-wallet"></i>
-          </div>
-          <div class="card-content">
-            <h4>總持有金額</h4>
-            <div class="amount">{{ formatCurrency(totalValue) }}</div>
-          </div>
-        </div>
-
-        <div class="overview-card total-return">
-          <div class="card-icon">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <div class="card-content">
-            <h4>總損益</h4>
-            <div class="amount" :class="totalReturnClass">
-              {{ formatCurrency(totalReturn, true) }}
-            </div>
-            <div class="percentage" :class="totalReturnClass">
-              ({{ formatPercentage(totalReturnPercentage) }})
-            </div>
-          </div>
-        </div>
-
-        <div class="overview-card fund-count">
-          <div class="card-icon">
-            <i class="fas fa-layer-group"></i>
-          </div>
-          <div class="card-content">
-            <h4>持有檔數</h4>
-            <div class="amount">{{ holdings.length }} 檔</div>
-          </div>
-        </div>
-      </div>
-
       <!-- 基金清單 -->
       <div class="holdings-list">
-        <div class="list-header">
-          <h3>
-            <i class="fas fa-list"></i>
-            持有基金明細
-          </h3>
-          <div class="header-actions">
-            <button @click="refreshHoldings" class="btn-refresh">
-              <i class="fas fa-sync-alt" :class="{ 'fa-spin': refreshing }"></i>
-              重新整理
-            </button>
-          </div>
-        </div>
 
         <div class="holdings-table">
           <div class="table-header">
+            <div class="col-fundCode">基金代碼</div>
             <div class="col-fund">基金名稱</div>
+            <div class="col-fundType">基金類型</div>
+            <div class="col-riskType">風險等級</div>
             <div class="col-units">持有單位數</div>
             <div class="col-nav">淨值</div>
             <div class="col-value">市值</div>
-            <div class="col-return">損益</div>
-            <div class="col-percentage">報酬率</div>
             <div class="col-actions">操作</div>
           </div>
 
           <div class="table-body">
             <div v-for="holding in holdings" :key="holding.holdingId" class="table-row">
-              <div class="col-fund" data-label="基金名稱">
-                <div class="fund-info">
-                  <div class="fund-name">{{ holding.fundName || '未知基金' }}</div>
-                  <div class="fund-code">{{ holding.fundCode || holding.fundId }}</div>
-                  <div class="fund-type">{{ getFundTypeLabel(holding.fund_type) }}</div>
-                  <div class="risk-level">風險等級: {{ holding.risk_level || 'N/A' }}</div>
-                </div>
+              <div class="col-fundCode" data-label="基金代碼">
+                <span class="fund-code">{{ holding.fundCode || holding.fundId }}</span>
               </div>
-
+              <div class="col-fund" data-label="基金名稱">
+                <div class="fund-name">{{ holding.fundName || '未知基金' }}</div>
+              </div>
+              <div class="col-fundType" data-label="基金類型">
+                <span class="fund-type">{{ getFundTypeLabel(holding.fund_type) }}</span>
+              </div>
+              <div class="col-riskType" data-label="風險等級">
+                <span class="risk-level" :class="getRiskClass(holding.risk_level)">
+                  {{ getRiskLevelText(holding.risk_level) }}
+                </span>
+              </div>
               <div class="col-units" data-label="持有單位數">
                 <div class="units-info">
                   <div class="units">{{ formatNumber(holding.units) }}</div>
@@ -108,18 +65,6 @@
 
               <div class="col-value" data-label="市值">
                 <div class="market-value">{{ formatCurrency(calculateMarketValue(holding)) }}</div>
-              </div>
-
-              <div class="col-return" data-label="損益">
-                <div class="return-info" :class="getReturnClass(calculateReturn(holding))">
-                  <div class="return-amount">{{ formatCurrency(calculateReturn(holding), true) }}</div>
-                </div>
-              </div>
-
-              <div class="col-percentage" data-label="報酬率">
-                <div class="percentage-info" :class="getReturnClass(calculateReturn(holding))">
-                  {{ formatPercentage(calculateReturnPercentage(holding)) }}
-                </div>
               </div>
 
               <div class="col-actions" data-label="操作">
@@ -163,7 +108,7 @@
             <div class="trade-info">
               <h4>{{ selectedFund.fundName }}</h4>
               <p class="fund-details">{{ selectedFund.fundCode }} | {{ getFundTypeLabel(selectedFund.fund_type) }}</p>
-              <p class="fund-details">風險等級：{{ selectedFund.risk_level }}</p>
+              <p class="fund-details">風險等級：{{ getRiskLevelText(selectedFund.risk_level) }}</p>
               <p class="nav-info">最新淨值：{{ formatCurrency(selectedFund.latestNav) }}</p>
 
               <!-- 申購資訊 -->
@@ -174,7 +119,6 @@
               <!-- 贖回資訊 -->
               <div v-if="tradeType === 'sell'">
                 <p class="holding-info">目前持有：{{ formatNumber(selectedFund.units) }} 單位</p>
-                <p class="fee-info">贖回手續費：{{ formatPercentage(selectedFund.sellFee || 0) }}</p>
                 <p class="market-value-info">目前市值：{{ formatCurrency(calculateMarketValue(selectedFund)) }}</p>
               </div>
             </div>
@@ -185,7 +129,7 @@
                 <label class="form-label">申購金額 (元) <span class="required">*</span></label>
                 <input type="number" v-model.number="tradeAmount" class="form-input" placeholder="請輸入申購金額" min="1000"
                   step="100" />
-                <p class="form-help">建議最低申購金額：NT$ 1,000</p>
+                <p class="form-help">最低申購金額：NT$ 1,000</p>
               </div>
 
               <div class="trade-summary" v-if="tradeAmount > 0">
@@ -336,14 +280,6 @@ const isTradeValid = computed(() => {
   }
 })
 
-const totalValue = computed(() => holdings.value.reduce((sum, h) => sum + calculateMarketValue(h), 0))
-const totalReturn = computed(() => holdings.value.reduce((sum, h) => sum + calculateReturn(h), 0))
-const totalReturnPercentage = computed(() => {
-  const totalCost = holdings.value.reduce((sum, h) => sum + (parseFloat(h.cost) || 0), 0)
-  return totalCost > 0 ? (totalReturn.value / totalCost) * 100 : 0
-})
-const totalReturnClass = computed(() => (totalReturn.value >= 0 ? 'profit' : 'loss'))
-
 const canBuyFund = (status) => status === 'OPEN' || status === '上架中'
 const canSellFund = (holding) => (holding.status === 'OPEN' || holding.status === '上架中') && holding.units > 0
 
@@ -375,7 +311,6 @@ const closeTradeDialog = () => {
   submitting.value = false
 }
 
-const goToFundList = () => router.push('/yuzubank/fund/list')
 const viewDetails = (holding) => router.push(`/yuzubank/fund/detail/${holding.fundId}`)
 
 const fetchHoldings = async (fundAccId = null) => {
@@ -400,12 +335,6 @@ const fetchHoldings = async (fundAccId = null) => {
   finally { loading.value = false }
 }
 
-const refreshHoldings = async () => {
-  refreshing.value = true
-  await fetchHoldings()
-  refreshing.value = false
-}
-
 const processHoldingData = (h) => ({
   holdingId: h.holdingId,
   fundAccId: h.fundAccId,
@@ -424,18 +353,68 @@ const processHoldingData = (h) => ({
 
 const calculateMarketValue = (h) => parseFloat(h.latestNav || 0) * parseFloat(h.units || 0)
 const calculateReturn = (h) => calculateMarketValue(h) - parseFloat(h.cost || 0)
-const calculateReturnPercentage = (h) => parseFloat(h.cost || 0) > 0 ? (calculateReturn(h) / h.cost) * 100 : 0
 
 const formatCurrency = (amount, showSign = false) => {
-  if (amount == null || isNaN(amount)) return 'NT$ 0'
+  if (amount == null || isNaN(amount) || amount === 0) return '---'
   const sign = showSign && amount > 0 ? '+' : ''
   return `${sign}NT$ ${Math.abs(amount).toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
 }
-const formatNumber = (n) => (n == null || isNaN(n) ? '0' : parseFloat(n).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 6 }))
-const formatPercentage = (p) => { const sign = p > 0 ? '+' : ''; return `${sign}${(p || 0).toFixed(2)}%` }
-const formatDate = (d) => { if (!d) return 'N/A'; try { return new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }) } catch { return 'N/A' } }
-const getReturnClass = (v) => v >= 0 ? 'profit' : 'loss'
-const getFundTypeLabel = (t) => ({ 'EQUITY': '股票型', 'BOND': '債券型', 'BALANCED': '平衡型', 'MONEY_MARKET': '貨幣市場型', 'INDEX': '指數型', 'ETF': 'ETF', 'REIT': '不動產型' }[t] || t || 'N/A')
+
+const formatNumber = (n) => {
+  if (n == null || isNaN(n) || n === 0) return '---'
+  return parseFloat(n).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
+}
+
+const formatPercentage = (p) => {
+  if (p == null || isNaN(p) || p === 0) return '---'
+  const sign = p > 0 ? '' : ''
+  return `${sign}${(p || 0).toFixed(2)}%`
+}
+
+const formatDate = (d) => {
+  if (!d) return '---'
+  try {
+    return new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
+  } catch {
+    return '---'
+  }
+}
+
+const getFundTypeLabel = (t) => {
+  const typeMap = {
+    'EQUITY': '股票型',
+    'BOND': '債券型',
+    'BALANCED': '平衡型',
+    'MONEY_MARKET': '貨幣市場型',
+    'INDEX': '指數型',
+    'ETF': 'ETF',
+    'REIT': '不動產型'
+  }
+  return typeMap[t] || t || 'N/A'
+}
+
+// 風險等級樣式和文字
+const getRiskClass = (level) => {
+  const classes = {
+    1: 'risk-1',
+    2: 'risk-2',
+    3: 'risk-3',
+    4: 'risk-4',
+    5: 'risk-5'
+  }
+  return classes[level] || 'risk-1'
+}
+
+const getRiskLevelText = (level) => {
+  const texts = {
+    1: 'RR1',
+    2: 'RR2',
+    3: 'RR3',
+    4: 'RR4',
+    5: 'RR5'
+  }
+  return texts[level] || 'RR1'
+}
 
 // 執行交易
 const executeTrade = async () => {
@@ -574,133 +553,12 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
   margin-bottom: 30px;
 }
 
-.btn-start-investing {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-start-investing:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-/* 總覽卡片 */
-.overview-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.overview-card {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.card-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
-}
-
-.total-value .card-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.total-return .card-icon {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.fund-count .card-icon {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.card-content h4 {
-  color: #6c757d;
-  font-size: 0.9rem;
-  margin: 0 0 8px 0;
-  font-weight: 500;
-}
-
-.card-content .amount {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 4px;
-}
-
-.card-content .percentage {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.profit {
-  color: #28a745;
-}
-
-.loss {
-  color: #dc3545;
-}
-
 /* 基金清單 */
 .holdings-list {
   background: white;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-}
-
-.list-header {
-  padding: 24px;
-  border-bottom: 1px solid #e9ecef;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.list-header h3 {
-  color: #2c3e50;
-  font-size: 1.3rem;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.btn-refresh {
-  padding: 8px 16px;
-  background: #17a2b8;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-refresh:hover {
-  background: #138496;
 }
 
 /* 表格樣式 */
@@ -710,7 +568,7 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
 
 .table-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1.5fr;
+  grid-template-columns: 0.7fr 1fr 1.1fr 0.7fr 1fr 1fr 1fr 1fr;
   gap: 16px;
   padding: 16px 24px;
   background: #f8f9fa;
@@ -726,7 +584,7 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
 
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1.5fr;
+  grid-template-columns: 0.7fr 1fr 1.3fr 0.7fr 1fr 1fr 1fr 1fr;
   gap: 16px;
   padding: 20px 24px;
   border-bottom: 1px solid #f1f3f4;
@@ -737,37 +595,65 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
   background: #f8f9fa;
 }
 
-/* 各欄位樣式 */
-.fund-info .fund-name {
+/* 各欄位樣式 - 參考申購基金樣式 */
+.fund-code {
+  background: #e9ecef;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.fund-name {
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 4px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.fund-info .fund-code {
-  font-size: 0.85rem;
-  color: #6c757d;
-  margin-bottom: 2px;
-}
-
-.fund-info .fund-type {
-  font-size: 0.8rem;
+.fund-type {
   color: #007bff;
   font-weight: 500;
-  margin-bottom: 2px;
+  font-size: 14px;
 }
 
-.fund-info .risk-level {
-  font-size: 0.75rem;
-  color: #ffc107;
-  font-weight: 500;
+.risk-level {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  color: white;
+  display: inline-block;
 }
 
-.units-info,
-.nav-info,
-.return-info,
-.percentage-info {
-  text-align: right;
+.risk-1 {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.risk-2 {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.risk-3 {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.risk-4 {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+.risk-5 {
+  background: #fce7f3;
+  color: #be185d;
 }
 
 .units-info .units {
@@ -782,7 +668,7 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
 
 .nav-info .nav-price {
   font-weight: 600;
-  color: #2c3e50;
+  color: #28a745;
 }
 
 .nav-info .nav-date {
@@ -793,7 +679,7 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
 .market-value,
 .return-amount {
   font-weight: 600;
-  text-align: right;
+  color: #2c3e50;
 }
 
 .action-buttons {
@@ -805,110 +691,55 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
 .btn-action {
   padding: 6px 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 4px;
+  font-weight: 500;
 }
 
 .btn-buy {
-  background: #28a745;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   color: white;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
 }
 
 .btn-buy:hover:not(:disabled) {
-  background: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.5);
 }
 
 .btn-sell {
-  background: #dc3545;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   color: white;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
 .btn-sell:hover:not(:disabled) {
-  background: #c82333;
-}
-
-.btn-action:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-  opacity: 0.6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.5);
 }
 
 .btn-detail {
-  background: #6c757d;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   color: white;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .btn-detail:hover {
-  background: #545b62;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.5);
 }
 
-/* 響應式設計 */
-@media (max-width: 1200px) {
-
-  .table-header,
-  .table-row {
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 2fr;
-  }
-
-  .col-percentage {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .fund-holdings-container {
-    padding: 15px;
-  }
-
-  .overview-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .table-header {
-    display: none;
-  }
-
-  .table-row {
-    display: block;
-    padding: 16px;
-    margin-bottom: 8px;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-    grid-template-columns: none;
-  }
-
-  .table-row>div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    padding: 4px 0;
-  }
-
-  .table-row>div:before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #6c757d;
-    min-width: 80px;
-  }
-
-  .fund-info {
-    display: block !important;
-  }
-
-  .fund-info:before {
-    display: none;
-  }
-
-  .action-buttons {
-    justify-content: flex-start;
-    margin-top: 10px;
-  }
+.btn-action:disabled {
+  background: #6c757d !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* 模態對話框樣式 */

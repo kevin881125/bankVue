@@ -1,5 +1,12 @@
+<!-- 基金管理 fund.vue - 完整更新版 -->
 <template>
     <div class="fund-management-container">
+        <!-- 載入遮罩 -->
+        <div v-if="loading" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>處理中...</p>
+        </div>
+
         <!-- 頁面標題 -->
         <div class="page-header">
             <div class="header-content">
@@ -10,31 +17,21 @@
                 <p class="page-subtitle">管理所有基金產品的資訊與設定</p>
             </div>
 
-            <!-- 在表格標題區域新增批量更新淨值按鈕 -->
-            <!-- 原本的 table-actions 區域修改為： -->
+            <!-- 操作按鈕區域 -->
             <div class="table-actions">
                 <!-- 新增基金按鈕 -->
                 <button class="add-fund-btn" @click="openCreateDialog">
                     <i class="fas fa-plus"></i>
                     新增基金
                 </button>
-                <button class="refresh-btn" @click="fetchFunds" :disabled="loading">
-                    <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
-                    重新整理
-                </button>
-                <!-- 🆕 新增批量更新淨值按鈕 -->
-                <button class="batch-nav-btn" @click="openBatchNavDialog" :disabled="loading || batchUpdating">
+                <!-- 批量更新淨值按鈕 -->
+                <button class="add-fund-btn batch-nav-btn" @click="openBatchNavDialog"
+                    :disabled="loading || batchUpdating">
                     <i class="fas fa-calculator" :class="{ 'fa-spin': batchUpdating }"></i>
                     {{ batchUpdating ? '更新中...' : '批量更新淨值' }}
                 </button>
-                <!-- 🆕 系統統計按鈕（可選） -->
-                <button class="system-info-btn" @click="getNavSystemInfo" :disabled="loading">
-                    <i class="fas fa-chart-bar"></i>
-                    系統統計
-                </button>
             </div>
 
-            <!-- 🆕 批量更新淨值彈窗 - 在主要彈窗後面新增 -->
             <!-- 批量更新淨值彈窗 -->
             <div v-if="showBatchNavDialog" class="modal-overlay" @click="closeBatchNavDialog">
                 <div class="modal-container batch-nav-modal" @click.stop>
@@ -102,38 +99,6 @@
                     </div>
                 </div>
             </div>
-
-        </div>
-
-        <!-- 統計卡片 -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon total">
-                    <i class="fas fa-layer-group"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>總基金數</h3>
-                    <p>{{ funds.length }}</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon active">
-                    <i class="fas fa-play-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>開放中</h3>
-                    <p>{{funds.filter(f => isOpenStatus(f.status)).length}}</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon closed">
-                    <i class="fas fa-pause-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>已關閉</h3>
-                    <p>{{funds.filter(f => !isOpenStatus(f.status)).length}}</p>
-                </div>
-            </div>
         </div>
 
         <!-- 搜尋區 -->
@@ -197,12 +162,11 @@
                                 <div class="action-buttons">
                                     <button class="action-btn edit-btn" @click="openEditDialog(fund)" title="編輯">
                                         <i class="fas fa-edit"></i>
+                                        編輯
                                     </button>
-                                    <!-- ✅ 新增「改變狀態」按鈕 -->
-                                    <button
-                                        class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
-                                        @click="toggleFundStatusWithConfirm(fund)"
+                                    <button class="action-btn toggle-btn" @click="toggleFundStatusWithConfirm(fund)"
                                         :title="`${getToggleButtonText(fund.status)}基金`">
+                                        <i :class="fund.status === 'OPEN' ? 'fas fa-pause' : 'fas fa-play'"></i>
                                         {{ getToggleButtonText(fund.status) }}
                                     </button>
                                 </div>
@@ -378,12 +342,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- 載入遮罩 -->
-        <div v-if="loading" class="loading-overlay">
-            <div class="loading-spinner"></div>
-            <p>處理中...</p>
-        </div>
     </div>
 </template>
 
@@ -412,18 +370,22 @@ const form = ref({
 
 const apiUrl = "http://localhost:8080/bank/fund";
 
+// 批量更新相關
+const batchUpdating = ref(false);
+const showBatchNavDialog = ref(false);
+const batchNavDate = ref(new Date().toISOString().split('T')[0]);
+
 // 基金範本資料
 const fundTemplates = ref([
     {
         id: 1,
-        name: "台股基金",
-        description: "台灣股票型基金",
+        name: "合庫台灣高科技基金",
         icon: "fas fa-flag",
         color: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         data: {
-            fundCode: "TW001A",
-            fundName: "台灣精選股票基金A類型",
-            fundType: "EQUITY",
+            fundCode: "77713842",
+            fundName: "合庫台灣高科技基金",
+            fundType: "國內股票開放型一般股票型",
             riskLevel: 4,
             currency: "TWD",
             comAccId: "7110000065",
@@ -435,14 +397,13 @@ const fundTemplates = ref([
     },
     {
         id: 2,
-        name: "美股基金",
-        description: "美國股票型基金",
+        name: "復華華人世紀基金",
         icon: "fas fa-star-spangled-banner",
         color: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
         data: {
-            fundCode: "US001A",
-            fundName: "美國成長股票基金A類型",
-            fundType: "EQUITY",
+            fundCode: "10374246",
+            fundName: "復華華人世紀基金",
+            fundType: "跨國投資股票型全球市場",
             riskLevel: 5,
             currency: "USD",
             comAccId: "7110000076",
@@ -466,7 +427,6 @@ const filteredFunds = computed(() => {
     );
 });
 
-// 修正後的表單驗證
 const isFormValid = computed(() => {
     return form.value.fundCode && form.value.fundCode.trim() !== '' &&
         form.value.fundName && form.value.fundName.trim() !== '' &&
@@ -497,7 +457,6 @@ const fetchFunds = async () => {
 
         console.log('基金管理清單 API 回應:', res.data);
 
-        // 處理不同的回應格式
         if (res.data) {
             if (Array.isArray(res.data)) {
                 funds.value = res.data.map(fund => processFundData(fund));
@@ -519,7 +478,7 @@ const fetchFunds = async () => {
     }
 };
 
-// 處理基金資料 - 對應 FundDto 結構
+// 處理基金資料
 const processFundData = (fund) => {
     return {
         fundId: fund.fundId,
@@ -536,7 +495,7 @@ const processFundData = (fund) => {
 
 // 格式化函數
 const formatDate = (dateTime) => {
-    if (!dateTime) return "N/A";
+    if (!dateTime) return "---";
     try {
         const date = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
         return date.toLocaleDateString('zh-TW', {
@@ -545,12 +504,12 @@ const formatDate = (dateTime) => {
             day: '2-digit'
         });
     } catch (error) {
-        return "N/A";
+        return "---";
     }
 };
 
 const formatCurrency = (amount) => {
-    if (!amount || amount === 0 || isNaN(amount)) return 'NT$ 0.00';
+    if (!amount || amount === 0 || isNaN(amount)) return '---';
     return 'NT$ ' + Number(amount).toLocaleString('zh-TW', {
         minimumFractionDigits: 4,
         maximumFractionDigits: 4
@@ -558,8 +517,8 @@ const formatCurrency = (amount) => {
 };
 
 const formatPercentage = (percentage) => {
-    if (percentage === null || percentage === undefined || isNaN(percentage)) {
-        return '0.00%';
+    if (percentage === null || percentage === undefined || isNaN(percentage) || percentage === 0) {
+        return '---';
     }
     return parseFloat(percentage).toFixed(2) + '%';
 };
@@ -621,7 +580,7 @@ const getStatusText = (status) => {
 };
 
 const getStatusIcon = (status) => {
-    return isOpenStatus(status) ? 'fas fa-play' : 'fas fa-pause';
+    return isOpenStatus(status) ? 'fas fa-check-circle' : 'fas fa-pause-circle';
 };
 
 // 彈窗操作
@@ -634,11 +593,11 @@ const openCreateDialog = () => {
         fundType: "",
         comAccId: "",
         riskLevel: 4,
-        currency: "TWD", // 修正為 TWD 而不是 "台幣"
+        currency: "TWD",
         size: 1,
         minBuy: 1000,
         buyFee: 1.5,
-        status: "OPEN", // 修正為 OPEN 而不是 "上架中"
+        status: "OPEN",
         launchTime: new Date().toISOString().slice(0, 16),
         latestNav: 10,
         navDate: new Date().toISOString().split('T')[0],
@@ -650,7 +609,6 @@ const openEditDialog = (fund) => {
     isEdit.value = true;
     form.value = { ...fund };
 
-    // 處理 datetime-local 格式
     if (fund.launchTime) {
         try {
             const date = new Date(fund.launchTime);
@@ -660,7 +618,6 @@ const openEditDialog = (fund) => {
         }
     }
 
-    // 格式化日期以符合 date input 格式
     if (fund.navDate) {
         try {
             const date = new Date(fund.navDate);
@@ -677,7 +634,7 @@ const closeDialog = () => {
     dialogVisible.value = false;
 };
 
-// 修正後的儲存函數
+// 儲存函數
 const saveFund = async () => {
     if (!isFormValid.value) {
         alert('請填寫所有必填欄位');
@@ -700,7 +657,6 @@ const saveFund = async () => {
             account: {
                 accountId: parseInt(form.value.comAccId)
             },
-            // 新增淨值相關資料
             initialNav: parseFloat(form.value.latestNav),
             navDate: form.value.navDate
         };
@@ -708,11 +664,9 @@ const saveFund = async () => {
         console.log('基金儲存 payload:', payload);
 
         if (isEdit.value) {
-            // 編輯模式：分別調用基金更新和淨值更新 API
             payload.fundId = form.value.fundId;
             await axios.put(`${apiUrl}/${form.value.fundId}`, payload);
 
-            // 如果淨值有變更，單獨更新淨值
             if (form.value.latestNav && form.value.navDate) {
                 await axios.post(`http://localhost:8080/bank/fund/${form.value.fundId}/nav`, {
                     nav: parseFloat(form.value.latestNav),
@@ -721,7 +675,6 @@ const saveFund = async () => {
             }
             alert("基金更新成功");
         } else {
-            // 新增模式：使用帶淨值的創建端點
             const response = await axios.post(`${apiUrl}/with-nav`, payload, {
                 headers: {
                     'Accept': 'application/json',
@@ -762,15 +715,11 @@ const saveFund = async () => {
     }
 };
 
-onMounted(() => {
-    fetchFunds();
-});
+// 狀態切換
 const toggleFundStatus = async (fund) => {
     try {
-        // 根據當前狀態決定新狀態
         const newStatus = fund.status === 'OPEN' ? 'CLOSED' : 'OPEN';
 
-        // 調用正確的 API 端點
         const response = await axios.put(`${apiUrl}/${fund.fundId}/status`, {
             status: newStatus,
         }, {
@@ -780,22 +729,16 @@ const toggleFundStatus = async (fund) => {
             }
         });
 
-        // 更新本地數據
         const fundIndex = funds.value.findIndex(f => f.fundId === fund.fundId);
         if (fundIndex !== -1) {
             funds.value[fundIndex].status = newStatus;
         }
 
-        // 顯示成功訊息
         const statusText = newStatus === 'OPEN' ? '開放' : '關閉';
-        console.log(`基金 ${fund.fundCode} 狀態已改為「${statusText}」`);
-
-        // 如果有使用 UI 提示框架，可以替換為相應的提示方法
         alert(`基金狀態已改為「${statusText}」`);
 
     } catch (error) {
         console.error('更新基金狀態失敗:', error);
-        console.error('錯誤詳細:', error.response?.data);
 
         let errorMessage = "更新基金狀態失敗";
         if (error.response?.data?.message) {
@@ -811,12 +754,11 @@ const toggleFundStatus = async (fund) => {
         alert(errorMessage);
     }
 };
-// 更新模板中的按鈕顯示文字函數
+
 const getToggleButtonText = (status) => {
     return status === 'OPEN' ? '停用' : '啟用';
 };
 
-// 如果需要確認對話框的版本
 const toggleFundStatusWithConfirm = async (fund) => {
     const currentStatusText = fund.status === 'OPEN' ? '開放' : '關閉';
     const newStatusText = fund.status === 'OPEN' ? '關閉' : '開放';
@@ -827,14 +769,8 @@ const toggleFundStatusWithConfirm = async (fund) => {
         await toggleFundStatus(fund);
     }
 };
-// 在 <script setup> 中新增的 JavaScript 部分
 
-// 新增批量更新淨值相關的響應式數據
-const batchUpdating = ref(false);
-const showBatchNavDialog = ref(false);
-const batchNavDate = ref(new Date().toISOString().split('T')[0]);
-
-// 新增批量更新淨值的函數
+// 批量更新淨值的函數
 const batchUpdateNav = async () => {
     if (!batchNavDate.value) {
         alert('請選擇淨值日期');
@@ -878,7 +814,6 @@ const batchUpdateNav = async () => {
 
             alert(message);
 
-            // 關閉彈窗並重新載入基金清單
             showBatchNavDialog.value = false;
             await fetchFunds();
         } else {
@@ -903,44 +838,18 @@ const batchUpdateNav = async () => {
     }
 };
 
-// 開啟批量更新淨值彈窗
 const openBatchNavDialog = () => {
     batchNavDate.value = new Date().toISOString().split('T')[0];
     showBatchNavDialog.value = true;
 };
 
-// 關閉批量更新淨值彈窗
 const closeBatchNavDialog = () => {
     showBatchNavDialog.value = false;
 };
 
-// 獲取系統統計資訊（可選功能）
-const getNavSystemInfo = async () => {
-    try {
-        const response = await axios.get('http://localhost:8080/bank/fundNav/system-info', {
-            params: {
-                navDate: batchNavDate.value
-            },
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        if (response.data.success) {
-            const info = response.data;
-            let message = `系統淨值統計 (${info.queryDate}):\n`;
-            message += `活躍基金數: ${info.activeFundCount}\n`;
-            message += `已更新淨值: ${info.completedNavCount}\n`;
-            message += `待更新淨值: ${info.pendingNavCount}\n`;
-            message += `完成率: ${info.completionRate}`;
-
-            alert(message);
-        }
-    } catch (error) {
-        console.error('獲取系統資訊失敗:', error);
-        alert('獲取系統資訊失敗');
-    }
-};
+onMounted(() => {
+    fetchFunds();
+});
 </script>
 
 <style scoped>
@@ -1060,6 +969,12 @@ const getNavSystemInfo = async () => {
     margin: 0;
 }
 
+.table-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
 .add-fund-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -1076,69 +991,25 @@ const getNavSystemInfo = async () => {
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.add-fund-btn:hover {
+.add-fund-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
 }
 
-/* 統計卡片 */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 24px;
-    margin-bottom: 32px;
+.add-fund-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
-.stat-card {
-    background: white;
-    padding: 24px;
-    border-radius: 16px;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    transition: transform 0.2s ease;
+.batch-nav-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
 }
 
-.stat-card:hover {
-    transform: translateY(-4px);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: white;
-}
-
-.stat-icon.total {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stat-icon.active {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.stat-icon.closed {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-}
-
-.stat-content h3 {
-    font-size: 14px;
-    color: #6c757d;
-    margin: 0 0 8px 0;
-    font-weight: 500;
-}
-
-.stat-content p {
-    font-size: 28px;
-    font-weight: 700;
-    color: #2c3e50;
-    margin: 0;
+.batch-nav-btn:hover:not(:disabled) {
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.6);
 }
 
 /* 搜尋區 */
@@ -1201,34 +1072,6 @@ const getNavSystemInfo = async () => {
     display: flex;
     align-items: center;
     gap: 12px;
-}
-
-.table-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.refresh-btn {
-    background: #17a2b8;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-}
-
-.refresh-btn:hover:not(:disabled) {
-    background: #138496;
-}
-
-.refresh-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
 }
 
 .table-wrapper {
@@ -1326,26 +1169,26 @@ const getNavSystemInfo = async () => {
 }
 
 .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
 }
 
 .status-badge.open {
-    background: #d4edda;
-    color: #155724;
+    background: #d1fae5;
+    color: #065f46;
 }
 
 .status-badge.closed {
-    background: #f8d7da;
-    color: #721c24;
+    background: #fee2e2;
+    color: #991b1b;
 }
 
-/* 操作按鈕 */
+/* 操作按鈕 - 加上背景色和圖案 */
 .action-buttons {
     display: flex;
     gap: 8px;
@@ -1353,26 +1196,37 @@ const getNavSystemInfo = async () => {
 }
 
 .action-btn {
-    width: 32px;
-    height: 32px;
+    padding: 6px 12px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 4px;
     transition: all 0.2s ease;
     font-size: 12px;
-}
-
-.edit-btn {
-    background: #28a745;
+    font-weight: 500;
     color: white;
 }
 
+.edit-btn {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
 .edit-btn:hover {
-    background: #218838;
     transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.5);
+}
+
+.toggle-btn {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+.toggle-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.5);
 }
 
 /* 空狀態 */
@@ -1425,6 +1279,10 @@ const getNavSystemInfo = async () => {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+}
+
+.batch-nav-modal {
+    max-width: 600px;
 }
 
 .modal-header {
@@ -1540,7 +1398,8 @@ const getNavSystemInfo = async () => {
 }
 
 .btn-cancel,
-.btn-save {
+.btn-save,
+.btn-execute {
     padding: 12px 24px;
     border: none;
     border-radius: 8px;
@@ -1561,223 +1420,27 @@ const getNavSystemInfo = async () => {
     background: #5a6268;
 }
 
-.btn-save {
+.btn-save,
+.btn-execute {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
 }
 
-.btn-save:hover:not(:disabled) {
+.btn-save:hover:not(:disabled),
+.btn-execute:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.btn-save:disabled {
+.btn-save:disabled,
+.btn-execute:disabled {
     background: #6c757d;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
 }
 
-/* 載入遮罩 */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.loading-overlay p {
-    color: #6c757d;
-    font-weight: 600;
-}
-
-/* 響應式設計 */
-@media (max-width: 768px) {
-    .fund-management-container {
-        padding: 16px;
-    }
-
-    .page-header {
-        flex-direction: column;
-        gap: 20px;
-        text-align: center;
-        padding: 24px;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .search-box {
-        max-width: none;
-    }
-
-    .table-header {
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
-    }
-
-    .table-actions {
-        justify-content: flex-end;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .modal-container {
-        width: 95%;
-        margin: 16px;
-    }
-
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-        padding: 20px;
-    }
-
-    .fund-table th,
-    .fund-table td {
-        padding: 8px 6px;
-        font-size: 12px;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .quick-fill-buttons {
-        grid-template-columns: 1fr;
-    }
-
-    .quick-fill-section {
-        padding: 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    .header-content h2 {
-        font-size: 2rem;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .table-wrapper {
-        font-size: 12px;
-    }
-
-    .fund-name {
-        max-width: 120px;
-    }
-
-    .stat-content p {
-        font-size: 24px;
-    }
-
-    .template-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-
-    .template-name {
-        font-size: 14px;
-    }
-
-    .template-desc {
-        font-size: 12px;
-    }
-}
-
-/* 批量更新淨值按鈕樣式 */
-.batch-nav-btn {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-    font-weight: 600;
-}
-
-.batch-nav-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #218838 0%, #1abc9c 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-}
-
-.batch-nav-btn:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-/* 系統統計按鈕樣式 */
-.system-info-btn {
-    background: #17a2b8;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-}
-
-.system-info-btn:hover:not(:disabled) {
-    background: #138496;
-    transform: translateY(-1px);
-}
-
-.system-info-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* 批量更新淨值彈窗樣式 */
-.batch-nav-modal {
-    max-width: 600px;
-}
-
+/* 批量更新相關樣式 */
 .batch-nav-info {
     display: flex;
     flex-direction: column;
@@ -1865,103 +1528,43 @@ const getNavSystemInfo = async () => {
     line-height: 1.5;
 }
 
-/* 執行按鈕樣式 */
-.btn-execute {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
+/* 載入遮罩 */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-overlay p {
+    color: #6c757d;
     font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-}
-
-.btn-execute:hover:not(:disabled) {
-    background: linear-gradient(135deg, #218838 0%, #1abc9c 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-}
-
-.btn-execute:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-/* 表格操作區域調整 */
-.table-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-/* 響應式設計 */
-@media (max-width: 768px) {
-    .table-actions {
-        justify-content: flex-start;
-        width: 100%;
-    }
-
-    .batch-nav-btn,
-    .system-info-btn,
-    .refresh-btn {
-        font-size: 12px;
-        padding: 6px 12px;
-    }
-
-    .batch-nav-modal {
-        width: 95%;
-        max-width: none;
-    }
-
-    .warning-content {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .info-section,
-    .date-selection,
-    .warning-box {
-        padding: 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    .table-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .batch-nav-btn,
-    .system-info-btn,
-    .refresh-btn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .batch-nav-info {
-        gap: 16px;
-    }
-
-    .info-list {
-        font-size: 14px;
-    }
-
-    .modal-footer {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .btn-cancel,
-    .btn-execute {
-        width: 100%;
-        justify-content: center;
-    }
 }
 </style>

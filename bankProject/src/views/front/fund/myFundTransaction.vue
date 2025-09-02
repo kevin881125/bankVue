@@ -1,3 +1,4 @@
+<!--會員交易紀錄 myFundTransaction.vue - 更新後的樣式 -->
 <template>
   <div class="fund-transaction-container">
     <!-- 載入狀態 -->
@@ -8,61 +9,6 @@
 
     <!-- 主要內容 -->
     <div v-else class="content">
-      <!-- 頁面標題和統計 -->
-      <div class="header-section">
-        <h2 class="page-title">交易紀錄</h2>
-        <div class="stats-bar">
-          <div class="stat-item">
-            <span class="stat-label">總交易筆數</span>
-            <span class="stat-value">{{ transactions.length }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">待審核</span>
-            <span class="stat-value pending">{{ getPendingCount }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">交易成功</span>
-            <span class="stat-value success">{{ getSuccessCount }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 篩選區 -->
-      <div class="filter-section">
-        <div class="filter-group">
-          <label class="filter-label">交易類型</label>
-          <select v-model="filters.tranType" class="filter-select">
-            <option value="">全部</option>
-            <option value="申購">申購</option>
-            <option value="贖回">贖回</option>
-            <option value="定期定額">定期定額</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label class="filter-label">交易狀態</label>
-          <select v-model="filters.status" class="filter-select">
-            <option value="">全部狀態</option>
-            <option value="待審核">待審核</option>
-            <option value="審核中">審核中</option>
-            <option value="交易成功">交易成功</option>
-            <option value="已取消">已取消</option>
-            <option value="失敗">失敗</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label class="filter-label">日期範圍</label>
-          <input type="date" v-model="filters.startDate" class="filter-input" placeholder="開始日期" />
-          <span class="date-separator">至</span>
-          <input type="date" v-model="filters.endDate" class="filter-input" placeholder="結束日期" />
-        </div>
-
-        <div class="filter-actions">
-          <button @click="applyFilters" class="btn-filter">篩選</button>
-          <button @click="clearFilters" class="btn-clear">清除</button>
-        </div>
-      </div>
 
       <!-- 交易表格 -->
       <div class="table-container">
@@ -98,7 +44,7 @@
                 <td class="fund-name">
                   <div class="fund-info">
                     <div class="name">{{ transaction.fund?.fundName || '---' }}</div>
-                    <div class="code">{{ transaction.fund?.fundId || '---' }}</div>
+                    <div class="code">{{ transaction.fund?.fundCode || '---' }}</div>
                   </div>
                 </td>
                 <td class="tran-type">
@@ -109,21 +55,24 @@
                 <td class="amount">
                   <div class="amount-info">
                     <div class="main-amount" :class="getAmountClass(transaction.tranType)">
-                      {{ formatCurrency(transaction.amount) }}
+                      {{ formatCurrencyWithColor(transaction.amount) }}
                     </div>
                   </div>
                 </td>
                 <td class="fee">
-                  {{ transaction.fee ? formatCurrency(transaction.fee) : '---' }}
+                  {{ formatCurrencyWithColor(transaction.fee) }}
                 </td>
                 <td class="nav">
-                  {{ transaction.nav ? formatNav(transaction.nav) : '---' }}
+                  {{ formatNavWithColor(transaction.nav) }}
                 </td>
                 <td class="units">
-                  {{ transaction.units ? formatUnits(transaction.units) : '---' }}
+                  <span :class="getUnitsClass(transaction.tranType)">
+                    {{ formatUnitsWithColor(transaction.units) }}
+                  </span>
                 </td>
                 <td class="status">
                   <span class="status-badge" :class="getStatusClass(transaction.status)">
+                    <span :class="['status-icon', getStatusIcon(transaction.status)]"></span>
                     {{ transaction.status }}
                   </span>
                 </td>
@@ -316,18 +265,21 @@ const formatTime = (dateTime) => {
   })
 }
 
-const formatCurrency = (amount) => {
-  if (!amount || amount === 0) return '$0'
+// 格式化貨幣並添加顏色邏輯
+const formatCurrencyWithColor = (amount) => {
+  if (!amount || amount === 0 || isNaN(amount)) return '---'
   return '$' + Number(amount).toLocaleString('zh-TW')
 }
 
-const formatNav = (nav) => {
-  if (!nav) return '---'
+// 格式化淨值並添加顏色邏輯
+const formatNavWithColor = (nav) => {
+  if (!nav || nav === 0 || isNaN(nav)) return '---'
   return Number(nav).toFixed(4)
 }
 
-const formatUnits = (units) => {
-  if (!units) return '---'
+// 格式化單位數並添加顏色邏輯
+const formatUnitsWithColor = (units) => {
+  if (!units || units === 0 || isNaN(units)) return '---'
   return Number(units).toLocaleString('zh-TW', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 4
@@ -348,15 +300,32 @@ const getAmountClass = (type) => {
   return type === '贖回' ? 'amount-positive' : 'amount-negative'
 }
 
+const getUnitsClass = (type) => {
+  return type === '申購' ? 'units-positive' : 'units-negative'
+}
+
 const getStatusClass = (status) => {
   const classes = {
     '待審核': 'status-pending',
     '審核中': 'status-processing',
     '交易成功': 'status-success',
+    '成功': 'status-success',
     '已取消': 'status-cancelled',
     '失敗': 'status-failed'
   }
   return classes[status] || 'status-unknown'
+}
+
+const getStatusIcon = (status) => {
+  const iconMap = {
+    '待審核': 'mdi mdi-help-circle',
+    '審核中': 'mdi mdi-clock',
+    '交易成功': 'mdi mdi-check-circle',
+    '成功': 'mdi mdi-check-circle',
+    '已取消': 'mdi mdi-close-circle',
+    '失敗': 'mdi mdi-alert-circle'
+  }
+  return iconMap[status] || 'mdi mdi-help-circle'
 }
 
 // 監聽器
@@ -415,135 +384,6 @@ onMounted(() => {
   100% {
     transform: rotate(360deg);
   }
-}
-
-/* 標題區 */
-.header-section {
-  background: white;
-  padding: 25px 30px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.page-title {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 20px 0;
-}
-
-.stats-bar {
-  display: flex;
-  gap: 40px;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.stat-value.pending {
-  color: #ffc107;
-}
-
-.stat-value.success {
-  color: #28a745;
-}
-
-/* 篩選區 */
-.filter-section {
-  background: white;
-  padding: 25px 30px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  align-items: end;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 140px;
-}
-
-.filter-label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #495057;
-}
-
-.filter-select,
-.filter-input {
-  padding: 8px 12px;
-  border: 2px solid #e9ecef;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  transition: border-color 0.3s ease;
-}
-
-.filter-select:focus,
-.filter-input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.date-separator {
-  margin: 0 10px;
-  color: #6c757d;
-  font-weight: 500;
-  align-self: center;
-}
-
-.filter-actions {
-  display: flex;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.btn-filter,
-.btn-clear {
-  padding: 8px 20px;
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-filter {
-  background: #667eea;
-  color: white;
-}
-
-.btn-filter:hover {
-  background: #5a67d8;
-}
-
-.btn-clear {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-clear:hover {
-  background: #5a6268;
 }
 
 /* 表格區 */
@@ -628,7 +468,7 @@ onMounted(() => {
 .fund-info .name {
   font-weight: 500;
   color: #2c3e50;
-  max-width: 150px;
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -672,48 +512,68 @@ onMounted(() => {
 }
 
 .amount-positive {
-  color: #28a745;
+  color: #dc3545 !important;
 }
 
 .amount-negative {
-  color: #dc3545;
+  color: #28a745 !important;
 }
 
+.units-positive {
+  color: #dc3545 !important;
+  font-weight: 600;
+}
+
+.units-negative {
+  color: #28a745 !important;
+  font-weight: 600;
+}
+
+/* 狀態樣式 - 更新為像會員交易紀錄的樣式 */
 .status-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.75rem;
   font-weight: 500;
+  min-width: 80px;
+  justify-content: center;
 }
 
-.status-pending {
-  background: #fff3cd;
+.status-badge.status-pending {
+  background-color: #fff3cd;
   color: #856404;
 }
 
-.status-processing {
-  background: #cce5ff;
+.status-badge.status-processing {
+  background-color: #cce5ff;
   color: #004085;
 }
 
-.status-success {
-  background: #d4edda;
-  color: #155724;
+.status-badge.status-success {
+  background-color: #d1fae5;
+  color: #065f46;
 }
 
-.status-cancelled {
-  background: #f8d7da;
-  color: #721c24;
+.status-badge.status-cancelled {
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
-.status-failed {
-  background: #f5c6cb;
-  color: #721c24;
+.status-badge.status-failed {
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
-.status-unknown {
-  background: #f5f5f5;
-  color: #616161;
+.status-badge.status-unknown {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-icon {
+  font-size: 0.875rem;
 }
 
 .memo-text {
@@ -771,43 +631,5 @@ onMounted(() => {
   font-size: 0.9rem;
   color: #6c757d;
   margin-left: 15px;
-}
-
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .fund-transaction-container {
-    padding: 15px;
-  }
-
-  .filter-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-actions {
-    margin-left: 0;
-    justify-content: flex-start;
-  }
-
-  .stats-bar {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .transaction-table {
-    font-size: 0.85rem;
-  }
-
-  .pagination {
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-
-  .page-info {
-    margin-left: 0;
-    margin-top: 10px;
-    width: 100%;
-    text-align: center;
-  }
 }
 </style>
