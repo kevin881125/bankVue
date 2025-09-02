@@ -568,7 +568,7 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
 
 .table-header {
   display: grid;
-  grid-template-columns: 0.7fr 1fr 1.1fr 0.7fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 0.7fr 1.3fr 1.3fr 0.7fr 1fr 1fr 1fr 1fr;
   gap: 16px;
   padding: 16px 24px;
   background: #f8f9fa;
@@ -584,7 +584,7 @@ watch(() => props.fundAccId, (n) => { if (n) fetchHoldings() })
 
 .table-row {
   display: grid;
-  grid-template-columns: 0.7fr 1fr 1.3fr 0.7fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 0.7fr 1.3fr 1.3fr 0.7fr 1fr 1fr 1fr 1fr;
   gap: 16px;
   padding: 20px 24px;
   border-bottom: 1px solid #f1f3f4;
